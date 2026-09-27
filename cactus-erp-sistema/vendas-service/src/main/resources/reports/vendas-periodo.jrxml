@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Template escrito à mão como XML puro (ver ANÁLISE: MÓDULO DE RELATÓRIOS no CLAUDE.md
+  raiz — fixado no formato clássico do JasperReports 6.x, compatível com Jaspersoft
+  Studio caso o usuário instale a ferramenta depois).
+  Campos ($F{...}) = componentes do record VendaPeriodoItemResponse, convertidos pra
+  Map<String,Object> por ReportEngine (não JRBeanCollectionDataSource — ver Javadoc).
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="vendas-periodo" pageWidth="595" pageHeight="842" columnWidth="535"
+              leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20"
+              uuid="b1e2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d">
+
+    <parameter name="P_TITULO" class="java.lang.String">
+        <defaultValueExpression><![CDATA["Vendas por Período"]]></defaultValueExpression>
+    </parameter>
+    <parameter name="P_PERIODO" class="java.lang.String"/>
+    <parameter name="P_FILTRO" class="java.lang.String"/>
+    <parameter name="P_DATA_GERACAO" class="java.lang.String"/>
+
+    <field name="vendaId" class="java.lang.Long"/>
+    <!-- Convertido de java.time.LocalDate pra java.util.Date pelo ReportEngine — a série
+         6.x do JasperReports não respeita `pattern` em textField pra tipos java.time de
+         forma confiável (achado testando ao vivo), java.util.Date sempre funcionou via
+         SimpleDateFormat. -->
+    <field name="dataVenda" class="java.util.Date"/>
+    <field name="empresaId" class="java.lang.Long"/>
+    <field name="vendedorId" class="java.lang.Long"/>
+    <field name="clienteId" class="java.lang.Long"/>
+    <field name="valorTotal" class="java.math.BigDecimal"/>
+
+    <variable name="V_TOTAL_GERAL" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorTotal}]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="80">
+            <staticText>
+                <reportElement x="0" y="0" width="535" height="24"/>
+                <textElement><font size="16" isBold="true"/></textElement>
+                <text><![CDATA[Cactus ERP]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="26" width="535" height="18"/>
+                <textElement><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{P_TITULO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="46" width="267" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["Período: " + $P{P_PERIODO} + "   |   " + $P{P_FILTRO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="267" y="46" width="268" height="14"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["Gerado em: " + $P{P_DATA_GERACAO}]]></textFieldExpression>
+            </textField>
+            <line><reportElement x="0" y="66" width="535" height="1"/></line>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="70" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Venda]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="70" y="0" width="80" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Data]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="150" y="0" width="80" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Vendedor]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="230" y="0" width="80" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Cliente]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="310" y="0" width="80" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Empresa]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="390" y="0" width="145" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Valor Total]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="16">
+            <textField>
+                <reportElement x="0" y="0" width="70" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["#" + $F{vendaId}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="70" y="0" width="80" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{dataVenda}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="150" y="0" width="80" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["#" + $F{vendedorId}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="230" y="0" width="80" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["#" + $F{clienteId}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="310" y="0" width="80" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["#" + $F{empresaId}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="390" y="0" width="145" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorTotal}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <pageFooter>
+        <band height="20">
+            <textField>
+                <reportElement x="410" y="0" width="125" height="16"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <!-- <summary> precisa vir DEPOIS de <pageFooter> na ordem do XSD clássico do
+         JasperReports (sequência fixa: ...detail, columnFooter, pageFooter,
+         lastPageFooter, summary, noData) — inverter a ordem quebra a validação com
+         "Invalid content... One of 'noData' is expected", achado testando ao vivo. -->
+    <summary>
+        <band height="24">
+            <line><reportElement x="0" y="0" width="535" height="1"/></line>
+            <staticText>
+                <reportElement x="310" y="4" width="80" height="16"/>
+                <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[TOTAL GERAL]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="390" y="4" width="145" height="16"/>
+                <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_GERAL}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+</jasperReport>

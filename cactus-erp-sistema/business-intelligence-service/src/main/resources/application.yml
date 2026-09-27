@@ -1,0 +1,85 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: business-intelligence-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_bi?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${DB_USER:cactus_bi_app}
+    password: ${DB_PASSWORD:cactus_bi_local}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway é o dono do schema PRÓPRIO (cactus_bi) — as 3 fontes de leitura abaixo não
+      # são geridas por JPA/Flyway daqui, são acessadas só via JdbcTemplate (ver
+      # DataSourceLeituraConfig), somente leitura, nunca escritas por este serviço.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${CACTUS_SEGURANCA_JWK_SET_URI:http://localhost:8082/oauth2/jwks}
+      client:
+        # Client de serviço — a única chamada síncrona que este serviço faz: buscar a
+        # Curva ABC já calculada no controle-estoque-service, em vez de duplicar a
+        # classificação A/B/C em SQL bruto (ver CurvaAbcService/CurvaAbcController lá).
+        registration:
+          controle-estoque-service:
+            provider: seguranca-service
+            client-id: business-intelligence-service
+            client-secret: ${CACTUS_SERVICE_CLIENT_SECRET:cactus-service-secret-local-dev}
+            authorization-grant-type: client_credentials
+            scope: internal
+        provider:
+          seguranca-service:
+            token-uri: ${CACTUS_SEGURANCA_TOKEN_URI:http://localhost:8082/oauth2/token}
+
+cactus:
+  clients:
+    controle-estoque-service:
+      base-url: ${CACTUS_ESTOQUE_BASE_URL:http://localhost:8083}
+
+  bi:
+    etl:
+      # Diário às 2h — janela de baixo tráfego. Configurável por ambiente.
+      cron: ${CACTUS_BI_ETL_CRON:0 0 2 * * *}
+    # 3 fontes de leitura somente-leitura — DataSource/JdbcTemplate próprios, sem JPA
+    # (ETL em lote só precisa de SELECT agregando, não de grafo de entidade). Reaproveita
+    # os *_app já provisionados de cada serviço (sem acesso root ao MySQL neste ambiente
+    # pra criar um usuário read-only dedicado — trade-off registrado, não escondido).
+    fontes:
+      cadastro:
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_cadastro?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+        username: ${CACTUS_CADASTRO_DB_USER:cactus_cadastro_app}
+        password: ${CACTUS_CADASTRO_DB_PASSWORD:cactus_cadastro_local}
+      estoque:
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_estoque?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+        username: ${CACTUS_ESTOQUE_DB_USER:cactus_estoque_app}
+        password: ${CACTUS_ESTOQUE_DB_PASSWORD:cactus_estoque_local}
+      compras:
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_compras?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+        username: ${CACTUS_COMPRAS_DB_USER:cactus_compras_app}
+        password: ${CACTUS_COMPRAS_DB_PASSWORD:cactus_compras_local}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    br.com.cactusdigital.erp: INFO

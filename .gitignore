@@ -1,0 +1,30 @@
+# Maven
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Logs
+*.log
+
+# Segredos / chaves locais — nunca versionar
+*.p12
+*.jks
+*.pem
+application-local.yml
+application-local.yaml
+.env
+
+# SO
+.DS_Store
+Thumbs.db
+
+# cactus-pdv é um projeto irmão com repositório git próprio (não faz parte
+# deste repo, não vira submodule) — nunca versionar aqui.
+cactus-pdv/

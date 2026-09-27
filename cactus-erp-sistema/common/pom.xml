@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.1</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>br.com.cactusdigital.erp</groupId>
+  <artifactId>common</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>common</name>
+  <description>Biblioteca compartilhada do Cactus ERP: exceções/erro padrão, entidade base auditável,
+    paginação, e a configuração de Resource Server (validação de JWT) reaproveitada por todo serviço.
+    Não contém regra de negócio de domínio.</description>
+
+  <properties>
+    <java.version>25</java.version>
+    <springdoc.version>3.1.0</springdoc.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <!-- Suporte pra um serviço agir como CLIENTE OAuth2 de outro serviço interno
+           (Client Credentials) — usado por ServiceOAuth2ClientSupport. Primeiro consumidor:
+           gestao-compras-service chamando controle-estoque-service pra gerar ENTRADA no
+           recebimento de compra; reaproveitável por qualquer integração futura
+           serviço-a-serviço (ex: Fase 6, sincronização com o cactus-pdv). O starter (não
+           só o spring-security-oauth2-client cru) é necessário pra trazer a
+           autoconfiguração que resolve ClientRegistrationRepository/
+           OAuth2AuthorizedClientService a partir do application.yml — mesma modularização
+           do Boot 4.1 já vista em Flyway/EntityScan/RestClient.Builder. -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <!-- Jackson 3 (pacote tools.jackson) é o provider de JSON de fato do Boot 4.1 —
+           o BOM do spring-boot-starter-parent gerencia tanto o jackson-bom "tools.jackson"
+           (novo, sem sufixo) quanto o "jackson-2-bom" legado; quando os dois acabam no
+           classpath (ex: o flyway-core já traz Jackson 3 transitivamente), o Boot
+           registra o ObjectMapper gerenciado como tools.jackson.databind.ObjectMapper,
+           não com.fasterxml. Declarar aqui explicitamente em vez de contar com esse
+           transitivo incidental do Flyway — é o ObjectMapper que
+           ApiErrorAuthenticationEntryPoint/ApiErrorAccessDeniedHandler injetam. -->
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <!-- Encoder de log em JSON estruturado (campo por campo: timestamp, nível, logger,
+           mensagem, MDC — inclusive o traceId do CorrelationIdFilter — e stack trace),
+           formato lido nativamente por qualquer stack de observabilidade (ELK, Loki/
+           Grafana, Datadog, CloudWatch). Usado pelo cactus-logback-base.xml. -->
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>8.0</version>
+    </dependency>
+    <dependency>
+      <!-- Engine de relatórios (ReportEngine, common.report) — compila .jrxml (escrito à
+           mão como XML, sem iReport/Jaspersoft Studio neste ambiente — ver ANÁLISE:
+           MÓDULO DE RELATÓRIOS no CLAUDE.md raiz), preenche com uma List<record> via
+           reflexão de bean (java.beans.Introspector já suporta record desde o JDK 16) e
+           exporta PDF/XLSX. Usado por todo serviço que expõe relatório com exportação de
+           arquivo, não só JSON.
+           Fixado na série 6.x DE PROPÓSITO, não a 7.x mais recente: a partir da 7.0 o
+           carregamento de .jrxml passa a usar um loader novo baseado em Jackson
+           (JacksonReportLoader) com um formato de wire DIFERENTE do JRXML clássico
+           (elementos filhos de <band> precisam vir envelopados, não como <staticText>/
+           <textField> direto) — descoberto testando ao vivo, não documentado em lugar
+           nenhum acessível. Esse formato novo não é o que Jaspersoft Studio (nem nenhuma
+           documentação pública de referência) produz ou lê. A série 6.x usa o loader
+           clássico via digester (JRXmlDigesterFactory), que é o formato universalmente
+           documentado e o mesmo que uma ferramenta visual gera/entende — necessário pro
+           requisito de o usuário poder abrir estes .jrxml num Jaspersoft Studio depois. -->
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports</artifactId>
+      <version>6.21.4</version>
+    </dependency>
+    <dependency>
+      <!-- Fontes DejaVu embutidas — evita resolução de fonte dependente do SO no export
+           de PDF (a fonte default do template não existiria num container/servidor sem
+           essas fontes instaladas). -->
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-fonts</artifactId>
+      <version>6.21.4</version>
+    </dependency>
+    <dependency>
+      <!-- Compilador de expressão de relatório (JRJdtCompiler, configurado via
+           jasperreports.properties) — evita depender de com.sun.tools.javac (API interna
+           do JDK, bloqueada por módulo forte sem flag add-opens explícita) pra compilar
+           as expressões $F{...}/$P{...} dos .jrxml em tempo de execução. Puro bytecode
+           Java (Eclipse ECJ por trás), funciona em qualquer JRE. -->
+      <groupId>org.eclipse.jdt</groupId>
+      <artifactId>ecj</artifactId>
+      <version>3.42.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!-- Sem isso, o Maven às vezes não acha o annotation processor do Lombok
+               automaticamente (visto na prática com Java 25) e as anotações
+               (@Getter/@Setter/@SuperBuilder etc.) silenciosamente não fazem nada. -->
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

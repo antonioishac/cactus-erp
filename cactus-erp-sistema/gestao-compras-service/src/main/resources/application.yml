@@ -1,0 +1,78 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: gestao-compras-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_compras?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${DB_USER:cactus_compras_app}
+    password: ${DB_PASSWORD:cactus_compras_local}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway é o dono do schema — Hibernate só valida se o mapeamento das entidades
+      # bate com o que as migrations criaram. Nunca ddl-auto=update/create em nenhum ambiente.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Resource Server puro — quem hospeda o Authorization Server e o JWKS é o
+          # seguranca-service. jwk-set-uri (não issuer-uri) de propósito: não acopla
+          # ordem de subida dos serviços (busca a chave só na primeira validação).
+          jwk-set-uri: ${CACTUS_SEGURANCA_JWK_SET_URI:http://localhost:8082/oauth2/jwks}
+      client:
+        # Este serviço TAMBÉM é cliente OAuth2 de outros serviços internos (Client
+        # Credentials): ao confirmar um recebimento de compra, chama
+        # POST /api/v1/movimentos no controle-estoque-service pra gerar a ENTRADA
+        # correspondente; e ao um PedidoCompra virar RECEBIDO_TOTAL, chama
+        # POST /api/v1/contas-pagar/gerar-de-compra no financeiro-service (fechamento
+        # de pendência, 2026-09-05 — ver FinanceiroClient). Ver ServiceOAuth2ClientSupport
+        # (common) pro porquê de precisar de um AuthorizedClientManager próprio, fora do
+        # fluxo web padrão.
+        registration:
+          controle-estoque-service:
+            provider: seguranca-service
+            client-id: gestao-compras-service
+            client-secret: ${CACTUS_SERVICE_CLIENT_SECRET:cactus-service-secret-local-dev}
+            authorization-grant-type: client_credentials
+            scope: internal
+          financeiro-service:
+            provider: seguranca-service
+            client-id: gestao-compras-service
+            client-secret: ${CACTUS_SERVICE_CLIENT_SECRET:cactus-service-secret-local-dev}
+            authorization-grant-type: client_credentials
+            scope: internal
+        provider:
+          seguranca-service:
+            token-uri: ${CACTUS_SEGURANCA_TOKEN_URI:http://localhost:8082/oauth2/token}
+
+cactus:
+  clients:
+    controle-estoque-service:
+      base-url: ${CACTUS_ESTOQUE_BASE_URL:http://localhost:8083}
+    financeiro-service:
+      base-url: ${CACTUS_FINANCEIRO_BASE_URL:http://localhost:8093}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    br.com.cactusdigital.erp: INFO

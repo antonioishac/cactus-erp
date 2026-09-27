@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Todo o padrão de log vive no common (JSON estruturado em produção, texto legível em
+     local/dev, traceId de correlação em ambos) — ver cactus-logback-base.xml. -->
+<configuration>
+    <include resource="cactus-logback-base.xml"/>
+</configuration>

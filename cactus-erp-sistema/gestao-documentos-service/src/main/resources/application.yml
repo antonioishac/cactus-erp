@@ -1,0 +1,62 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: gestao-documentos-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  servlet:
+    multipart:
+      # Cada TipoDocumento tem o próprio limite (tamanhoMaximoMb), validado na aplicação —
+      # este é só o teto absoluto do container, folga generosa acima do maior TipoDocumento
+      # esperado, pra nunca ser ele quem barra um upload legítimo antes da validação de negócio.
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_ged?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${DB_USER:cactus_ged_app}
+    password: ${DB_PASSWORD:cactus_ged_local}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway é o dono do schema — Hibernate só valida se o mapeamento das entidades
+      # bate com o que as migrations criaram. Nunca ddl-auto=update/create em nenhum ambiente.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Resource Server puro — quem hospeda o Authorization Server e o JWKS é o
+          # seguranca-service. jwk-set-uri (não issuer-uri) de propósito: não acopla
+          # ordem de subida dos serviços (busca a chave só na primeira validação).
+          jwk-set-uri: ${CACTUS_SEGURANCA_JWK_SET_URI:http://localhost:8082/oauth2/jwks}
+
+cactus:
+  ged:
+    storage:
+      # Implementação filesystem do DocumentoStorageService — diretório local onde os
+      # arquivos são gravados, organizados por documentoId/versão. S3/Azure/MinIO ficam
+      # pra quando houver ambiente de produção real com credencial (ver CLAUDE.md).
+      base-path: ${CACTUS_GED_STORAGE_PATH:./data/ged-storage}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    br.com.cactusdigital.erp: INFO

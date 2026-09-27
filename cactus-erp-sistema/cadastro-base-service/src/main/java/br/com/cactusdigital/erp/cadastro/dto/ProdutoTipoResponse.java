@@ -1,0 +1,6 @@
+package br.com.cactusdigital.erp.cadastro.dto;
+
+import br.com.cactusdigital.erp.common.domain.Situacao;
+
+public record ProdutoTipoResponse(Long id, String codigo, String descricao, Situacao situacao) {
+}

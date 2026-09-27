@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Fragmento de log compartilhado por todo serviço do Cactus ERP. Não é lido
+    diretamente pelo Spring Boot (que procura por "logback-spring.xml" na raiz do
+    classpath do próprio serviço) — cada serviço tem seu próprio logback-spring.xml
+    de duas linhas que só faz <include resource="cactus-logback-base.xml"/>, garantindo
+    que todo módulo tenha exatamente o mesmo padrão de log sem copiar/colar XML.
+
+    Dois appenders:
+      - CONSOLE_PLAIN: texto colorido legível no terminal — padrão sempre que nenhum
+        perfil "prod" estiver ativo (é assim que se roda localmente hoje, sem
+        spring.profiles.active nenhum, ver application.yml de cada serviço).
+      - CONSOLE_JSON: JSON estruturado (um objeto por linha), lido nativamente por
+        qualquer stack de observabilidade (ELK, Loki/Grafana, Datadog, CloudWatch) —
+        ativado só com o perfil "prod" (deploy real).
+
+    Em ambos, todo par chave/valor colocado no MDC (ex: traceId do CorrelationIdFilter,
+    httpMetodo/httpStatus/httpDuracaoMs do HttpAccessLogFilter) aparece automaticamente
+    — no JSON como campo próprio, no texto plano via %X{traceId}.
+-->
+<configuration>
+
+    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="cactus-erp"/>
+
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"${serviceName}"}</customFields>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <appender name="CONSOLE_PLAIN" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) [${serviceName}] [%X{traceId}] %logger{36} - %msg%n%throwable</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_PLAIN"/>
+        </root>
+    </springProfile>
+
+    <logger name="br.com.cactusdigital.erp.access" level="INFO" additivity="false">
+        <springProfile name="prod">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </springProfile>
+        <springProfile name="!prod">
+            <appender-ref ref="CONSOLE_PLAIN"/>
+        </springProfile>
+    </logger>
+
+</configuration>

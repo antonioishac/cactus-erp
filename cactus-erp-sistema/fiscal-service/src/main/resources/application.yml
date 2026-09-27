@@ -1,0 +1,77 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: fiscal-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_fiscal?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${DB_USER:cactus_fiscal_app}
+    password: ${DB_PASSWORD:cactus_fiscal_local}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway é o dono do schema — Hibernate só valida se o mapeamento das entidades
+      # bate com o que as migrations criaram. Nunca ddl-auto=update/create em nenhum ambiente.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Resource Server puro — quem hospeda o Authorization Server e o JWKS é o
+          # seguranca-service. jwk-set-uri (não issuer-uri) de propósito: não acopla
+          # ordem de subida dos serviços.
+          jwk-set-uri: ${CACTUS_SEGURANCA_JWK_SET_URI:http://localhost:8082/oauth2/jwks}
+      client:
+        # Este serviço TAMBÉM é cliente OAuth2 (Client Credentials) — pra compor a NF-e a
+        # partir de uma Venda, precisa ler a venda (vendas-service) e cliente/produto/
+        # empresa/transportadora (cadastro-base-service). Uma única registration (mesmo
+        # client-id/secret/escopo pros dois destinos — o token de um client_credentials não
+        # é por-destino) reaproveitada em 2 RestClients com base-url diferente.
+        registration:
+          fiscal-service:
+            provider: seguranca-service
+            client-id: fiscal-service
+            client-secret: ${CACTUS_SERVICE_CLIENT_SECRET:cactus-service-secret-local-dev}
+            authorization-grant-type: client_credentials
+            scope: internal
+        provider:
+          seguranca-service:
+            token-uri: ${CACTUS_SEGURANCA_TOKEN_URI:http://localhost:8082/oauth2/token}
+
+cactus:
+  clients:
+    vendas-service:
+      base-url: ${CACTUS_VENDAS_BASE_URL:http://localhost:8088}
+    cadastro-base-service:
+      base-url: ${CACTUS_CADASTRO_BASE_URL:http://localhost:8081}
+    os-service:
+      base-url: ${CACTUS_OS_BASE_URL:http://localhost:8090}
+    loja-virtual-service:
+      base-url: ${CACTUS_LOJA_VIRTUAL_BASE_URL:http://localhost:8092}
+  # Endereço do ACBr Monitor (processo local, protocolo TCP) — ver common.fiscal.AcbrMonitorClient.
+  acbr:
+    host: ${CACTUS_ACBR_HOST:127.0.0.1}
+    porta: ${CACTUS_ACBR_PORTA:3434}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    br.com.cactusdigital.erp: INFO

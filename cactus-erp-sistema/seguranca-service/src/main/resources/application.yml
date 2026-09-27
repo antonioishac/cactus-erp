@@ -1,0 +1,71 @@
+server:
+  port: 8082
+  servlet:
+    session:
+      # A HttpSession aqui só existe pra sustentar o form login do Authorization Server
+      # (a chain de Resource Server é STATELESS, nunca cria sessão) — é essa mesma sessão
+      # que a renovação silenciosa via prompt=none (cactus-erp-web) depende: sem cookie
+      # de sessão de AS ainda válido, prompt=none não tem como responder sem mostrar o
+      # login. 12h bate com o TTL que o refresh_token teria tido originalmente (ver
+      # CLAUDE.md raiz, "Sessão multi-empresa e refresh_token" / cactus-erp-web/CLAUDE.md,
+      # pendência 0) — sem isso, a sessão do AS expiraria no default de 30min do Spring
+      # Boot, no mesmo instante que o access token, e a renovação silenciosa não teria
+      # mais efeito prático nenhum.
+      timeout: 12h
+
+spring:
+  application:
+    name: seguranca-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    # preserveInstants/connectionTimeZone: recomendação oficial do Spring Authorization
+    # Server para MySQL, garante que os timestamps de token (emissão/expiração) sejam
+    # armazenados corretamente (ver V2__oauth2_authorization_server.sql).
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_seguranca?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: ${DB_USER:cactus_seguranca_app}
+    password: ${DB_PASSWORD:cactus_seguranca_local}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway é o dono do schema — Hibernate só valida se o mapeamento das entidades
+      # bate com o que as migrations criaram. Nunca ddl-auto=update/create em nenhum ambiente.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# Par de chaves RSA usado pelo Authorization Server para assinar os JWTs — só é LIDO
+# quando o perfil "prod" está ativo (ver JwtKeyConfig): sem esse perfil (ou seja, rodando
+# local sem configurar nada) o app gera uma chave RSA efêmera em memória a cada boot, sem
+# precisar de arquivo nenhum. Propositalmente SEM valor default aqui: se alguém ativar
+# "prod" sem configurar as três variáveis de ambiente abaixo, o boot tem que falhar com
+# erro claro ("property X não definida"), não silenciosamente carregar um segredo fraco.
+# Pra testar de propósito o caminho de "prod" localmente: gerar com
+# scripts/gerar-keystore-local.ps1 (keytool, escreve em src/main/resources — fora do
+# controle de versão, ver .gitignore) e exportar JWT_KEYSTORE_PATH/PASSWORD/ALIAS batendo
+# com o que o script gerou antes de subir com --spring.profiles.active=prod. Em produção
+# de verdade, JWT_KEYSTORE_PATH aponta pra um arquivo absoluto vindo de secret manager
+# com prefixo "file:" (ex.: file:/run/secrets/xxx.p12), nunca pra dentro do classpath.
+cactus:
+  security:
+    jwt-keystore:
+      path: ${JWT_KEYSTORE_PATH}
+      password: ${JWT_KEYSTORE_PASSWORD}
+      alias: ${JWT_KEYSTORE_ALIAS}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    br.com.cactusdigital.erp: INFO

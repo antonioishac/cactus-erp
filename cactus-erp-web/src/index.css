@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+/* Layout split-screen da tela de login (LoginPage.tsx) — classes de CSS de
+   verdade, não largura calculada pelo grid do Ant Design (Row/Col em frações
+   de 24), DE PROPÓSITO: precisa bater com exatamente a mesma regra usada em
+   LoginPageController.java (backend, HTML/CSS puro) — são duas páginas
+   diferentes que o usuário vê em sequência no mesmo fluxo, e a proporção do
+   painel escuro divergia entre elas em telas largas (Ant Design Col é % pura,
+   sem teto; o backend já usava um teto de 560px) — o usuário reportou sentir o
+   layout "pular" ao navegar de uma pra outra. Mesmos números nas duas agora. */
+.login-split {
+  min-height: 100vh;
+  display: flex;
+}
+.login-brand-panel {
+  flex: 0 0 42%;
+  max-width: 560px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0 64px;
+}
+.login-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+@media (max-width: 768px) {
+  .login-brand-panel {
+    display: none;
+  }
+}
+
+/* Sidebar (AppSider.tsx), Menu tema dark — achado real, 2026-09-06: quando um
+   submenu (ex: "Business Intelligence") está aberto e contém a rota ativa, o
+   Ant Design aplica a MESMA cor de texto do item FOLHA selecionado
+   (`darkItemSelectedColor`, escolhida pra ficar legível sobre o fundo verde
+   do item folha) ao título do item PAI — só que o pai não tem fundo verde
+   nenhum atrás, então o texto quase preto (#1a1a1a) fica ilegível sobre o
+   fundo escuro do Sider. Não dá pra corrigir só via `ThemeConfig` (o token
+   "certo" pra isso, `subMenuItemSelectedColor`, é sobrescrito internamente
+   pela própria lib — ver comentário em `app/theme/antdTheme.ts`), por isso o
+   override direto aqui. Valor precisa bater com `CACTUS_GREEN` de lá. */
+.ant-layout-sider .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: #8cc63f !important;
+}

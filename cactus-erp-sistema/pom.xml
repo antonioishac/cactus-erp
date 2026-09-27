@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Aggregator raiz do monorepo Cactus ERP.
+
+  Propositalmente SEM <parent> e SEM <dependencyManagement>: cada módulo (common,
+  cadastro-base-service, ...) usa spring-boot-starter-parent diretamente como seu
+  próprio <parent>, o que evita qualquer problema de override de versão gerenciada via
+  import de BOM (ex: flyway-core/flyway-mysql precisarem estar em lockstep). Este pom só
+  serve para o Maven descobrir os módulos e calcular a ordem de build do reactor
+  (ex: "mvn -pl common,cadastro-base-service -am install").
+
+  Nomenclatura dos módulos: sem prefixo "cactus-" — já estamos dentro da pasta
+  cactus-erp-sistema, repetir o prefixo em cada módulo é redundante. Módulos futuros
+  (controle-estoque-service, gestao-compras-service, ged-service, bi-service) entram na
+  lista <modules> conforme cada fase do desenvolvimento começar — não são criados
+  antecipadamente.
+
+  seguranca-service listado antes de cadastro-base-service: não é uma dependência Maven
+  (cada serviço é um artefato deployável independente, nenhum depende do outro em
+  compile-time) — é só a ordem de subida em runtime que importa (Authorization Server
+  de pé antes de qualquer Resource Server validar token de verdade).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>br.com.cactusdigital.erp</groupId>
+  <artifactId>cactus-erp-sistema</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Cactus ERP</name>
+  <description>Monorepo backend do Cactus ERP (Cactus Digital) — módulos em contexto de microsserviços.</description>
+
+  <modules>
+    <module>common</module>
+    <module>seguranca-service</module>
+    <module>cadastro-base-service</module>
+    <module>controle-estoque-service</module>
+    <module>gestao-compras-service</module>
+    <module>gestao-documentos-service</module>
+    <module>business-intelligence-service</module>
+    <module>sincronizacao-service</module>
+    <module>vendas-service</module>
+    <module>fiscal-service</module>
+    <module>os-service</module>
+    <module>crm-service</module>
+    <module>loja-virtual-service</module>
+    <module>financeiro-service</module>
+    <module>contabilidade-service</module>
+  </modules>
+
+</project>
