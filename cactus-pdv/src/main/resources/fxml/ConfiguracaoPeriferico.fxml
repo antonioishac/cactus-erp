@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane fx:id="root" prefHeight="720.0" prefWidth="820.0"
+            styleClass="cp-root"
+            stylesheets="@styles/consulta-produto.css,@styles/operacao-caixa.css"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="br.com.cactuserp.pdv.controllers.ConfiguracaoPerifericoController">
+
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+        <!-- HEADER -->
+        <HBox styleClass="cp-header" alignment="CENTER_LEFT" spacing="14">
+            <FontIcon iconLiteral="mdi2c-cog" iconSize="28" iconColor="white"/>
+            <VBox spacing="2">
+                <Label text="CONFIGURAÇÃO DE PERIFÉRICOS" styleClass="cp-header-titulo"/>
+                <Label text="Balança, impressora térmica, gaveta, TEF e marketing deste caixa"
+                       styleClass="cp-header-sub"/>
+            </VBox>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+            <VBox spacing="16">
+                <padding>
+                    <Insets top="16" right="20" bottom="16" left="20"/>
+                </padding>
+
+                <!-- ============== BALANÇA ============== -->
+                <VBox styleClass="cp-bloco" spacing="10">
+                    <Label text="BALANÇA" styleClass="cp-bloco-titulo"/>
+
+                    <GridPane hgap="14" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50"/>
+                            <ColumnConstraints percentWidth="50"/>
+                        </columnConstraints>
+
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Modelo" styleClass="opcx-label"/>
+                            <ComboBox fx:id="cbModeloBalanca" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label text="Porta serial (ex: COM3)" styleClass="opcx-label"/>
+                            <TextField fx:id="tfPortaBalanca" promptText="COM3"/>
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <Label text="Baud rate" styleClass="opcx-label"/>
+                            <ComboBox fx:id="cbBaudRate" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <Label text="Data bits" styleClass="opcx-label"/>
+                            <TextField fx:id="tfDataBits" promptText="8"/>
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <Label text="Stop bits" styleClass="opcx-label"/>
+                            <ComboBox fx:id="cbStopBits" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <Label text="Paridade" styleClass="opcx-label"/>
+                            <ComboBox fx:id="cbParity" maxWidth="Infinity"/>
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                            <Label text="Handshake" styleClass="opcx-label"/>
+                            <ComboBox fx:id="cbHandShake" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                            <Label text="Timeout (ms)" styleClass="opcx-label"/>
+                            <TextField fx:id="tfTimeout" promptText="2000"/>
+                        </VBox>
+
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2">
+                            <Label text="Máscara do código de barras (peso/valor embutido — ex: 2CCCCCTTTTTTDV)"
+                                   styleClass="opcx-label" wrapText="true"/>
+                            <TextField fx:id="tfTipoConfiguracao" promptText="2CCCCCTTTTTTDV"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+
+                <!-- ============== IMPRESSORA E GAVETA ============== -->
+                <VBox styleClass="cp-bloco" spacing="10">
+                    <Label text="IMPRESSORA TÉRMICA E GAVETA" styleClass="cp-bloco-titulo"/>
+
+                    <VBox spacing="4">
+                        <Label text="Impressora (nome cadastrado no Windows)" styleClass="opcx-label"/>
+                        <ComboBox fx:id="cbNomeImpressora" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <GridPane hgap="14" vgap="10">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="60"/>
+                            <ColumnConstraints percentWidth="40"/>
+                        </columnConstraints>
+                        <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Uso da gaveta de dinheiro" styleClass="opcx-label"/>
+                            <ComboBox fx:id="cbGavetaUtilizacao" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" alignment="BOTTOM_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <CheckBox fx:id="chkGavetaSinalInvertido" text="Sinal invertido"/>
+                        </VBox>
+                    </GridPane>
+                </VBox>
+
+                <!-- ============== TEF ============== -->
+                <VBox styleClass="cp-bloco" spacing="10">
+                    <Label text="TEF HIPERLINK" styleClass="cp-bloco-titulo"/>
+                    <VBox spacing="4">
+                        <Label text="URL do cliente TEF local (PayGo/SiTef Hiperlink)" styleClass="opcx-label"/>
+                        <TextField fx:id="tfTefHiperlinkUrl" promptText="http://localhost:9000/tef"/>
+                    </VBox>
+                </VBox>
+
+                <!-- ============== MARKETING ============== -->
+                <VBox styleClass="cp-bloco" spacing="10">
+                    <Label text="MARKETING NA TELA DE BLOQUEIO" styleClass="cp-bloco-titulo"/>
+                    <VBox spacing="4">
+                        <CheckBox fx:id="chkMarketingAtivo" text="Exibir slideshow de imagens na tela de bloqueio (idle)"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Pasta com as imagens (PNG/JPG/GIF/BMP)" styleClass="opcx-label"/>
+                        <TextField fx:id="tfCaminhoImagensMarketing" promptText="C:\Cactus\marketing"/>
+                    </VBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+
+        <!-- RODAPÉ -->
+        <HBox styleClass="cp-rodape" alignment="CENTER_RIGHT" spacing="10">
+            <padding>
+                <Insets top="10" right="20" bottom="10" left="20"/>
+            </padding>
+            <Button text="Fechar" onAction="#handleFechar"
+                    styleClass="opcx-btn,opcx-btn-cancelar" cancelButton="true"/>
+            <Button text="Salvar" onAction="#handleSalvar"
+                    styleClass="opcx-btn,opcx-btn-confirmar,opcx-btn-confirmar-suprimento"
+                    defaultButton="true"/>
+        </HBox>
+    </VBox>
+</AnchorPane>

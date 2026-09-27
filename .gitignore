@@ -19,12 +19,20 @@ target/
 *.pem
 application-local.yml
 application-local.yaml
+application-local.properties
 .env
 
 # SO
 .DS_Store
 Thumbs.db
 
-# cactus-pdv é um projeto irmão com repositório git próprio (não faz parte
-# deste repo, não vira submodule) — nunca versionar aqui.
-cactus-pdv/
+# cactus-pdv (2026-09-27): decisão revertida — antes era projeto irmão com
+# repositório git próprio, excluído daqui; agora vive dentro deste monorepo,
+# mesmo tratamento do cactus-erp-web (pasta comum, sem submodule). O
+# histórico standalone original foi dobrado pra dentro deste repo (não
+# preservado via subtree — squash simples), e o .git original renomeado pra
+# .git-standalone-backup dentro da própria pasta como cópia de segurança —
+# nunca versionar esse backup nem a pasta de backup irmã criada durante a
+# migração.
+cactus-pdv/.git-standalone-backup/
+cactus-pdv-backup-pre-filter-repo/

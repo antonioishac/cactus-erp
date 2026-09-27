@@ -1,0 +1,566 @@
+
+/* ========================================================================
+   consulta-produto.css
+   Estilos da tela ConsultaProduto.fxml — tela cheia de pesquisa
+   read-only de produtos (acionada via F12 → CONSULTA_PRODUTO).
+   ======================================================================== */
+
+.cp-root {
+    -fx-background-color: #f4f6f9;
+}
+
+/* ---- Header --------------------------------------------------------- */
+.cp-header {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #1a3a6e, #2969c9);
+    -fx-padding: 14 20 14 20;
+}
+
+.cp-header-titulo {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+.cp-header-sub {
+    -fx-text-fill: rgba(255,255,255,0.75);
+    -fx-font-size: 12px;
+}
+
+.cp-header-hint {
+    -fx-text-fill: rgba(255,255,255,0.75);
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Barra de busca ------------------------------------------------- */
+.cp-busca-container {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 4, 0, 0, 1);
+}
+
+.cp-busca-icone {
+    -fx-icon-color: #888;
+}
+
+.cp-busca-input {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #2969c9;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 14 10 14;
+    -fx-font-size: 15px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.cp-busca-input:focused {
+    -fx-border-color: #1a4a8a;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.30), 6, 0, 0, 0);
+}
+
+.cp-busca-contador {
+    -fx-text-fill: #888;
+    -fx-font-size: 12px;
+}
+
+/* ---- Cards genéricos ------------------------------------------------ */
+.cp-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);
+}
+
+.cp-card-titulo {
+    -fx-text-fill: #555;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+/* ---- Tabela --------------------------------------------------------- */
+.cp-tabela {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.cp-tabela .column-header-background {
+    -fx-background-color: #3F423F;
+}
+
+.cp-tabela .column-header {
+    -fx-background-color: transparent;
+    -fx-padding: 8 12 8 12;
+    -fx-border-color: transparent;
+}
+
+.cp-tabela .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.cp-tabela .filler {
+    -fx-background-color: #3F423F;
+}
+
+.cp-tabela .table-cell {
+    -fx-font-size: 13px;
+    -fx-padding: 10 12 10 12;
+    -fx-text-fill: #222;
+}
+
+.cp-tabela .table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+}
+
+.cp-tabela .table-row-cell:odd {
+    -fx-background-color: #fafbfc;
+}
+
+.cp-tabela .table-row-cell:selected {
+    -fx-background-color: #e3edfa;
+}
+
+.cp-tabela .table-row-cell:selected .table-cell {
+    -fx-text-fill: #1a4a8a;
+    -fx-font-weight: bold;
+}
+
+.cp-tabela .table-row-cell:empty {
+    -fx-background-color: transparent;
+}
+
+/* ---- Detalhe scroll ------------------------------------------------- */
+.cp-detalhe-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.cp-detalhe-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ---- Estado vazio --------------------------------------------------- */
+.cp-vazio {
+    -fx-padding: 60 20 60 20;
+}
+
+.cp-vazio-icone {
+    -fx-icon-color: #d0d4dc;
+}
+
+.cp-vazio-titulo {
+    -fx-text-fill: #888;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.cp-vazio-sub {
+    -fx-text-fill: #aaa;
+    -fx-font-size: 12px;
+    -fx-text-alignment: center;
+}
+
+/* ---- Imagem + cabeçalho do produto ---------------------------------- */
+.cp-imagem-container {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 8;
+    -fx-min-width: 120;
+    -fx-min-height: 120;
+    -fx-max-width: 120;
+    -fx-max-height: 120;
+    -fx-alignment: center;
+}
+
+.cp-imagem-emoji {
+    -fx-font-size: 42px;
+}
+
+.cp-nome-produto {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.cp-badge-ativo {
+    -fx-background-color: #2d7a3e;
+    -fx-text-fill: white;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 4;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.cp-badge-inativo {
+    -fx-background-color: #888;
+    -fx-text-fill: white;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 4;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.cp-codigos {
+    -fx-text-fill: #555;
+    -fx-font-size: 12px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.cp-desc {
+    -fx-text-fill: #666;
+    -fx-font-size: 12px;
+}
+
+/* ---- Blocos de informação ------------------------------------------- */
+.cp-bloco {
+    -fx-background-color: #f8f9fa;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14 12 14;
+    -fx-border-color: #e9eef5;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.cp-bloco-titulo {
+    -fx-text-fill: #555;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.8px;
+}
+
+.cp-bloco-label {
+    -fx-text-fill: #777;
+    -fx-font-size: 12px;
+}
+
+.cp-bloco-valor {
+    -fx-text-fill: #222;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Preço de venda destacado --------------------------------------- */
+.cp-preco-venda {
+    -fx-text-fill: #1a4a8a;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.cp-preco-meta {
+    -fx-text-fill: #888;
+    -fx-font-size: 12px;
+}
+
+/* ---- Status de estoque ---------------------------------------------- */
+.cp-status-ok {
+    -fx-text-fill: #2d7a3e;
+}
+
+.cp-status-baixo {
+    -fx-text-fill: #c9901e;
+}
+
+.cp-status-zero {
+    -fx-text-fill: #c9523a;
+}
+
+/* ---- Bloco de faixas (visual mais forte) ---------------------------- */
+.cp-bloco-faixas {
+    -fx-background-color: #f0f7e8;
+    -fx-border-color: #d4ebc7;
+}
+
+.cp-bloco-titulo-faixas {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.8px;
+}
+
+.cp-faixa-linha {
+    -fx-padding: 6 8 6 8;
+    -fx-background-color: white;
+    -fx-background-radius: 4;
+    -fx-alignment: center-left;
+}
+
+.cp-faixa-rotulo {
+    -fx-text-fill: #c9724f;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.cp-faixa-qtd {
+    -fx-text-fill: #888;
+    -fx-font-size: 11px;
+}
+
+.cp-faixa-valor {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.cp-faixa-economia {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 11px;
+}
+
+/* ---- Rodapé --------------------------------------------------------- */
+.cp-rodape {
+    -fx-background-color: #2d2d2d;
+}
+
+.cp-rodape-texto {
+    -fx-text-fill: rgba(255,255,255,0.75);
+    -fx-font-size: 11px;
+}
+
+
+.cc2-card-info {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.cc2-info-label {
+    -fx-text-fill: #888;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+.cc2-info-titulo {
+    -fx-text-fill: #222;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.cc2-info-sub {
+    -fx-text-fill: #888;
+    -fx-font-size: 11px;
+}
+
+/* ----- Card grande da conferência ----- */
+.cc2-card-conferencia {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+/* ----- Header preto da tabela ----- */
+.cc2-tabela-header {
+    -fx-background-color: #3F423F;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.cc2-header-label {
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+.cc2-header-label-right {
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+    -fx-alignment: center-right;
+}
+
+/* ----- Linha padrão (cartão, pix etc) ----- */
+.cc2-linha {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #f0f0f0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.cc2-linha:hover {
+    -fx-background-color: #fafbfc;
+}
+
+/* ----- Linha do DINHEIRO (destaque amarelinho + borda lateral laranja) ----- */
+.cc2-linha-dinheiro {
+    -fx-background-color: #fefef8;
+    -fx-border-color: transparent transparent #f0f0e8 #c9901e;
+    -fx-border-width: 0 0 1 4;
+}
+
+.cc2-linha-dinheiro:hover {
+    -fx-background-color: #fdfdf0;
+}
+
+/* ----- Texto da linha ----- */
+.cc2-linha-nome {
+    -fx-text-fill: #222;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.cc2-linha-dica {
+    -fx-text-fill: #888;
+    -fx-font-size: 11px;
+}
+
+.cc2-linha-esperado {
+    -fx-text-fill: #555;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+/* ----- Input contado (forma padrão) ----- */
+.cc2-input-contado {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 12 10 12;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.cc2-input-contado:focused {
+    -fx-border-color: #2969c9;
+    -fx-border-width: 2;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.20), 4, 0, 0, 0);
+}
+
+/* ----- Input contado DINHEIRO (destaque azul forte) ----- */
+.cc2-input-contado-dinheiro {
+    -fx-background-color: white;
+    -fx-border-color: #2969c9;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 12 10 12;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.25), 6, 0, 0, 0);
+}
+
+.cc2-input-contado-dinheiro:focused {
+    -fx-border-color: #1a4a8a;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.45), 8, 0, 0, 0);
+}
+
+/* ----- Divergência ----- */
+.cc2-linha-divergencia {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.cc2-div-ok {
+    -fx-text-fill: #2d7a3e;
+}
+
+.cc2-div-positiva {
+    -fx-text-fill: #c9901e; /* sobra de caixa */
+}
+
+.cc2-div-negativa {
+    -fx-text-fill: #c9523a; /* falta de caixa */
+}
+
+/* ----- Linha de total ----- */
+.cc2-total-linha {
+    -fx-background-color: #f0f3f7;
+    -fx-border-color: #d0d4dc transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+    -fx-background-radius: 0 0 8 8;
+}
+
+.cc2-total-label {
+    -fx-text-fill: #1a4a8a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+.cc2-total-valor {
+    -fx-text-fill: #1a4a8a;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+/* ----- Vazio (sem movimentação) ----- */
+.cc2-vazio-label {
+    -fx-text-fill: #888;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+/* ----- Observação ----- */
+.cc2-observacao {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+}
+
+.cc2-observacao .content {
+    -fx-background-color: transparent;
+}
+
+.cc2-observacao:focused {
+    -fx-border-color: #2969c9;
+    -fx-border-width: 2;
+}
+
+/* ----- Botões ----- */
+.cc2-btn-confirmar {
+    -fx-background-color: #2d7a3e;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 22 10 22;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.cc2-btn-confirmar:hover {
+    -fx-background-color: #246330;
+}
+
+.cc2-btn-confirmar:focused {
+    -fx-effect: dropshadow(gaussian, rgba(45,122,62,0.45), 8, 0, 0, 0);
+}
+
+.cc2-btn-secundario {
+    -fx-background-color: #6a6a6a;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.cc2-btn-secundario:hover {
+    -fx-background-color: #555;
+}
+
+.cc2-btn-secundario:focused {
+    -fx-effect: dropshadow(gaussian, rgba(106,106,106,0.45), 8, 0, 0, 0);
+}

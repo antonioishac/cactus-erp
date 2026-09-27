@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane fx:id="root" prefHeight="800.0" prefWidth="1280.0"
+            styleClass="cp-root"
+            stylesheets="@styles/consulta-produto.css"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.ConsultaProdutoController">
+
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+        <!-- ============================================== -->
+        <!--  HEADER AZUL                                   -->
+        <!-- ============================================== -->
+        <HBox styleClass="cp-header" alignment="CENTER_LEFT" spacing="14">
+            <FontIcon iconLiteral="mdi2p-package-variant" iconSize="28" iconColor="white"/>
+            <VBox spacing="2">
+                <Label text="CONSULTA DE PRODUTO" styleClass="cp-header-titulo"/>
+                <Label text="Pesquise, consulte preço, estoque, faixas de atacado"
+                       styleClass="cp-header-sub"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="ESC para voltar" styleClass="cp-header-hint"/>
+        </HBox>
+
+        <!-- ============================================== -->
+        <!--  BARRA DE BUSCA                                -->
+        <!-- ============================================== -->
+        <HBox styleClass="cp-busca-container" spacing="10" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="14" right="20" bottom="14" left="20"/>
+            </padding>
+            <FontIcon iconLiteral="mdi2m-magnify" iconSize="20" styleClass="cp-busca-icone"/>
+            <TextField fx:id="tfBusca" styleClass="cp-busca-input"
+                       promptText="Bipe, digite código, EAN ou descrição..."
+                       HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblContador" text="" styleClass="cp-busca-contador"/>
+        </HBox>
+
+        <!-- ============================================== -->
+        <!--  CORPO — 2 colunas (lista + detalhe)           -->
+        <!-- ============================================== -->
+        <GridPane VBox.vgrow="ALWAYS" hgap="12">
+            <padding>
+                <Insets bottom="14" left="14" right="14" top="6"/>
+            </padding>
+            <columnConstraints>
+                <ColumnConstraints percentWidth="40"/>
+                <ColumnConstraints percentWidth="60"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints vgrow="ALWAYS"/>
+            </rowConstraints>
+
+            <!-- ===================================== -->
+            <!--  ESQUERDA: lista de resultados        -->
+            <!-- ===================================== -->
+            <VBox styleClass="cp-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <Label text="RESULTADOS" styleClass="cp-card-titulo">
+                    <VBox.margin>
+                        <Insets bottom="6" left="14" right="14" top="14"/>
+                    </VBox.margin>
+                </Label>
+                <TableView fx:id="tabelaProdutos" styleClass="cp-tabela" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colCodigo" prefWidth="70" minWidth="60" text="CÓD"/>
+                        <TableColumn fx:id="colDescricao" prefWidth="200" minWidth="120" text="DESCRIÇÃO"/>
+                        <TableColumn fx:id="colPreco" prefWidth="80" minWidth="80" text="PREÇO"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- ===================================== -->
+            <!--  DIREITA: detalhe do produto          -->
+            <!-- ===================================== -->
+            <ScrollPane fitToWidth="true" styleClass="cp-detalhe-scroll"
+                        GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <VBox fx:id="painelDetalhe" styleClass="cp-card" spacing="14">
+                    <padding>
+                        <Insets top="14" right="14" bottom="14" left="14"/>
+                    </padding>
+
+                    <!-- Estado vazio: nenhum produto selecionado -->
+                    <VBox fx:id="estadoVazio" alignment="CENTER" spacing="10"
+                          styleClass="cp-vazio">
+                        <FontIcon iconLiteral="mdi2p-package-variant" iconSize="64"
+                                  styleClass="cp-vazio-icone"/>
+                        <Label text="Pesquise um produto"
+                               styleClass="cp-vazio-titulo"/>
+                        <Label text="Os detalhes aparecem aqui quando você selecionar um item"
+                               styleClass="cp-vazio-sub" wrapText="true"/>
+                    </VBox>
+
+                    <!-- Conteúdo do detalhe (escondido inicialmente) -->
+                    <VBox fx:id="painelInfo" spacing="14" visible="false" managed="false">
+
+                        <!-- Cabeçalho do produto: imagem + nome + códigos -->
+                        <HBox spacing="16" alignment="CENTER_LEFT">
+                            <StackPane styleClass="cp-imagem-container">
+                                <ImageView fx:id="imageViewProduto" fitWidth="120" fitHeight="120"
+                                           preserveRatio="true"/>
+                                <Label fx:id="lblEmoji" text="📦" styleClass="cp-imagem-emoji"
+                                       visible="false" managed="false"/>
+                            </StackPane>
+
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label fx:id="lblNomeProduto" text="—" styleClass="cp-nome-produto"/>
+                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                    <Label fx:id="lblBadgeSituacao" text="ATIVO" styleClass="cp-badge-ativo"/>
+                                </HBox>
+                                <Label fx:id="lblCodigos" text="—" styleClass="cp-codigos"/>
+                                <Label fx:id="lblDescricaoCompleta" text="—" styleClass="cp-desc"
+                                       wrapText="true"/>
+                            </VBox>
+                        </HBox>
+
+                        <!-- Bloco PREÇO -->
+                        <VBox styleClass="cp-bloco" spacing="6">
+                            <Label text="PREÇO" styleClass="cp-bloco-titulo"/>
+                            <HBox spacing="20" alignment="BASELINE_LEFT">
+                                <Label fx:id="lblPrecoVenda" text="R$ 0,00" styleClass="cp-preco-venda"/>
+                                <Label text="por unidade" styleClass="cp-preco-meta"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Bloco ESTOQUE -->
+                        <VBox styleClass="cp-bloco" spacing="6">
+                            <Label text="ESTOQUE" styleClass="cp-bloco-titulo"/>
+                            <GridPane hgap="20" vgap="4">
+                                <columnConstraints>
+                                    <ColumnConstraints/>
+                                    <ColumnConstraints/>
+                                </columnConstraints>
+                                <Label text="Atual:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Label fx:id="lblEstoqueAtual" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                <Label text="Mínimo:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <Label fx:id="lblEstoqueMinimo" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                <Label text="Status:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <Label fx:id="lblEstoqueStatus" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                            </GridPane>
+                        </VBox>
+
+                        <!-- Bloco FAIXAS DE ATACADO (esconde quando vazio) -->
+                        <VBox fx:id="blocoFaixas" styleClass="cp-bloco,cp-bloco-faixas" spacing="6"
+                              visible="false" managed="false">
+                            <Label text="FAIXAS DE ATACADO" styleClass="cp-bloco-titulo-faixas"/>
+                            <VBox fx:id="containerFaixas" spacing="4"/>
+                        </VBox>
+
+                        <!-- Bloco INFO FISCAL -->
+                        <VBox styleClass="cp-bloco" spacing="6">
+                            <Label text="INFO FISCAL" styleClass="cp-bloco-titulo"/>
+                            <GridPane hgap="20" vgap="4">
+                                <columnConstraints>
+                                    <ColumnConstraints/>
+                                    <ColumnConstraints/>
+                                </columnConstraints>
+                                <Label text="NCM:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Label fx:id="lblNcm" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                                <Label text="CEST:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <Label fx:id="lblCest" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                                <Label text="CST/CSOSN:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <Label fx:id="lblCst" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                                <Label text="Alíq ICMS:" styleClass="cp-bloco-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                <Label fx:id="lblAliqIcms" text="—" styleClass="cp-bloco-valor"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                            </GridPane>
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </GridPane>
+
+        <!-- ============================================== -->
+        <!--  RODAPÉ                                        -->
+        <!-- ============================================== -->
+        <HBox styleClass="cp-rodape" alignment="CENTER_LEFT" spacing="20">
+            <padding>
+                <Insets top="10" right="20" bottom="10" left="20"/>
+            </padding>
+            <Label text="↑↓ Navegar  ·  ENTER Selecionar  ·  ESC Voltar"
+                   styleClass="cp-rodape-texto"/>
+        </HBox>
+    </VBox>
+</AnchorPane>

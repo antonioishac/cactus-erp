@@ -1,0 +1,30 @@
+/* style.css */
+
+.main-container {
+    -fx-background-color: #4CAF50;
+}
+
+.barra-superior {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #F8F8FF 70%, #A8E6A1 100%);
+    -fx-background-radius: 20 0 20 0; /* Canto inferior direito arredondado */
+    -fx-border-radius: 0 20 20 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0.5, 2, 2);
+    -fx-margin-bottom: 20px;
+}
+
+.barra-descricao {
+    -fx-margin: 30 30 30 30;
+    -fx-padding: 12 15 12 15;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #F8F8FF 70%, white 100%);
+    -fx-background-radius: 20 20 20 20; /* Canto inferior direito arredondado */
+    -fx-border-radius: 0 20 20 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0.5, 2, 2);
+
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+    -fx-alignment: center;
+
+    -fx-font-family: "Segoe UI";
+
+}

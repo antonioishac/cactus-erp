@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.RelatorioZController"
+      styleClass="relz-root"
+      spacing="12"
+      stylesheets="@../fxml/styles/relatorio-z.css">
+
+    <!-- ============== CABEÇALHO ============== -->
+    <VBox styleClass="relz-header" alignment="CENTER" spacing="2">
+        <Label text="Fechamento de Caixa — Relatório Z" styleClass="relz-header-titulo"/>
+        <Label fx:id="lblInfoMovimento" text="—" styleClass="relz-header-info"/>
+    </VBox>
+
+    <!-- ============== BLOCO VENDAS ============== -->
+    <VBox styleClass="relz-bloco" spacing="4">
+        <Label text="VENDAS" styleClass="relz-bloco-titulo"/>
+
+        <HBox>
+            <Label text="Total bruto" styleClass="relz-linha-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblVendasBruto" text="R$ 0,00" styleClass="relz-linha-valor"/>
+        </HBox>
+        <HBox>
+            <Label text="(-) Cancelamentos" styleClass="relz-linha-label,relz-linha-label-saida"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblCancelamentos" text="R$ 0,00"
+                   styleClass="relz-linha-valor,relz-linha-valor-saida"/>
+        </HBox>
+        <HBox styleClass="relz-linha-total">
+            <Label text="(=) Total líquido" styleClass="relz-linha-total-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblTotalLiquido" text="R$ 0,00" styleClass="relz-linha-total-valor"/>
+        </HBox>
+    </VBox>
+
+    <!-- ============== BLOCO FORMAS DE PAGAMENTO (placeholder p/ item 7) ============== -->
+    <VBox styleClass="relz-bloco" spacing="4">
+        <HBox>
+            <Label text="VENDAS POR FORMA DE PAGAMENTO" styleClass="relz-bloco-titulo"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="aguardando item 7" styleClass="relz-aviso-pendente"/>
+        </HBox>
+        <HBox>
+            <Label text="Dinheiro" styleClass="relz-linha-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="—" styleClass="relz-linha-valor-vazio"/>
+        </HBox>
+        <HBox>
+            <Label text="Cartão Crédito" styleClass="relz-linha-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="—" styleClass="relz-linha-valor-vazio"/>
+        </HBox>
+        <HBox>
+            <Label text="Cartão Débito" styleClass="relz-linha-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="—" styleClass="relz-linha-valor-vazio"/>
+        </HBox>
+        <HBox>
+            <Label text="Pix" styleClass="relz-linha-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label text="—" styleClass="relz-linha-valor-vazio"/>
+        </HBox>
+    </VBox>
+
+    <!-- ============== BLOCO MOVIMENTO DE CAIXA ============== -->
+    <VBox styleClass="relz-bloco" spacing="4">
+        <Label text="MOVIMENTO DE CAIXA" styleClass="relz-bloco-titulo"/>
+
+        <HBox>
+            <Label text="(+) Fundo inicial" styleClass="relz-linha-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblFundoInicial" text="R$ 0,00" styleClass="relz-linha-valor"/>
+        </HBox>
+        <HBox>
+            <Label text="(+) Suprimentos" styleClass="relz-linha-label,relz-linha-label-positivo"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblSuprimentos" text="R$ 0,00"
+                   styleClass="relz-linha-valor,relz-linha-valor-positivo"/>
+        </HBox>
+        <HBox>
+            <Label text="(-) Sangrias" styleClass="relz-linha-label,relz-linha-label-negativo"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblSangrias" text="R$ 0,00"
+                   styleClass="relz-linha-valor,relz-linha-valor-negativo"/>
+        </HBox>
+        <HBox styleClass="relz-linha-total">
+            <Label text="Saldo esperado em caixa" styleClass="relz-saldo-esperado-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblSaldoEsperado" text="R$ 0,00" styleClass="relz-saldo-esperado-valor"/>
+        </HBox>
+    </VBox>
+
+    <!-- ============== BLOCO CONFERÊNCIA (entrada do operador) ============== -->
+    <VBox styleClass="relz-conferencia" spacing="6">
+        <Label text="CONFERÊNCIA" styleClass="relz-conferencia-titulo"/>
+
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="Valor físico contado no caixa:" styleClass="relz-conferencia-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="tfValorFisico" promptText="0,00"
+                       styleClass="relz-input-valor" prefWidth="160"/>
+        </HBox>
+
+        <HBox styleClass="relz-divergencia-container">
+            <Label text="Divergência:" styleClass="relz-divergencia-label"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblDivergencia" text="aguardando valor…"
+                   styleClass="relz-divergencia-valor-aguardando"/>
+        </HBox>
+    </VBox>
+
+    <!-- ============== BOTÕES ============== -->
+    <GridPane hgap="10">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <Button fx:id="btnCancelar"
+                text="[ESC] Cancelar"
+                onAction="#handleCancelar"
+                styleClass="relz-btn,relz-btn-cancelar"
+                maxWidth="Infinity"
+                cancelButton="true"
+                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+        <Button fx:id="btnConfirmar"
+                text="Fechar Movimento"
+                onAction="#handleConfirmar"
+                styleClass="relz-btn,relz-btn-confirmar"
+                maxWidth="Infinity"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    </GridPane>
+
+</VBox>

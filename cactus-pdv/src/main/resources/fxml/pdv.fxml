@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.PdvViewController"
+            styleClass="pdv-container">
+
+    <top>
+        <HBox styleClass="header-bar" spacing="20" alignment="CENTER_LEFT">
+            <padding>
+                <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+            </padding>
+
+            <Label text="PDV System - Frente de Caixa" styleClass="header-title">
+                <font>
+                    <Font name="System Bold" size="18.0" />
+                </font>
+            </Label>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Label text="Operador: Admin" styleClass="user-info" />
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="20">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+
+            <!-- Input de Código -->
+            <HBox spacing="15" alignment="CENTER_LEFT" styleClass="input-section">
+                <Label text="Código do Produto:" styleClass="input-label">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="codigoField" promptText="Digite ou escaneie o código"
+                           styleClass="codigo-field" prefWidth="300" />
+                <Button fx:id="adicionarButton" text="ADICIONAR" styleClass="add-button" />
+            </HBox>
+
+            <!-- Tabela de Itens -->
+            <TableView fx:id="itensTable" styleClass="items-table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="codigoColumn" text="Código" prefWidth="100" />
+                    <TableColumn fx:id="nomeColumn" text="Produto" prefWidth="400" />
+                    <TableColumn fx:id="precoColumn" text="Preço Unit." prefWidth="120" />
+                    <TableColumn fx:id="quantidadeColumn" text="Qtd" prefWidth="80" />
+                    <TableColumn fx:id="subtotalColumn" text="Subtotal" prefWidth="120" />
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+
+    <bottom>
+        <VBox styleClass="footer-section">
+            <HBox styleClass="total-section" alignment="CENTER_RIGHT">
+                <padding>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                </padding>
+
+                <Label fx:id="totalLabel" text="TOTAL: R$ 0,00" styleClass="total-label">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
+            </HBox>
+
+            <HBox spacing="20" alignment="CENTER" styleClass="action-buttons">
+                <padding>
+                    <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
+                </padding>
+
+                <Button fx:id="cancelarButton" text="CANCELAR VENDA" styleClass="cancel-button"
+                        prefWidth="200" prefHeight="50" />
+                <Button fx:id="finalizarButton" text="FINALIZAR VENDA" styleClass="finish-button"
+                        prefWidth="200" prefHeight="50" />
+            </HBox>
+        </VBox>
+    </bottom>
+</BorderPane>

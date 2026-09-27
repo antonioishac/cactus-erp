@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<!--
+    PesquisarProdutos.fxml — popup de pesquisa de produto por nome (F11),
+    usado por Pdv4Controller/LancamentoMesaController/LancamentoComandaController
+    pra achar um produto (com ou sem etiqueta/GTIN, vendido por peso ou não)
+    e devolver o código pronto pro campo de busca do PDV.
+
+    Layout padronizado (2026-08-23) com ConsultaProduto.fxml — mesmas
+    classes cp-*/cc2-* de consulta-produto.css, em vez de um CSS próprio.
+-->
+
+<AnchorPane fx:id="root" prefHeight="600.0" prefWidth="950.0"
+            styleClass="cp-root"
+            stylesheets="@styles/consulta-produto.css"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.PesquisaProdutoController">
+
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+        <!-- HEADER -->
+        <HBox styleClass="cp-header" alignment="CENTER_LEFT" spacing="14">
+            <FontIcon iconLiteral="mdi2m-magnify" iconSize="26" iconColor="white"/>
+            <VBox spacing="2">
+                <Label text="PESQUISAR PRODUTO" styleClass="cp-header-titulo"/>
+                <Label text="Busque por nome — funciona com produto de etiqueta (GTIN) ou vendido por peso"
+                       styleClass="cp-header-sub"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="ESC / F10 para voltar" styleClass="cp-header-hint"/>
+        </HBox>
+
+        <!-- BARRA DE BUSCA -->
+        <HBox styleClass="cp-busca-container" spacing="10" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="14" right="20" bottom="14" left="20"/>
+            </padding>
+            <FontIcon iconLiteral="mdi2m-magnify" iconSize="20" styleClass="cp-busca-icone"/>
+            <TextField fx:id="tfDescricao" styleClass="cp-busca-input"
+                       promptText="Digite o nome do produto..."
+                       HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblContador" text="" styleClass="cp-busca-contador"/>
+        </HBox>
+
+        <!-- TABELA -->
+        <VBox styleClass="cp-card" VBox.vgrow="ALWAYS">
+            <VBox.margin>
+                <Insets top="10" right="14" bottom="14" left="14"/>
+            </VBox.margin>
+            <TableView fx:id="tblProdutos" styleClass="cp-tabela" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="codigoColumn" prefWidth="150" minWidth="120" text="CÓDIGO"/>
+                    <TableColumn fx:id="descricaoColumn" prefWidth="440" minWidth="200" text="DESCRIÇÃO"/>
+                    <TableColumn fx:id="unidadeColumn" prefWidth="110" minWidth="90" text="UNIDADE"/>
+                    <TableColumn fx:id="precoColumn" prefWidth="120" minWidth="100" text="PREÇO"/>
+                </columns>
+            </TableView>
+        </VBox>
+
+        <!-- RODAPÉ -->
+        <HBox styleClass="cp-rodape" alignment="CENTER_LEFT" spacing="20">
+            <padding>
+                <Insets top="10" right="20" bottom="10" left="20"/>
+            </padding>
+            <Label text="↑↓ Navegar  ·  ENTER ou duplo-clique Selecionar  ·  ESC/F10 Voltar"
+                   styleClass="cp-rodape-texto"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Fechar" onAction="#handleFechar" styleClass="cc2-btn-secundario" cancelButton="true"/>
+        </HBox>
+    </VBox>
+</AnchorPane>

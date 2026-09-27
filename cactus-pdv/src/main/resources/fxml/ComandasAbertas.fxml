@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane fx:id="root" prefHeight="800.0" prefWidth="1280.0"
+            styleClass="cp-root"
+            stylesheets="@styles/salao-mesas.css"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.ComandasAbertasController">
+
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+        <!-- HEADER -->
+        <HBox styleClass="cp-header" alignment="CENTER_LEFT" spacing="14">
+            <FontIcon iconLiteral="mdi2r-receipt" iconSize="28" iconColor="white"/>
+            <VBox spacing="2">
+                <Label text="COMANDAS" styleClass="cp-header-titulo"/>
+                <Label text="Digite o código pra abrir nova ou selecione uma comanda aberta"
+                       styleClass="cp-header-sub"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblOperador" text="" styleClass="cp-header-hint"/>
+            <Label text="·" styleClass="cp-header-hint"/>
+            <Label text="ESC para voltar" styleClass="cp-header-hint"/>
+        </HBox>
+
+        <!-- TOOLBAR -->
+        <HBox styleClass="sm-toolbar" alignment="CENTER_LEFT" spacing="20">
+            <padding>
+                <Insets top="14" right="20" bottom="14" left="20"/>
+            </padding>
+
+            <VBox spacing="2">
+                <Label text="CÓDIGO DA COMANDA" styleClass="sm-label-busca"/>
+                <TextField fx:id="tfCodigo"
+                           promptText="Digite e ENTER (abre nova OU continua)"
+                           styleClass="sm-input-busca" prefWidth="320"/>
+            </VBox>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Legenda -->
+            <HBox spacing="14" alignment="CENTER_LEFT">
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Region styleClass="sm-legenda-ocupada"/>
+                    <Label text="Aberta" styleClass="sm-legenda-texto"/>
+                </HBox>
+                <HBox spacing="6" alignment="CENTER_LEFT">
+                    <Region styleClass="sm-legenda-atendimento"/>
+                    <Label text="Em atendimento" styleClass="sm-legenda-texto"/>
+                </HBox>
+            </HBox>
+        </HBox>
+
+        <!-- CORPO -->
+        <ScrollPane fitToWidth="true" styleClass="cp-detalhe-scroll" VBox.vgrow="ALWAYS">
+            <VBox fx:id="containerComandas" spacing="10">
+                <padding>
+                    <Insets top="18" right="24" bottom="18" left="24"/>
+                </padding>
+                <!-- Grid montado dinamicamente pelo controller -->
+            </VBox>
+        </ScrollPane>
+
+        <!-- RODAPÉ -->
+        <HBox styleClass="cp-rodape" alignment="CENTER_LEFT" spacing="20">
+            <padding>
+                <Insets top="10" right="20" bottom="10" left="20"/>
+            </padding>
+            <Label text="Código+ENTER Abrir/Continuar  ·  ↑↓←→ Navegar cards  ·  ENTER no card Continuar  ·  F5 Atualizar  ·  ESC Voltar"
+                   styleClass="cp-rodape-texto"/>
+        </HBox>
+    </VBox>
+</AnchorPane>

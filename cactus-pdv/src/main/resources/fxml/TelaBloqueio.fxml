@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<!--
+    TelaBloqueio.fxml — tela cheia mostrada quando o operador
+    bloqueia o PDV (F12 -> Bloquear).
+
+    Cobre toda a tela impedindo qualquer interação com o PDV
+    debaixo. Só destrava com senha do próprio operador OU
+    de um gerente/supervisor.
+-->
+
+<StackPane xmlns="http://javafx.com/javafx/24.0.1"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="br.com.cactuserp.pdv.controllers.TelaBloqueioController"
+           styleClass="bloqueio-root">
+
+    <!--
+        Slideshow de marketing (fase 8, MarketingService) — fica atrás do
+        card, sem imagem/invisível quando não configurado (visible=false
+        por padrão, controller decide se ativa). preserveRatio=false pra
+        cobrir a tela toda; smooth/cache melhoram a troca entre imagens.
+    -->
+    <ImageView fx:id="ivMarketing" preserveRatio="false" smooth="true" cache="true" visible="false"/>
+
+    <VBox alignment="CENTER" spacing="24" styleClass="bloqueio-card">
+        <padding>
+            <Insets top="40" right="60" bottom="40" left="60"/>
+        </padding>
+
+        <!-- Cadeado grande -->
+        <StackPane styleClass="bloqueio-icone-circulo">
+            <FontIcon iconLiteral="mdi2l-lock" iconSize="60" styleClass="bloqueio-icone"/>
+        </StackPane>
+
+        <!-- Título -->
+        <Label text="PDV BLOQUEADO" styleClass="bloqueio-titulo"/>
+
+        <!-- Info do operador que bloqueou -->
+        <VBox alignment="CENTER" spacing="4">
+            <Label text="Bloqueado por" styleClass="bloqueio-label"/>
+            <Label fx:id="lblNomeOperador" text="—" styleClass="bloqueio-operador-nome"/>
+            <Label fx:id="lblHoraBloqueio" text="às --:--" styleClass="bloqueio-hora"/>
+        </VBox>
+
+        <!-- Campo de senha -->
+        <VBox alignment="CENTER" spacing="6" maxWidth="320">
+            <Label text="Digite sua senha para desbloquear" styleClass="bloqueio-label"/>
+            <PasswordField fx:id="tfSenha" styleClass="bloqueio-input-senha"
+                           promptText="Senha"/>
+            <Label fx:id="lblMensagemErro" text="" styleClass="bloqueio-erro"
+                   visible="false" managed="false"/>
+        </VBox>
+
+        <!-- Hint -->
+        <Label text="Para desbloquear: senha do operador acima ou de um gerente/supervisor"
+               styleClass="bloqueio-hint" wrapText="true" maxWidth="380"/>
+
+        <!-- Hora atual grande (passa o tempo) -->
+        <HBox alignment="CENTER" spacing="6" styleClass="bloqueio-rodape">
+            <FontIcon iconLiteral="mdi2c-clock-outline" iconSize="14" styleClass="bloqueio-rodape-icone"/>
+            <Label fx:id="lblRelogio" text="--:--:--" styleClass="bloqueio-relogio"/>
+        </HBox>
+    </VBox>
+</StackPane>

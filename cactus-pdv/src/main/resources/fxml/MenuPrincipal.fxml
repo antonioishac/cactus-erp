@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    MenuPrincipal.fxml
+    Tela acionada pelo F12 do PDV. Layout estático apenas para o cabeçalho
+    e as áreas de cada seção. Os botões são montados dinamicamente pelo
+    MenuPrincipalController a partir do enum MenuPrincipalItem.
+-->
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.MenuPrincipalController"
+      styleClass="menu-root"
+      spacing="14"
+      stylesheets="@../fxml/styles/menu-principal.css">
+
+    <!-- ============== CABEÇALHO ============== -->
+    <HBox styleClass="menu-header" alignment="CENTER_LEFT" spacing="14">
+        <HBox alignment="CENTER_LEFT" spacing="14" HBox.hgrow="ALWAYS">
+            <Label text="Menu Principal" styleClass="menu-header-titulo"/>
+            <Label fx:id="lblBadgeStatus" styleClass="badge-status" text="Movimento aberto"/>
+        </HBox>
+        <Label fx:id="lblHeaderInfo" styleClass="menu-header-info"
+               text="—"/>
+    </HBox>
+
+    <!-- ============== SEÇÃO CAIXA ============== -->
+    <VBox spacing="10">
+        <Label text="Caixa" styleClass="menu-secao-rotulo" maxWidth="Infinity"/>
+        <GridPane fx:id="gridCaixa" hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+            </columnConstraints>
+        </GridPane>
+    </VBox>
+
+    <!-- ============== SEÇÃO CUPOM ============== -->
+    <VBox spacing="10">
+        <Label text="Cupom" styleClass="menu-secao-rotulo" maxWidth="Infinity"/>
+        <GridPane fx:id="gridCupom" hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+            </columnConstraints>
+        </GridPane>
+    </VBox>
+
+    <!-- ============== SEÇÃO SISTEMA ============== -->
+    <VBox spacing="10">
+        <Label text="Sistema" styleClass="menu-secao-rotulo" maxWidth="Infinity"/>
+        <GridPane fx:id="gridSistema" hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+                <ColumnConstraints percentWidth="25"/>
+            </columnConstraints>
+        </GridPane>
+    </VBox>
+
+    <!-- ============== RODAPÉ ============== -->
+    <Label text="[ESC] Voltar ao PDV" styleClass="menu-rodape" maxWidth="Infinity"/>
+
+</VBox>

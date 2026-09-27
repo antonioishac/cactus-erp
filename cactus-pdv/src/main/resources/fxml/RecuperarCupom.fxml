@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.RecuperarCupomController"
+      styleClass="recup-root"
+      spacing="16"
+      stylesheets="@styles/RecuperarCupom.css">
+
+    <!-- ============== CABEÇALHO DE ALERTA ============== -->
+    <HBox styleClass="recup-header" alignment="CENTER" spacing="10">
+        <FontIcon iconLiteral="mdi2a-alert" iconSize="22" iconColor="#633806"/>
+        <Label text="Cupom em aberto encontrado" styleClass="recup-header-titulo"/>
+    </HBox>
+
+    <!-- ============== DESCRIÇÃO ============== -->
+    <HBox styleClass="recup-descricao">
+        <Label styleClass="recup-descricao-texto"
+               wrapText="true"
+               maxWidth="Infinity"
+               HBox.hgrow="ALWAYS"
+               text="Foi encontrado um cupom em andamento neste caixa. Provavelmente o sistema foi encerrado de forma inesperada. Decida o que fazer com ele antes de prosseguir."/>
+    </HBox>
+
+    <!-- ============== MINI-CARDS COM DADOS ============== -->
+    <GridPane hgap="10" vgap="10">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <VBox styleClass="recup-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <Label text="CUPOM Nº" styleClass="recup-card-label"/>
+            <Label fx:id="lblNumeroCupom" text="—" styleClass="recup-card-valor">
+                <padding><Insets top="2"/></padding>
+            </Label>
+        </VBox>
+
+        <VBox styleClass="recup-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <Label text="ABERTO ÀS" styleClass="recup-card-label"/>
+            <Label fx:id="lblHoraAbertura" text="—" styleClass="recup-card-valor">
+                <padding><Insets top="2"/></padding>
+            </Label>
+        </VBox>
+
+        <VBox styleClass="recup-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <Label text="ITENS" styleClass="recup-card-label"/>
+            <Label fx:id="lblQtdItens" text="—" styleClass="recup-card-valor">
+                <padding><Insets top="2"/></padding>
+            </Label>
+        </VBox>
+
+        <VBox styleClass="recup-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <Label text="TOTAL ACUMULADO" styleClass="recup-card-label"/>
+            <Label fx:id="lblTotalAcumulado" text="R$ 0,00" styleClass="recup-card-valor-destaque">
+                <padding><Insets top="2"/></padding>
+            </Label>
+        </VBox>
+    </GridPane>
+
+    <!-- ============== BOTÕES DE AÇÃO ============== -->
+    <GridPane hgap="10">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <Button fx:id="btnRetomar"
+                onAction="#handleRetomar"
+                styleClass="recup-btn,recup-btn-retomar"
+                maxWidth="Infinity"
+                defaultButton="true"
+                GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <graphic>
+                <VBox alignment="CENTER" spacing="6" mouseTransparent="true">
+                    <FontIcon iconLiteral="mdi2r-rotate-right" iconSize="26" iconColor="white"/>
+                    <Label text="Retomar Cupom" styleClass="recup-btn-titulo"/>
+                    <Label text="[Enter]" styleClass="recup-btn-hint,recup-btn-hint-retomar"/>
+                </VBox>
+            </graphic>
+        </Button>
+
+        <Button fx:id="btnCancelar"
+                onAction="#handleCancelar"
+                styleClass="recup-btn,recup-btn-cancelar"
+                maxWidth="Infinity"
+                GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <graphic>
+                <VBox alignment="CENTER" spacing="6" mouseTransparent="true">
+                    <FontIcon iconLiteral="mdi2r-receipt-text-remove" iconSize="26" iconColor="#f7c1c1"/>
+                    <Label text="Cancelar Cupom" styleClass="recup-btn-titulo"/>
+                    <Label text="Gerente / Supervisor" styleClass="recup-btn-hint,recup-btn-hint-cancelar"/>
+                </VBox>
+            </graphic>
+        </Button>
+    </GridPane>
+
+</VBox>

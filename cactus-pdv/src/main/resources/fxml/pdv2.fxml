@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="800.0" prefWidth="1280.0" styleClass="fundo" stylesheets="@styles/Dasboard.css" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.cactuserp.pdv.controllers.PdvController">
+   <AnchorPane fx:id="overlayPane" pickOnBounds="false" visible="false" />
+<!--   <padding>-->
+<!--      <Insets bottom="14.0" left="14.0" right="14.0" top="14.0" />-->
+<!--   </padding>-->
+
+   <!-- Header -->
+   <AnchorPane prefHeight="73.0" prefWidth="1232.0" stylesheets="@styles/Dasboard.css">
+      <styleClass>
+         <String fx:value="account" />
+         <String fx:value="account_gradient" />
+      </styleClass>
+      <Label id="lblDescricao" fx:id="lblDescricao" alignment="CENTER" styleClass="account_balance" text="Amaciante Confort 2L" AnchorPane.bottomAnchor="17.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="17.0">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+      <VBox.margin>
+         <Insets left="10.0" right="10.0" top="10.0" />
+      </VBox.margin>
+   </AnchorPane>
+
+   <!-- Main Content Area -->
+   <HBox spacing="5.0" VBox.vgrow="ALWAYS">
+      <VBox.margin>
+         <Insets top="5.0" />
+      </VBox.margin>
+      <VBox prefHeight="556.0" prefWidth="865.0" styleClass="list_container" VBox.vgrow="ALWAYS">
+         <TableView fx:id="tblItems" prefHeight="461.0" prefWidth="892.0" VBox.vgrow="ALWAYS">
+            <placeholder>
+               <VBox alignment="CENTER" prefHeight="501.0" prefWidth="841.0" stylesheets="@styles/Dasboard.css">
+                  <ImageView fitHeight="278.0" fitWidth="274.0" preserveRatio="true">
+                     <Image url="@images/cactus.jpg" />
+                  </ImageView>
+               </VBox>
+            </placeholder>
+           <columns>
+              <TableColumn fx:id="itemColumn" prefWidth="57.0" resizable="false" text="Item" />
+              <TableColumn fx:id="codigoColumn" prefWidth="130.0" styleClass="column-table" text="Codigo" />
+              <TableColumn fx:id="descricaoColumn" prefWidth="333.0" styleClass="column-table" text="Descriçao" />
+              <TableColumn fx:id="qtdeColumn" prefWidth="83.0" styleClass="column-table" text="Qtde" />
+              <TableColumn fx:id="valorUnitarioColumn" prefWidth="113.0" styleClass="column-table" text="Valor Unitario" />
+              <TableColumn fx:id="valorTotalColumn" prefWidth="154.0" styleClass="column-table" text="Valor Total" />
+           </columns>
+         </TableView>
+      </VBox>
+
+      <!-- Center - Form Fields -->
+      <VBox prefHeight="472.0" prefWidth="375.0" spacing="10.0" styleClass="central_container" HBox.hgrow="SOMETIMES" VBox.vgrow="ALWAYS">
+         <VBox prefHeight="100.0" prefWidth="375.0" styleClass="central_container">
+            <VBox.margin>
+               <Insets bottom="10.0" />
+            </VBox.margin>
+            <Label prefWidth="73.0" styleClass="label-verde" text="Código:">
+               <font>
+                  <Font size="18.0" />
+               </font>
+               <VBox.margin>
+                  <Insets top="20.0" />
+               </VBox.margin>
+            </Label>
+            <TextField id="tfCodigo" fx:id="tfCodigo" alignment="CENTER_RIGHT" onAction="#addProduct" prefHeight="45.0" prefWidth="375.0" text="7890987789098">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+               <VBox.margin>
+                  <Insets top="10.0" />
+               </VBox.margin>
+            </TextField>
+         </VBox>
+         <HBox prefHeight="82.0" prefWidth="375.0" styleClass="central_container">
+            <VBox prefHeight="116.0" prefWidth="224.0">
+               <Label styleClass="label-verde" text="Quantidade:">
+                  <font>
+                     <Font size="18.0" />
+                  </font>
+                  <VBox.margin>
+                     <Insets bottom="10.0" />
+                  </VBox.margin>
+               </Label>
+               <TextField id="tfQtde" fx:id="tfQtde" alignment="CENTER_RIGHT" onAction="#focusProduct" text="1,000" HBox.hgrow="ALWAYS">
+                  <font>
+                     <Font name="System Bold" size="20.0" />
+                  </font>
+                  <VBox.margin>
+                     <Insets right="10.0" />
+                  </VBox.margin>
+               </TextField>
+            </VBox>
+            <VBox prefHeight="124.0" prefWidth="201.0" HBox.hgrow="ALWAYS">
+               <Label styleClass="label-verde" text="Valor Unitario:">
+                  <font>
+                     <Font size="18.0" />
+                  </font>
+                  <VBox.margin>
+                     <Insets bottom="10.0" />
+                  </VBox.margin>
+               </Label>
+               <TextField id="tfValorUnitario" fx:id="tfValorUnitario" alignment="CENTER_RIGHT" text="15,75" HBox.hgrow="ALWAYS">
+                  <font>
+                     <Font name="System Bold" size="20.0" />
+                  </font>
+               </TextField>
+            </VBox>
+         </HBox>
+         <Label styleClass="label-verde" text="Valor Total:">
+            <font>
+               <Font size="18.0" />
+            </font>
+         </Label>
+         <TextField id="tfValorTotal" fx:id="tfValorTotal" alignment="CENTER_RIGHT" prefHeight="45.0" prefWidth="375.0" text="15,75">
+            <font>
+               <Font name="System Bold" size="20.0" />
+            </font>
+         </TextField>
+         <Label styleClass="label-verde" text="Subtotal:">
+            <font>
+               <Font size="18.0" />
+            </font>
+            <VBox.margin>
+               <Insets top="10.0" />
+            </VBox.margin>
+         </Label>
+         <TextField id="tfCodigo" fx:id="tfSubTotal" alignment="CENTER_RIGHT" onAction="#addProduct" prefHeight="45.0" prefWidth="375.0" text="0,00">
+            <font>
+               <Font name="System Bold" size="20.0" />
+            </font>
+         </TextField>
+         <Pane prefHeight="85.0" prefWidth="375.0">
+            <Label fx:id="lblCliente" layoutY="61.0" prefHeight="21.0" prefWidth="375.0" text="Cliente: Keli Ishac" />
+            <Label fx:id="lblCaixa" layoutY="4.0" prefHeight="21.0" prefWidth="198.0" text="Caixa: 001" />
+            <Label fx:id="lblOperador" alignment="CENTER_RIGHT" layoutX="206.0" layoutY="4.0" prefHeight="21.0" prefWidth="169.0" text="Operador 235" />
+            <Label fx:id="lblCpfCliente" layoutY="32.0" prefHeight="21.0" prefWidth="375.0" text="CPF: 305.848.158-67" />
+         </Pane>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+         <HBox.margin>
+            <Insets right="7.0" />
+         </HBox.margin>
+      </VBox>
+   </HBox>
+
+   <!-- Bottom Section -->
+   <HBox spacing="14.0">
+      <VBox.margin>
+         <Insets top="10.0" />
+      </VBox.margin>
+
+      <!-- Total Geral -->
+      <VBox prefHeight="100.0" prefWidth="382.0" styleClass="new_trans_container_bottom" HBox.hgrow="ALWAYS">
+         <Label styleClass="label-verde" text="Total Geral:">
+            <font>
+               <Font size="18.0" />
+            </font>
+         </Label>
+         <TextField id="tfTotalGeral" fx:id="tfTotalGeral" alignment="CENTER_RIGHT" prefHeight="55.0" prefWidth="534.0" text="15,75">
+            <font>
+               <Font name="System Bold" size="26.0" />
+            </font>
+            <VBox.margin>
+               <Insets right="-10.0" />
+            </VBox.margin>
+         </TextField>
+      </VBox>
+
+      <!-- Messages -->
+      <VBox prefHeight="100.0" prefWidth="401.0" styleClass="new_trans_container_bottom" HBox.hgrow="ALWAYS">
+         <Label styleClass="label-verde" text="Mensagens:">
+            <VBox.margin>
+               <Insets left="2.0" />
+            </VBox.margin></Label>
+         <TextField id="tfMensagem" fx:id="tfMensagem" alignment="CENTER" prefHeight="49.0" prefWidth="715.0" text="Venda em Andamento...">
+            <font>
+               <Font name="System Bold" size="18.0" />
+            </font>
+            <VBox.margin>
+               <Insets left="2.0" right="5.0" />
+            </VBox.margin>
+         </TextField>
+      </VBox>
+   </HBox>
+
+   <!-- Function Keys Footer -->
+   <StackPane alignment="BOTTOM_CENTER" maxHeight="71.0" prefHeight="71.0" VBox.vgrow="NEVER">
+      <VBox fx:id="rootRodape" maxHeight="71.0" maxWidth="1252.0">
+         <VBox.margin>
+            <Insets top="14.0" />
+         </VBox.margin>
+
+         <!-- First Row of Function Keys -->
+         <HBox prefHeight="71.0" prefWidth="1252.0">
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/tab_client_icon-icons.com_72436.png" />
+            </ImageView>
+            <Label id="lblIdentificarCliente" fx:id="lblIdentificarCliente" prefHeight="58.0" prefWidth="179.0" text="F1 - Identificar Cliente" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/menu-square-button_icon-icons.com_73216.png" />
+            </ImageView>
+            <Label id="lblMenuPrincipal" fx:id="lblMenuPrincipal" prefHeight="36.0" prefWidth="169.0" text="F2 - Menu Principal" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/3643771-configuration-configure-gear-set-setting_113449.png" />
+            </ImageView>
+            <Label id="lblQtde" fx:id="lblQtde" prefHeight="36.0" prefWidth="180.0" text="F3 - Quantidade" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/bank_bill_finance_invoice_money_payment_receipt_icon_123239.png" />
+            </ImageView>
+            <Label id="lblMenuFiscal" fx:id="lblMenuFiscal" prefHeight="35.0" prefWidth="173.0" text="F4 - Menu Fiscal" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/3507744-bill-iconoteka-money-payment-receipt_107665.png" />
+            </ImageView>
+            <Label id="lblDadosNf" fx:id="lblDadosNf" prefHeight="34.0" prefWidth="181.0" text="F5 - Dados NF" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/feature_search_outline_icon_139039.png" />
+            </ImageView>
+            <Label id="lblPesqProduto" fx:id="lblPesqProduto" prefHeight="34.0" prefWidth="134.0" text="F6 - Pesq. Produto" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="10.0" />
+               </padding>
+            </Label>
+         </HBox>
+
+         <!-- Second Row of Function Keys -->
+         <HBox prefHeight="51.0">
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/pay_day_finance_calendar_business_salary_payment_icon_232650.png" />
+            </ImageView>
+            <Label id="lblEncerrarVenda" fx:id="lblEncerrarVenda" contentDisplay="CENTER" prefHeight="33.0" prefWidth="181.0" text="F7 - Encerrar Venda" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/shopping-cart-cancel-button_icon-icons.com_56130.png" />
+            </ImageView>
+            <Label id="lblCancelarItem" fx:id="lblCancelarItem" prefHeight="36.0" prefWidth="167.0" text="F8 - Cancelar Item" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/cancelform_85913.png" />
+            </ImageView>
+            <Label id="lblCancelarCupom" fx:id="lblCancelarCupom" prefHeight="36.0" prefWidth="181.0" text="F9 - Cancelar Cupom" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/finance_accounting_analysis_report_statement_financial_icon_262772.png" />
+            </ImageView>
+            <Label id="lblDescontoAcrescimo" fx:id="lblDescontoAcrescimo" prefHeight="33.0" prefWidth="171.0" text="F10 - Desconto/Acrescimo" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/employee_solid_icon_235377.png" />
+            </ImageView>
+            <Label id="lblIdentificarVendedor" fx:id="lblIdentificarVendedor" prefHeight="36.0" prefWidth="185.0" text="F11 - Identificar Vendedor" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+
+            <ImageView fitHeight="36.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@../images/exit_icon_143788.png" />
+            </ImageView>
+            <Label id="lblSairCaixa" fx:id="lblSairCaixa" prefHeight="36.0" prefWidth="127.0" text="F12 - Sair do Caixa" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <padding>
+                  <Insets left="5.0" />
+               </padding>
+            </Label>
+            <VBox.margin>
+               <Insets bottom="5.0" top="5.0" />
+            </VBox.margin>
+         </HBox>
+         <StackPane.margin>
+            <Insets />
+         </StackPane.margin>
+      </VBox>
+   </StackPane>
+</VBox>

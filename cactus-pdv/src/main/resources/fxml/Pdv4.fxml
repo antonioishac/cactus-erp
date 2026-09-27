@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane fx:id="root" prefHeight="800.0" prefWidth="1280.0"
+            styleClass="pdv-root"
+            stylesheets="@styles/CactusPdv.css,@../fxml/styles/pdv-frente-caixa.css"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.Pdv4Controller">
+
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+        <!-- ============================================== -->
+        <!--  HEADER AZUL — Info da venda                   -->
+        <!-- ============================================== -->
+        <HBox styleClass="pdv-header" alignment="CENTER_LEFT">
+            <VBox spacing="2">
+                <Label text="VENDA Nº" styleClass="pdv-header-label"/>
+                <Label fx:id="lblHeaderVenda" text="#1024 · Caixa Livre" styleClass="pdv-header-venda"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox spacing="30" alignment="CENTER_RIGHT">
+                <VBox spacing="2">
+                    <Label text="OPERADOR" styleClass="pdv-header-label"/>
+                    <Label fx:id="lblHeaderOperador" text="—" styleClass="pdv-header-valor"/>
+                </VBox>
+                <VBox spacing="2">
+                    <Label text="PDV" styleClass="pdv-header-label"/>
+                    <Label fx:id="lblHeaderPdv" text="—" styleClass="pdv-header-valor"/>
+                </VBox>
+                <VBox spacing="2">
+                    <Label text="HORA" styleClass="pdv-header-label"/>
+                    <Label fx:id="lblHeaderHora" text="--:--:--" styleClass="pdv-header-hora"/>
+                </VBox>
+            </HBox>
+        </HBox>
+
+        <!-- ============================================== -->
+        <!--  BANNER MODO RESTRITO (escondido normalmente)  -->
+        <!-- ============================================== -->
+        <HBox fx:id="bannerModoRestrito" styleClass="pdv-banner-restrito"
+              alignment="CENTER" visible="false" managed="false" spacing="10">
+            <VBox.margin>
+                <Insets left="12" right="12" top="12"/>
+            </VBox.margin>
+            <FontIcon iconLiteral="mdi2a-alert" iconSize="20" iconColor="white"/>
+            <Label text="Nenhum movimento de caixa aberto. Pressione F12 para abrir o menu."
+                   styleClass="pdv-banner-restrito-texto"/>
+        </HBox>
+
+        <!-- ============================================== -->
+        <!--  CORPO PRINCIPAL — 2 colunas (esquerda + direita) -->
+        <!-- ============================================== -->
+        <GridPane hgap="12" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets bottom="12" left="12" right="12" top="12"/>
+            </padding>
+            <columnConstraints>
+                <ColumnConstraints percentWidth="72"/>
+                <ColumnConstraints percentWidth="28"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints vgrow="ALWAYS"/>
+            </rowConstraints>
+
+            <!-- ============================================== -->
+            <!--  COLUNA ESQUERDA                               -->
+            <!-- ============================================== -->
+            <VBox spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
+
+                <!-- Card do último item bipado -->
+                <HBox fx:id="cardUltimoItem" styleClass="pdv-card-ultimo-item,pdv-card-ultimo-item-varejo"
+                      spacing="16" alignment="CENTER_LEFT" visible="false" managed="false">
+
+                    <!-- Imagem (ou emoji genérico se não houver) -->
+                    <StackPane styleClass="pdv-card-imagem">
+                        <ImageView fx:id="imageViewProduto" fitWidth="80" fitHeight="80" preserveRatio="true"/>
+                        <Label fx:id="lblImagemEmoji" text="📦" styleClass="pdv-card-imagem-emoji"
+                               visible="false" managed="false"/>
+                    </StackPane>
+
+                    <!-- Info do produto -->
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label fx:id="lblCardBadgeAtacado" text="ATACADO"
+                                   styleClass="pdv-badge-atacado"
+                                   visible="false" managed="false"/>
+                            <Label fx:id="lblCardMeta" text="—" styleClass="pdv-card-meta"/>
+                        </HBox>
+                        <Label fx:id="lblCardTitulo" text="—" styleClass="pdv-card-titulo"/>
+                        <Label fx:id="lblCardEconomia" text="" styleClass="pdv-card-economia"
+                               visible="false" managed="false"/>
+                    </VBox>
+
+                    <!-- Total do item -->
+                    <VBox spacing="2" alignment="CENTER_RIGHT">
+                        <Label fx:id="lblCardQtdXPreco" text="—" styleClass="pdv-card-qtd-x-preco"/>
+                        <Label fx:id="lblCardTotal" text="R$ 0,00" styleClass="pdv-card-total,pdv-card-total-varejo"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Área vazia (quando não há produtos) -->
+                <VBox fx:id="areaVazia" styleClass="pdv-area-vazia" alignment="CENTER" spacing="14"
+                      VBox.vgrow="ALWAYS">
+                    <FontIcon iconLiteral="mdi2b-barcode-scan" iconSize="64" iconColor="#aaaaaa"/>
+                    <Label text="Caixa Livre" styleClass="pdv-area-vazia-titulo"/>
+                    <Label text="Bipe ou digite o código de um produto para iniciar a venda"
+                           styleClass="pdv-area-vazia-subtitulo"/>
+                </VBox>
+
+                <!-- Tabela de itens (escondida quando vazia) -->
+                <TableView fx:id="tabelaItens" styleClass="pdv-tabela"
+                           visible="false" managed="false"
+                           VBox.vgrow="ALWAYS"
+                           maxHeight="Infinity"
+                           minHeight="0">
+                    <columns>
+                        <TableColumn fx:id="seqColumn" prefWidth="70" minWidth="70" text="SEQ"/>
+                        <TableColumn fx:id="produtoColumn" prefWidth="380" minWidth="200" text="PRODUTO"/>
+                        <TableColumn fx:id="qtdColumn" prefWidth="100" minWidth="80" text="QTD"/>
+                        <TableColumn fx:id="vlrUnidadeColumn" prefWidth="130" minWidth="100" text="VLR UNIT"/>
+                        <TableColumn fx:id="vlrTotalColumn" prefWidth="150" minWidth="120" text="TOTAL"/>
+                    </columns>
+                </TableView>
+
+                <!--
+                    Input de código + quantidade. Produto vendido por peso
+                    (ex: bananas soltas, sem etiqueta) NÃO tem campo/botão
+                    próprio — bipar/digitar o código de balança (se tiver)
+                    ou achar por nome (F11) e apertar ENTER já pesa na
+                    balança automaticamente, ver Pdv4Controller.addProduct/
+                    abrirPesquisaProduto/adicionarProdutoResolvido. PDV não
+                    pode depender de mouse — sem botão dedicado de propósito.
+                -->
+                <GridPane styleClass="pdv-input-container" hgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="75"/>
+                        <ColumnConstraints percentWidth="25"/>
+                    </columnConstraints>
+                    <VBox spacing="4" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <Label text="CÓDIGO / EAN" styleClass="pdv-input-label"/>
+                        <TextField fx:id="tfCampoBusca" styleClass="pdv-input-codigo"
+                                   onAction="#addProduct" promptText="Bipe, digite o código ou F11 pra buscar por nome..."/>
+                    </VBox>
+                    <VBox spacing="4" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <Label text="QUANTIDADE" styleClass="pdv-input-label"/>
+                        <TextField fx:id="tfQuantidade" styleClass="pdv-input-quantidade" text="1"/>
+                    </VBox>
+                </GridPane>
+
+            </VBox>
+
+            <!-- ============================================== -->
+            <!--  COLUNA DIREITA                                -->
+            <!-- ============================================== -->
+            <VBox spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
+
+                <!-- Card Total a Pagar -->
+                <VBox styleClass="pdv-card-total-pagar" spacing="4">
+                    <Label text="TOTAL A PAGAR" styleClass="pdv-card-total-pagar-label"/>
+                    <Label fx:id="lblTotal" text="R$ 0,00" styleClass="pdv-card-total-pagar-valor"/>
+                    <Label fx:id="lblTotalMeta" text="0 itens · 0 unidades" styleClass="pdv-card-total-pagar-meta"/>
+                </VBox>
+
+                <!-- Card Economia (esconde quando zero) -->
+                <VBox fx:id="cardEconomia" styleClass="pdv-card-economia" spacing="2"
+                      visible="false" managed="false">
+                    <HBox spacing="6" alignment="CENTER_LEFT">
+                        <FontIcon iconLiteral="mdi2c-cash-multiple" iconSize="14" iconColor="white"/>
+                        <Label text="ECONOMIA NO ATACADO" styleClass="pdv-card-economia-label"/>
+                    </HBox>
+                    <Label fx:id="lblEconomia" text="R$ 0,00" styleClass="pdv-card-economia-valor"/>
+                </VBox>
+
+                <!-- Card Resumo -->
+                <VBox styleClass="pdv-card-resumo" spacing="6">
+                    <HBox>
+                        <Label text="Subtotal:" styleClass="pdv-resumo-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblSubtotal" text="R$ 0,00" styleClass="pdv-resumo-valor"/>
+                    </HBox>
+                    <HBox fx:id="linhaDesconto" visible="false" managed="false">
+                        <Label text="(-) Desconto:" styleClass="pdv-resumo-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblDesconto" text="R$ 0,00" styleClass="pdv-resumo-valor"/>
+                    </HBox>
+                    <HBox fx:id="linhaAcrescimo" visible="false" managed="false">
+                        <Label text="(+) Acréscimo:" styleClass="pdv-resumo-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblAcrescimo" text="R$ 0,00" styleClass="pdv-resumo-valor"/>
+                    </HBox>
+                    <HBox>
+                        <Label text="Itens:" styleClass="pdv-resumo-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblQtdItems" text="0" styleClass="pdv-resumo-valor"/>
+                    </HBox>
+                    <HBox>
+                        <Label text="Unidades:" styleClass="pdv-resumo-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblQtdProdutos" text="0" styleClass="pdv-resumo-valor"/>
+                    </HBox>
+                    <HBox fx:id="linhaCancelados" visible="false" managed="false">
+                        <Label text="Cancelados:" styleClass="pdv-resumo-cancelados-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblQtdCancelados" text="0" styleClass="pdv-resumo-cancelados-valor"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Card Cliente -->
+                <HBox styleClass="pdv-card-cliente" spacing="12" alignment="CENTER_LEFT">
+                    <StackPane styleClass="pdv-cliente-avatar">
+                        <FontIcon iconLiteral="mdi2a-account" iconSize="22"
+                                  styleClass="pdv-cliente-avatar-icone"/>
+                    </StackPane>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="CLIENTE" styleClass="pdv-cliente-label"/>
+                        <Label fx:id="lblNomeCliente" text="Consumidor" styleClass="pdv-cliente-nome"/>
+                        <Label fx:id="lblCpfCnpjCliente" text="CPF/CNPJ não informado"
+                               styleClass="pdv-cliente-cpf"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Spacer pra empurrar tudo pra cima -->
+                <Region VBox.vgrow="ALWAYS"/>
+            </VBox>
+        </GridPane>
+
+        <!-- ============================================== -->
+        <!--  FOOTER — 12 ATALHOS COLORIDOS                 -->
+        <!-- ============================================== -->
+        <GridPane styleClass="pdv-footer" hgap="6"
+                  VBox.vgrow="NEVER"
+                  minHeight="68"
+                  prefHeight="68">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="7"/>   <!-- F1 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F2 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F3 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F4 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F5 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F6 -->
+                <ColumnConstraints percentWidth="16"/>  <!-- F7 FINALIZAR (maior) -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F8 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F9 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F10 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F11 -->
+                <ColumnConstraints percentWidth="7"/>   <!-- F12 -->
+            </columnConstraints>
+
+            <Button text="F1&#10;Canc.Item" styleClass="pdv-btn-atalho,pdv-btn-atalho-cancelar"
+                    maxWidth="Infinity" GridPane.columnIndex="0">
+                <graphic><FontIcon iconLiteral="mdi2c-close-circle" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F2&#10;Canc.Venda" styleClass="pdv-btn-atalho,pdv-btn-atalho-cancelar"
+                    maxWidth="Infinity" GridPane.columnIndex="1">
+                <graphic><FontIcon iconLiteral="mdi2c-cart-off" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F3&#10;Quantidade" styleClass="pdv-btn-atalho"
+                    maxWidth="Infinity" GridPane.columnIndex="2">
+                <graphic><FontIcon iconLiteral="mdi2n-numeric" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F4&#10;Acréscimo" styleClass="pdv-btn-atalho,pdv-btn-atalho-acrescimo"
+                    maxWidth="Infinity" GridPane.columnIndex="3">
+                <graphic><FontIcon iconLiteral="mdi2p-plus-circle" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F5&#10;Cliente" styleClass="pdv-btn-atalho,pdv-btn-atalho-cliente"
+                    maxWidth="Infinity" GridPane.columnIndex="4">
+                <graphic><FontIcon iconLiteral="mdi2a-account-search" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F6&#10;Desconto" styleClass="pdv-btn-atalho,pdv-btn-atalho-desconto"
+                    maxWidth="Infinity" GridPane.columnIndex="5">
+                <graphic><FontIcon iconLiteral="mdi2t-tag" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F7 · FINALIZAR" styleClass="pdv-btn-atalho,pdv-btn-atalho-finalizar"
+                    maxWidth="Infinity" GridPane.columnIndex="6">
+                <graphic><FontIcon iconLiteral="mdi2c-check-bold" iconSize="20" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F8&#10;Suprim." styleClass="pdv-btn-atalho"
+                    maxWidth="Infinity" GridPane.columnIndex="7">
+                <graphic><FontIcon iconLiteral="mdi2c-cash-plus" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F9&#10;Sangria" styleClass="pdv-btn-atalho"
+                    maxWidth="Infinity" GridPane.columnIndex="8">
+                <graphic><FontIcon iconLiteral="mdi2c-cash-minus" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F10&#10;Pré-Venda" styleClass="pdv-btn-atalho"
+                    maxWidth="Infinity" GridPane.columnIndex="9">
+                <graphic><FontIcon iconLiteral="mdi2c-clock-outline" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F11&#10;Loc.Item" styleClass="pdv-btn-atalho,pdv-btn-atalho-busca"
+                    maxWidth="Infinity" GridPane.columnIndex="10">
+                <graphic><FontIcon iconLiteral="mdi2p-package-variant" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+            <Button text="F12&#10;Menu" styleClass="pdv-btn-atalho"
+                    maxWidth="Infinity" GridPane.columnIndex="11">
+                <graphic><FontIcon iconLiteral="mdi2m-menu" iconSize="16" iconColor="white"/></graphic>
+            </Button>
+        </GridPane>
+    </VBox>
+</AnchorPane>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.OperacaoCaixaController"
+      styleClass="opcx-root"
+      spacing="14"
+      stylesheets="@../fxml/styles/operacao-caixa.css">
+
+    <!-- ============== CABEÇALHO (cor aplicada via controller) ========== -->
+    <VBox fx:id="boxHeader" styleClass="opcx-header" alignment="CENTER" spacing="2">
+        <Label fx:id="lblTitulo" text="—" styleClass="opcx-header-titulo"/>
+        <Label fx:id="lblDescricao" text="—"/>
+    </VBox>
+
+    <!-- ============== VALOR ============== -->
+    <VBox spacing="6">
+        <Label text="Valor (R$)" styleClass="opcx-label"/>
+        <TextField fx:id="tfValor"
+                   styleClass="opcx-valor"
+                   promptText="0,00"/>
+    </VBox>
+
+    <!-- ============== OBSERVAÇÃO ============== -->
+    <VBox spacing="6">
+        <Label text="Observação (mín. 5 caracteres)" styleClass="opcx-label"/>
+        <TextArea fx:id="taObservacao"
+                  styleClass="opcx-observacao"
+                  prefRowCount="3"
+                  wrapText="true"/>
+    </VBox>
+
+    <!-- ============== INFO DO OPERADOR ============== -->
+    <HBox styleClass="opcx-info-operador">
+        <Label fx:id="lblInfoOperador" text="—" styleClass="opcx-info-operador-texto"
+               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- ============== AVISO DE AUTORIZAÇÃO (visível só em sangria > limite) -->
+    <HBox fx:id="boxAviso" styleClass="opcx-aviso-autorizacao" visible="false" managed="false">
+        <Label fx:id="lblAviso" text="—" styleClass="opcx-aviso-autorizacao-texto"
+               wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- ============== BOTÕES ============== -->
+    <GridPane hgap="10">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <Button fx:id="btnCancelar"
+                text="[ESC] Cancelar"
+                onAction="#handleCancelar"
+                styleClass="opcx-btn,opcx-btn-cancelar"
+                maxWidth="Infinity"
+                cancelButton="true"
+                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+        <Button fx:id="btnConfirmar"
+                text="[Enter] Confirmar"
+                onAction="#handleConfirmar"
+                styleClass="opcx-btn,opcx-btn-confirmar"
+                maxWidth="Infinity"
+                defaultButton="true"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    </GridPane>
+
+</VBox>

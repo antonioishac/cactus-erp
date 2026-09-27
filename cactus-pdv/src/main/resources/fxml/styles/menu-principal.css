@@ -1,0 +1,118 @@
+/* =====================================================================
+   menu-principal.css
+   Estilos da tela Menu Principal (acesso via F12 no PDV).
+   Mantém o idioma visual do PDV: fundo branco, cabeçalho cinza escuro,
+   botões #3a3a3a, divisores discretos.
+   ===================================================================== */
+
+.menu-root {
+    -fx-background-color: #ffffff;
+    -fx-padding: 16;
+}
+
+/* ---- Cabeçalho cinza escuro --------------------------------------- */
+
+.menu-header {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 8;
+    -fx-padding: 14 20 14 20;
+}
+
+.menu-header-titulo {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 18px;
+    -fx-font-weight: normal;
+}
+
+.menu-header-info {
+    -fx-text-fill: #b0b0b0;
+    -fx-font-size: 12px;
+}
+
+/* ---- Badge de status do movimento --------------------------------- */
+
+.badge-status {
+    -fx-background-radius: 12;
+    -fx-padding: 4 10 4 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffffff;
+}
+
+.badge-status-aberto    { -fx-background-color: #2d7a3e; }
+.badge-status-temporario{ -fx-background-color: #b07a14; }
+.badge-status-fechado   { -fx-background-color: #962020; }
+
+/* ---- Rótulo de seção (Caixa / Cupom / Sistema) -------------------- */
+
+.menu-secao-rotulo {
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 4 6 4;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* ---- Botões do menu ----------------------------------------------- */
+
+.menu-item-btn {
+    -fx-background-color: #3a3a3a;
+    -fx-background-radius: 8;
+    -fx-padding: 18 12 18 12;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+    -fx-min-height: 110;
+    -fx-pref-height: 110;
+}
+
+.menu-item-btn:hover {
+    -fx-background-color: #4a4a4a;
+}
+
+.menu-item-btn:pressed {
+    -fx-background-color: #2a2a2a;
+}
+
+.menu-item-btn:disabled {
+    -fx-opacity: 0.35;
+    -fx-cursor: default;
+}
+
+.menu-item-titulo {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.menu-item-atalho {
+    -fx-text-fill: #b0b0b0;
+    -fx-font-size: 10px;
+}
+
+/* Placeholder para slots reservados */
+.menu-item-reservado {
+    -fx-background-color: transparent;
+    -fx-border-color: #d0d0d0;
+    -fx-border-style: segments(4, 4);
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-min-height: 110;
+    -fx-pref-height: 110;
+}
+
+.menu-item-reservado-label {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 11px;
+}
+
+/* ---- Rodapé com dica do ESC --------------------------------------- */
+
+.menu-rodape {
+    -fx-text-fill: #666666;
+    -fx-font-size: 11px;
+    -fx-border-color: #e0e0e0 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 8 0 0 0;
+}

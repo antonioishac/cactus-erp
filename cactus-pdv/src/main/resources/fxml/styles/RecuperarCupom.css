@@ -1,0 +1,114 @@
+/* =====================================================================
+   recuperar-cupom.css
+   Modal de recuperação de cupom em aberto após queda/reinício.
+   ===================================================================== */
+
+.recup-root {
+    -fx-background-color: #ffffff;
+    -fx-padding: 24;
+}
+
+/* ---- Cabeçalho de alerta amarelo ---------------------------------- */
+.recup-header {
+    -fx-background-color: #fac775;
+    -fx-background-radius: 8;
+    -fx-padding: 14 20 14 20;
+}
+
+.recup-header-titulo {
+    -fx-text-fill: #633806;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Caixa de descrição cinza-clara ------------------------------- */
+.recup-descricao {
+    -fx-background-color: #f5f5f5;
+    -fx-background-radius: 8;
+    -fx-padding: 18 20 18 20;
+}
+
+.recup-descricao-texto {
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-wrap-text: true;
+}
+
+/* ---- Mini-cards com dados do cupom -------------------------------- */
+.recup-card {
+    -fx-background-color: #f9f9f9;
+    -fx-background-radius: 8;
+    -fx-border-color: #e8e8e8;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 12 14 12 14;
+}
+
+.recup-card-label {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.recup-card-valor {
+    -fx-text-fill: #333333;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.recup-card-valor-destaque {
+    -fx-text-fill: #2969c9;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Botões grandes ----------------------------------------------- */
+.recup-btn {
+    -fx-background-radius: 8;
+    -fx-padding: 18 12 18 12;
+    -fx-cursor: hand;
+    -fx-min-height: 90;
+    -fx-pref-height: 90;
+}
+
+.recup-btn-retomar {
+    -fx-background-color: #2d7a3e;
+}
+
+.recup-btn-retomar:hover {
+    -fx-background-color: #36924a;
+}
+
+.recup-btn-retomar:pressed {
+    -fx-background-color: #226032;
+}
+
+.recup-btn-cancelar {
+    -fx-background-color: #3a3a3a;
+}
+
+.recup-btn-cancelar:hover {
+    -fx-background-color: #4a4a4a;
+}
+
+.recup-btn-cancelar:pressed {
+    -fx-background-color: #2a2a2a;
+}
+
+.recup-btn-titulo {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.recup-btn-hint {
+    -fx-font-size: 11px;
+}
+
+.recup-btn-hint-retomar {
+    -fx-text-fill: #c8e6c9;
+}
+
+.recup-btn-hint-cancelar {
+    -fx-text-fill: #b0b0b0;
+}

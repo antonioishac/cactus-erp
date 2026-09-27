@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="root" prefHeight="800.0" prefWidth="1280.0"
+            styleClass="encv-root"
+            stylesheets="@styles/CactusPdv.css,@../fxml/styles/encerramento-venda.css"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.EncerramentoVendaController">
+
+    <VBox spacing="12" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="12.0"
+          AnchorPane.rightAnchor="12.0" AnchorPane.topAnchor="12.0">
+
+        <!-- ========== HEADER ========== -->
+        <VBox styleClass="encv-header" spacing="2">
+            <Label fx:id="lblHeaderTitulo" text="Finalizar Venda" styleClass="encv-header-titulo"/>
+            <Label fx:id="lblHeaderSubtitulo"
+                   text="F2 Pagamentos  ·  F10 Adicionar  ·  F6 Desconto  ·  F4 Acréscimo  ·  F12 Confirmar  ·  F5 Cancelar"
+                   styleClass="encv-header-subtitulo"/>
+        </VBox>
+
+        <!-- ========== CONTEÚDO PRINCIPAL (2 colunas) ========== -->
+        <GridPane fx:id="contentGrid" hgap="12" VBox.vgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="58"/>
+                <ColumnConstraints percentWidth="42"/>
+            </columnConstraints>
+
+            <!-- ============================================== -->
+            <!--  COLUNA ESQUERDA: Formas de pagamento + Valor  -->
+            <!-- ============================================== -->
+            <VBox spacing="12" GridPane.columnIndex="0" GridPane.rowIndex="0">
+
+                <!-- Card com botões de forma de pagamento -->
+                <VBox styleClass="encv-card" spacing="10" VBox.vgrow="ALWAYS">
+                    <Label text="FORMAS DE PAGAMENTO" styleClass="encv-card-titulo"/>
+
+                    <!-- FlowPane permite que os botões quebrem em múltiplas linhas
+                         dinamicamente conforme a largura disponível e a quantidade.
+                         Os botões serão criados pelo controller a partir da tabela
+                         PDV_TIPO_PAGAMENTO. -->
+                    <FlowPane fx:id="painelBotoesPagamento" hgap="8" vgap="8"
+                              prefWrapLength="600" VBox.vgrow="ALWAYS"/>
+                </VBox>
+
+                <!-- Card com campo de valor + botão adicionar -->
+                <VBox styleClass="encv-card" spacing="8">
+                    <Label text="VALOR RECEBIDO" styleClass="encv-secao-titulo"/>
+                    <TextField fx:id="tfValor" promptText="0,00" styleClass="encv-input-valor"/>
+                    <Button fx:id="btnAdicionarPagamento"
+                            text="[F10] Adicionar Pagamento"
+                            onAction="#handleAdicionarPagamento"
+                            styleClass="encv-btn-adicionar"
+                            maxWidth="Infinity"/>
+                </VBox>
+
+            </VBox>
+
+            <!-- ================================================= -->
+            <!--  COLUNA DIREITA: Total + Resumo + Pagamentos      -->
+            <!-- ================================================= -->
+            <VBox spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="0">
+
+                <!-- Card destacado: Total a Receber -->
+                <VBox styleClass="encv-card-total">
+                    <Label text="TOTAL A RECEBER" styleClass="encv-card-total-label"/>
+                    <Label fx:id="lblTotalReceber" text="R$ 0,00" styleClass="encv-card-total-valor"/>
+                </VBox>
+
+                <!-- Card de resumo (Subtotal, Desconto, Acréscimo) -->
+                <VBox styleClass="encv-card" spacing="4">
+                    <Label text="RESUMO DA VENDA" styleClass="encv-card-titulo"/>
+
+                    <HBox>
+                        <Label text="Subtotal:" styleClass="encv-resumo-linha-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblSubtotal" text="R$ 0,00" styleClass="encv-resumo-linha-valor"/>
+                    </HBox>
+
+                    <HBox fx:id="linhaDesconto" visible="false" managed="false">
+                        <Label text="(-) Desconto:" styleClass="encv-resumo-desconto-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblDesconto" text="R$ 0,00" styleClass="encv-resumo-desconto-valor"/>
+                    </HBox>
+
+                    <HBox fx:id="linhaAcrescimo" visible="false" managed="false">
+                        <Label text="(+) Acréscimo:" styleClass="encv-resumo-acrescimo-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblAcrescimo" text="R$ 0,00" styleClass="encv-resumo-acrescimo-valor"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Card: Pagamentos Adicionados -->
+                <VBox fx:id="cardPagamentosAdicionados" styleClass="encv-card" spacing="6" VBox.vgrow="ALWAYS">
+                    <Label text="PAGAMENTOS ADICIONADOS" styleClass="encv-card-titulo"/>
+                    <VBox fx:id="listaPagamentos" spacing="6">
+                        <!-- Itens criados dinamicamente pelo controller -->
+                    </VBox>
+                    <Label fx:id="lblPagamentosVazio"
+                           text="Nenhum pagamento adicionado"
+                           styleClass="encv-pagamentos-vazio"
+                           maxWidth="Infinity"/>
+                </VBox>
+
+                <!-- Card: Progresso -->
+                <VBox styleClass="encv-card" spacing="6">
+                    <HBox>
+                        <Label text="Total Recebido" styleClass="encv-progresso-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblTotalRecebido" text="R$ 0,00" styleClass="encv-progresso-valor-recebido"/>
+                    </HBox>
+                    <ProgressBar fx:id="progressoPagamento" progress="0.0"
+                                 maxWidth="Infinity" prefHeight="8"
+                                 styleClass="encv-progresso-bar"/>
+                    <HBox>
+                        <Label text="Saldo Restante" styleClass="encv-progresso-label"
+                               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblSaldoRestante" text="R$ 0,00" styleClass="encv-progresso-valor-saldo"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Card: Troco (só aparece quando há troco) -->
+                <VBox fx:id="cardTroco" styleClass="encv-troco-container" visible="false" managed="false">
+                    <Label text="TROCO" styleClass="encv-troco-label"/>
+                    <Label fx:id="lblTroco" text="R$ 0,00" styleClass="encv-troco-valor"/>
+                </VBox>
+
+            </VBox>
+
+        </GridPane>
+
+        <!-- ========== RODAPÉ COM BOTÕES DE AÇÃO ========== -->
+        <GridPane styleClass="encv-rodape" hgap="10">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="18"/>
+                <ColumnConstraints percentWidth="18"/>
+                <ColumnConstraints percentWidth="18"/>
+                <ColumnConstraints percentWidth="46"/>
+            </columnConstraints>
+
+            <Button fx:id="btnCancelar"
+                    text="[F5] Cancelar"
+                    onAction="#handleCancelar"
+                    styleClass="encv-btn-rodape,encv-btn-cancelar"
+                    maxWidth="Infinity"
+                    GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+            <Button fx:id="btnDesconto"
+                    text="[F6] Desconto"
+                    onAction="#handleDesconto"
+                    styleClass="encv-btn-rodape,encv-btn-desconto"
+                    maxWidth="Infinity"
+                    GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Button fx:id="btnAcrescimo"
+                    text="[F4] Acréscimo"
+                    onAction="#handleAcrescimo"
+                    styleClass="encv-btn-rodape,encv-btn-acrescimo"
+                    maxWidth="Infinity"
+                    GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+
+            <Button fx:id="btnConfirmar"
+                    text="[F12] Confirmar Venda"
+                    onAction="#handleConfirmar"
+                    styleClass="encv-btn-rodape,encv-btn-confirmar"
+                    maxWidth="Infinity"
+                    GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+        </GridPane>
+
+    </VBox>
+
+</AnchorPane>

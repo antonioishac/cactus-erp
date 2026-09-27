@@ -1,0 +1,38 @@
+/* =====================================================================
+   modo-restrito.css
+   Estilos para o banner amarelo de "movimento fechado" no PDV.
+   Importe junto com o CactusPdv.css principal.
+   ===================================================================== */
+
+/* Banner no topo da tela do PDV quando não há movimento ativo */
+.pdv-banner-restrito {
+    -fx-background-color: #fff7e6;
+    -fx-border-color: #b07a14 transparent transparent transparent;
+    -fx-border-width: 0 0 0 0;
+    -fx-padding: 12 18 12 18;
+    -fx-background-radius: 0;
+}
+
+/* Faixa lateral esquerda colorida */
+.pdv-banner-restrito-lateral {
+    -fx-background-color: #b07a14;
+    -fx-pref-width: 4;
+    -fx-min-width: 4;
+    -fx-max-width: 4;
+}
+
+.pdv-banner-restrito-icone {
+    -fx-icon-color: #b07a14;
+    -fx-icon-size: 22;
+}
+
+.pdv-banner-restrito-titulo {
+    -fx-text-fill: #633806;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.pdv-banner-restrito-desc {
+    -fx-text-fill: #8a5a2f;
+    -fx-font-size: 11px;
+}

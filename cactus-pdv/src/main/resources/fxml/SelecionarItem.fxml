@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.SelecionarItemController"
+      styleClass="si-root"
+      stylesheets="@../fxml/styles/selecionar-item.css">
+
+    <!-- ============== CABEÇALHO ============== -->
+    <VBox fx:id="header" styleClass="si-header" spacing="2">
+        <Label fx:id="lblTitulo" text="Selecionar item" styleClass="si-header-titulo"/>
+        <Label fx:id="lblSubtitulo" text="—" styleClass="si-header-subtitulo"/>
+    </VBox>
+
+    <!-- ============== LISTA ============== -->
+    <VBox styleClass="si-corpo" VBox.vgrow="ALWAYS">
+        <ListView fx:id="listView" styleClass="si-lista" VBox.vgrow="ALWAYS" prefHeight="280"/>
+    </VBox>
+
+    <!-- ============== BOTÕES ============== -->
+    <GridPane styleClass="si-rodape">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <Button fx:id="btnCancelar"
+                text="[ESC] Cancelar"
+                onAction="#handleCancelar"
+                styleClass="si-btn,si-btn-cancelar"
+                maxWidth="Infinity"
+                cancelButton="true"
+                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+        <Button fx:id="btnConfirmar"
+                text="[ENTER] Selecionar"
+                onAction="#handleConfirmar"
+                styleClass="si-btn,si-btn-confirmar,si-btn-confirmar-neutro"
+                maxWidth="Infinity"
+                defaultButton="true"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    </GridPane>
+
+</VBox>

@@ -1,0 +1,933 @@
+/* =====================================================================
+   pdv-frente-caixa.css
+   Estilos da tela principal do PDV (Frente de Caixa) — redesenho
+   estilo Supermercado Moderno.
+
+   Todas as classes prefixadas com `pdv-` pra não conflitar com
+   outras telas. Cores e gradientes consistentes com a tela de
+   Encerramento de Venda (azul Cactus, verde sucesso, laranja atacado).
+   ===================================================================== */
+
+/* ---- Background da tela ------------------------------------------- */
+.pdv-root {
+    -fx-background-color: #f4f6f9;
+}
+
+/* ============================================================
+   HEADER (faixa azul com info da venda)
+   ============================================================ */
+.pdv-header {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #1a3a6e, #2969c9);
+    -fx-padding: 12 20 12 20;
+}
+
+.pdv-header-label {
+    -fx-text-fill: rgba(255,255,255,0.7);
+    -fx-font-size: 11px;
+}
+
+.pdv-header-valor {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.pdv-header-venda {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.pdv-header-hora {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 13px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+/* ============================================================
+   CARD DO ÚLTIMO ITEM BIPADO (destaque verde quando atacado)
+   ============================================================ */
+.pdv-card-ultimo-item {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
+    -fx-border-color: #538649;
+    -fx-border-width: 0 0 0 6;
+    -fx-border-radius: 10 0 0 10;
+}
+
+/* Variação quando NÃO está no atacado (borda cinza) */
+.pdv-card-ultimo-item-varejo {
+    -fx-border-color: #cccccc;
+}
+
+.pdv-card-imagem {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 8;
+    -fx-min-width: 80;
+    -fx-min-height: 80;
+    -fx-max-width: 80;
+    -fx-max-height: 80;
+    -fx-alignment: center;
+}
+
+.pdv-card-imagem-emoji {
+    -fx-font-size: 30px;
+}
+
+.pdv-card-meta {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+.pdv-card-titulo {
+    -fx-text-fill: #222222;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.pdv-card-economia {
+    -fx-text-fill: #2d7a3e;
+    -fx-font-size: 12px;
+}
+
+.pdv-card-qtd-x-preco {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+.pdv-card-total {
+    -fx-text-fill: #538649;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+/* Quando NÃO está no atacado, total fica em cinza escuro */
+.pdv-card-total-varejo {
+    -fx-text-fill: #333333;
+}
+
+/* ============================================================
+   BADGE "ATACADO" (selo laranja/verde)
+   ============================================================ */
+.pdv-badge-atacado {
+    -fx-background-color: #538649;
+    -fx-text-fill: white;
+    -fx-padding: 3 8 3 8;
+    -fx-background-radius: 4;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+/* Badge menor pra usar dentro da tabela */
+.pdv-badge-atacado-mini {
+    -fx-background-color: #c9724f;  /* laranja em vez de verde */
+    -fx-text-fill: white;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 3;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+/* ============================================================
+   TABELA DE ITENS
+   ============================================================ */
+.pdv-tabela {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.pdv-tabela .column-header-background {
+    -fx-background-color: #3F423F;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.pdv-tabela .column-header {
+    -fx-background-color: transparent;
+    -fx-padding: 10 14 10 14;
+    -fx-border-color: transparent;
+}
+
+.pdv-tabela .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.pdv-tabela .table-row-cell {
+    -fx-background-color: white;
+    -fx-padding: 4 0;
+    -fx-border-color: transparent;
+}
+
+.pdv-tabela .table-row-cell:odd {
+    -fx-background-color: #fafbfc;
+}
+
+.pdv-tabela .table-row-cell:selected {
+    -fx-background-color: #e9eef5;
+    -fx-text-fill: #222;
+}
+
+/* Linha em destaque verde — item com faixa atacado aplicada */
+.pdv-tabela-linha-atacado {
+    -fx-background-color: #f0f7e8;
+}
+
+/* Linha cancelada — fundo rosa-claro, texto riscado */
+.pdv-tabela-linha-cancelada {
+    -fx-background-color: #fff5f5;
+}
+
+.pdv-tabela-linha-cancelada .text {
+    -fx-strikethrough: true;
+    -fx-fill: #c9523a;
+}
+
+/* ============================================================
+   INPUT DE CÓDIGO / EAN E QUANTIDADE
+   ============================================================ */
+.pdv-input-container {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
+}
+
+.pdv-input-label {
+    -fx-text-fill: #555555;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.pdv-input-codigo {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #2969c9;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14 12 14;
+    -fx-font-size: 16px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.pdv-input-codigo:focused {
+    -fx-border-color: #1a4a8a;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.30), 6, 0.0, 0, 0);
+}
+
+.pdv-input-quantidade {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14 12 14;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+}
+
+.pdv-input-quantidade:focused {
+    -fx-border-color: #2969c9;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.30), 6, 0.0, 0, 0);
+}
+
+/* ============================================================
+   PAINEL DIREITO — Cards de Total / Economia / Resumo / Cliente
+   ============================================================ */
+
+/* Card grande — TOTAL A PAGAR (azul) */
+.pdv-card-total-pagar {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2969c9, #1a4a8a);
+    -fx-background-radius: 10;
+    -fx-padding: 20 24 20 24;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.30), 14, 0.0, 0, 4);
+}
+
+.pdv-card-total-pagar-label {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.pdv-card-total-pagar-valor {
+    -fx-text-fill: white;
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+}
+
+.pdv-card-total-pagar-meta {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 11px;
+}
+
+/* Card ECONOMIA (verde, aparece só quando há atacado) */
+.pdv-card-economia {
+    -fx-text-fill: white;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2d7a3e, #1f5a2b);
+    -fx-background-radius: 10;
+    -fx-padding: 12 18 12 18;
+    -fx-effect: dropshadow(gaussian, rgba(45,122,62,0.25), 10, 0.0, 0, 3);
+}
+
+.pdv-card-economia-label {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.pdv-card-economia-valor {
+    -fx-text-fill: white;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+/* Card RESUMO (branco com linhas Subtotal/Itens/Unidades/Cancelados) */
+.pdv-card-resumo {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 14 18 14 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
+}
+
+.pdv-resumo-label {
+    -fx-text-fill: #555555;
+    -fx-font-size: 14px;
+}
+
+.pdv-resumo-valor {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.pdv-resumo-cancelados-label {
+    -fx-text-fill: #c9523a;
+    -fx-font-size: 14px;
+}
+
+.pdv-resumo-cancelados-valor {
+    -fx-text-fill: #c9523a;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Card CLIENTE (branco, info do consumidor) */
+.pdv-card-cliente {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 14 18 14 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
+}
+
+.pdv-cliente-avatar {
+    -fx-background-color: #e9eef5;
+    -fx-background-radius: 50%;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-alignment: center;
+}
+
+.pdv-cliente-avatar-icone {
+    -fx-icon-color: #2969c9;
+}
+
+.pdv-cliente-label {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+.pdv-cliente-nome {
+    -fx-text-fill: #222222;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.pdv-cliente-cpf {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+/* ============================================================
+   FOOTER COM 12 ATALHOS
+   ============================================================ */
+.pdv-footer {
+    -fx-background-color: #2d2d2d;
+    -fx-padding: 8;
+}
+
+/* Botão base de atalho */
+.pdv-btn-atalho {
+    -fx-background-color: #555555;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 12 4 12 4;
+    -fx-cursor: hand;
+    -fx-min-height: 50;
+    -fx-content-display: top;
+    -fx-graphic-text-gap: 2;
+    -fx-alignment: center;
+}
+
+.pdv-btn-atalho:hover {
+    -fx-background-color: #6a6a6a;
+}
+
+/* Variações por cor semântica */
+.pdv-btn-atalho-cancelar {
+    -fx-background-color: #c9523a;
+}
+.pdv-btn-atalho-cancelar:hover {
+    -fx-background-color: #b04429;
+}
+
+.pdv-btn-atalho-acrescimo {
+    -fx-background-color: #2d7a3e;
+}
+.pdv-btn-atalho-acrescimo:hover {
+    -fx-background-color: #246330;
+}
+
+.pdv-btn-atalho-desconto {
+    -fx-background-color: #c9724f;
+}
+.pdv-btn-atalho-desconto:hover {
+    -fx-background-color: #b56041;
+}
+
+.pdv-btn-atalho-cliente {
+    -fx-background-color: #4a5fb8;
+}
+.pdv-btn-atalho-cliente:hover {
+    -fx-background-color: #3d4f9d;
+}
+
+.pdv-btn-atalho-busca {
+    -fx-background-color: #4a5fb8;
+}
+.pdv-btn-atalho-busca:hover {
+    -fx-background-color: #3d4f9d;
+}
+
+/* F7 FINALIZAR - destaque máximo */
+.pdv-btn-atalho-finalizar {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #538649, #2d5a2d);
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(83,134,73,0.50), 8, 0.0, 0, 2);
+}
+.pdv-btn-atalho-finalizar:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #467138, #244a24);
+}
+
+/* Ícones dentro dos botões de atalho */
+.pdv-btn-atalho-icone {
+    -fx-icon-color: white;
+}
+
+/* ============================================================
+   BANNER MODO RESTRITO (sem movimento aberto)
+   ============================================================ */
+.pdv-banner-restrito {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #c9901e, #b07d10);
+    -fx-padding: 10 16 10 16;
+    -fx-background-radius: 8;
+}
+
+.pdv-banner-restrito-texto {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* ============================================================
+   AREA VAZIA (quando não há produtos — logo Cactus + atalhos)
+   ============================================================ */
+.pdv-area-vazia {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
+    -fx-padding: 40;
+    -fx-alignment: center;
+}
+
+.pdv-area-vazia-titulo {
+    -fx-text-fill: #555555;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.pdv-area-vazia-subtitulo {
+    -fx-text-fill: #888888;
+    -fx-font-size: 13px;
+}
+
+/* ---- Tabela: fonte MAIOR pra cliente conseguir ler também --------- */
+.pdv-tabela .table-cell {
+    -fx-font-size: 15px;
+    -fx-padding: 12 12 12 12;
+    -fx-text-fill: #222;
+}
+
+.pdv-tabela .column-header .label {
+    -fx-font-size: 12px;
+}
+
+/* Aumenta altura mínima das linhas */
+.pdv-tabela .table-row-cell {
+    -fx-cell-size: 42px;
+}
+
+/* ---- Linha em destaque ATACADO (visual mais forte) --------------- */
+.pdv-tabela-linha-atacado {
+    -fx-background-color: #e8f4e1;
+}
+
+.pdv-tabela-linha-atacado .table-cell {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-weight: bold;
+}
+
+/* Linha cancelada (texto vermelho + riscado, fundo rosa claro) */
+.pdv-tabela-linha-cancelada {
+    -fx-background-color: #fff0f0;
+}
+
+.pdv-tabela-linha-cancelada .table-cell {
+    -fx-text-fill: #c9523a;
+    -fx-strikethrough: true;
+}
+
+/* ---- Quando seleciona uma linha, preserva o feedback do estado ---- */
+.pdv-tabela .table-row-cell:selected.pdv-tabela-linha-atacado {
+    -fx-background-color: #d6ebca;
+}
+
+.pdv-tabela .table-row-cell:selected.pdv-tabela-linha-cancelada {
+    -fx-background-color: #ffe0e0;
+}
+
+
+.pdv-card-ultimo-item-atacado {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #e8f4e1, #d4ebc7);
+    -fx-border-color: #2d5a2d;
+    -fx-border-width: 0 0 0 8;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10 0 0 10;
+}
+
+
+/* ===== Título do produto — preto forte mesmo em fundo verde ===== */
+.pdv-card-titulo {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+
+/* ===== Meta (código + GTIN) — cinza um pouco mais escuro ===== */
+.pdv-card-meta {
+    -fx-text-fill: #555555;
+    -fx-font-size: 12px;
+}
+
+
+/* ===== Total do item — sempre legível ===== */
+.pdv-card-total {
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.pdv-card-total-atacado {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+
+/* ===== Qtd × Preço (linha em cima do total) ===== */
+.pdv-card-qtd-x-preco {
+    -fx-text-fill: #555555;
+    -fx-font-size: 12px;
+}
+
+
+/* ===== CHIP DE ECONOMIA — agora com fundo branco + texto verde ===== */
+/* Quem aplica essa classe na label de economia:
+       lblCardEconomia.getStyleClass().add("pdv-card-economia-chip");
+   Substitui o uso da antiga .pdv-card-economia que sumia. */
+
+.pdv-card-economia-chip {
+    -fx-background-color: white;
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 10 4 10;
+    -fx-background-radius: 12;
+    -fx-border-color: #2d5a2d;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+
+/* ===== Badge ATACADO grande (no card superior) — mais forte ===== */
+.pdv-badge-atacado {
+    -fx-background-color: #2d5a2d;
+    -fx-text-fill: white;
+    -fx-padding: 5 12 5 12;
+    -fx-background-radius: 4;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+
+/* ===== Badge mini ATACADO (inline na grid, cor laranja) ===== */
+/* Cor diferente do verde da linha pra contrastar bem. */
+.pdv-badge-atacado-mini {
+    -fx-background-color: #c9724f;
+    -fx-text-fill: white;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 4;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.pdv-tabela .table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.pdv-tabela .table-row-cell:empty:odd {
+    -fx-background-color: transparent;
+}
+
+.pdv-tabela .table-row-cell:empty:hover {
+    -fx-background-color: transparent;
+}
+
+.pdv-tabela .table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+}
+
+
+.pdv-tabela .column-header {
+    -fx-background-color: #3F423F;
+    -fx-padding: 10 14 10 14;
+    -fx-border-color: transparent;
+}
+
+/* Filler à direita (espaço vazio depois da última coluna) */
+.pdv-tabela .column-header .filler {
+    -fx-background-color: #3F423F;
+}
+
+.pdv-tabela .filler {
+    -fx-background-color: #3F423F;
+}
+
+/* Linha vertical entre colunas — discreta */
+.pdv-tabela .column-header-background .column-header {
+    -fx-border-color: transparent rgba(255,255,255,0.08) transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.pdv-celula-de-preco {
+    -fx-text-fill: #856E11;        /* amarelo escuro pra contrastar com verde */
+    -fx-font-size: 12px;
+    -fx-strikethrough: true;
+}
+
+.pdv-celula-por-preco {
+    -fx-text-fill: #1f5a2b;        /* verde escuro */
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+/* Versão simples (varejo) — só o valor normal */
+.pdv-celula-valor-unitario {
+    -fx-text-fill: #222;
+    -fx-font-size: 15px;
+}
+
+
+/* ===== Coluna TOTAL — total + linha de economia abaixo ===== */
+
+.pdv-celula-total-atacado {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.pdv-celula-total-varejo {
+    -fx-text-fill: #222;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.pdv-celula-economia {
+    -fx-text-fill: #1f5a2b;
+    -fx-font-size: 11px;
+}
+
+
+/* ===== Aumenta altura das linhas pra caber 2 textos ===== */
+.pdv-tabela .table-row-cell {
+    -fx-cell-size: 56px;            /* antes era 42px */
+}
+
+.pdv-footer {
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-max-height: 84;
+}
+
+.pdv-btn-atalho {
+    -fx-min-height: 64;
+    -fx-pref-height: 64;
+    -fx-padding: 6 4 6 4;     /* reduz vertical pra caber tudo bem */
+}
+
+.bloqueio-root {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%,
+                                          #1a3a6e, #0c1e3f);
+}
+
+.bloqueio-card {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-max-width: 480;
+}
+
+.bloqueio-icone-circulo {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 60;
+    -fx-min-width: 120;
+    -fx-min-height: 120;
+    -fx-max-width: 120;
+    -fx-max-height: 120;
+    -fx-alignment: center;
+}
+
+.bloqueio-icone {
+    -fx-icon-color: white;
+}
+
+.bloqueio-titulo {
+    -fx-text-fill: white;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 2px;
+}
+
+.bloqueio-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.65);
+    -fx-font-size: 12px;
+}
+
+.bloqueio-operador-nome {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.bloqueio-hora {
+    -fx-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-font-size: 12px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.bloqueio-input-senha {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.4);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12 16 12 16;
+    -fx-font-size: 16px;
+    -fx-pref-width: 320;
+}
+
+.bloqueio-input-senha:focused {
+    -fx-border-color: #4a9eff;
+    -fx-effect: dropshadow(gaussian, rgba(74, 158, 255, 0.4), 8, 0, 0, 0);
+}
+
+.bloqueio-erro {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.bloqueio-hint {
+    -fx-text-fill: rgba(255, 255, 255, 0.45);
+    -fx-font-size: 11px;
+    -fx-text-alignment: center;
+}
+
+.bloqueio-rodape-icone {
+    -fx-icon-color: rgba(255, 255, 255, 0.5);
+}
+
+.bloqueio-relogio {
+    -fx-text-fill: rgba(255, 255, 255, 0.5);
+    -fx-font-size: 14px;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.cc2-header {
+    -fx-background-color: #3F423F;
+}
+
+.cc2-header-label {
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.3px;
+}
+
+.cc2-linha {
+    -fx-background-color: white;
+    -fx-border-color: transparent transparent #f0f0f0 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.cc2-linha:hover {
+    -fx-background-color: #fafbfc;
+}
+
+.cc2-linha-forma {
+    -fx-text-fill: #222;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.cc2-linha-esperado {
+    -fx-text-fill: #555;
+    -fx-font-size: 14px;
+    -fx-alignment: center-right;
+}
+
+.cc2-input-contado {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 12 8 12;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+.cc2-input-contado:focused {
+    -fx-border-color: #2969c9;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.30), 6, 0, 0, 0);
+}
+
+.cc2-linha-divergencia {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+/* Cores semânticas da divergência */
+.cc2-div-ok {
+    -fx-text-fill: #2d7a3e;
+}
+
+.cc2-div-positiva {
+    -fx-text-fill: #c9901e;  /* amarelo escuro - sobra de caixa */
+}
+
+.cc2-div-negativa {
+    -fx-text-fill: #c9523a;  /* vermelho - falta de caixa */
+}
+
+/* Linha de total destacada */
+.cc2-total-linha {
+    -fx-background-color: #f0f3f7;
+    -fx-border-color: #d0d4dc transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+}
+
+.cc2-total-label {
+    -fx-text-fill: #1a4a8a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.5px;
+}
+
+.cc2-total-valor {
+    -fx-text-fill: #1a4a8a;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-right;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+}
+
+/* Observação */
+.cc2-observacao {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+}
+
+.cc2-observacao .content {
+    -fx-background-color: transparent;
+}
+
+.cc2-observacao:focused {
+    -fx-border-color: #2969c9;
+    -fx-border-width: 2;
+}
+
+/* Botões */
+.cc2-btn-confirmar {
+    -fx-background-color: #2d7a3e;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 22 10 22;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.cc2-btn-confirmar:hover {
+    -fx-background-color: #246330;
+}
+
+.cc2-btn-secundario {
+    -fx-background-color: #6a6a6a;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18 10 18;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.cc2-btn-secundario:hover {
+    -fx-background-color: #555;
+}

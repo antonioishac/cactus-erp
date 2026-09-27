@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.DevolucaoController"
+      styleClass="opcx-root"
+      spacing="14"
+      stylesheets="@styles/operacao-caixa.css">
+
+    <!-- ============== CABEÇALHO ============== -->
+    <VBox styleClass="opcx-header,opcx-header-devolucao" alignment="CENTER" spacing="2">
+        <Label text="DEVOLUÇÃO DE ITEM" styleClass="opcx-header-titulo"/>
+        <Label fx:id="lblProduto" text="—" styleClass="opcx-header-desc-devolucao"/>
+    </VBox>
+
+    <!-- ============== RESUMO DA VENDA ============== -->
+    <VBox spacing="4">
+        <Label fx:id="lblResumoVenda" text="—" styleClass="opcx-label"/>
+        <Label fx:id="lblDisponivel" text="—" styleClass="opcx-label"/>
+    </VBox>
+
+    <!-- ============== QUANTIDADE ============== -->
+    <VBox spacing="6">
+        <Label text="Quantidade a devolver" styleClass="opcx-label"/>
+        <TextField fx:id="tfQuantidade"
+                   styleClass="opcx-valor"
+                   promptText="0"/>
+    </VBox>
+
+    <!-- ============== MOTIVO ============== -->
+    <VBox spacing="6">
+        <Label text="Motivo (mín. 5 caracteres)" styleClass="opcx-label"/>
+        <TextArea fx:id="taMotivo"
+                  styleClass="opcx-observacao"
+                  prefRowCount="3"
+                  wrapText="true"/>
+    </VBox>
+
+    <!-- ============== INFO DO OPERADOR ============== -->
+    <HBox styleClass="opcx-info-operador">
+        <Label fx:id="lblInfoOperador" text="—" styleClass="opcx-info-operador-texto"
+               maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- ============== AVISO ============== -->
+    <HBox styleClass="opcx-aviso-autorizacao">
+        <Label text="Devolução sempre exige autorização de Gerente/Supervisor."
+               styleClass="opcx-aviso-autorizacao-texto"
+               wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- ============== BOTÕES ============== -->
+    <GridPane hgap="10">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <Button fx:id="btnCancelar"
+                text="[ESC] Cancelar"
+                onAction="#handleCancelar"
+                styleClass="opcx-btn,opcx-btn-cancelar"
+                maxWidth="Infinity"
+                cancelButton="true"
+                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+        <Button fx:id="btnConfirmar"
+                text="[Enter] Confirmar"
+                onAction="#handleConfirmar"
+                styleClass="opcx-btn,opcx-btn-confirmar,opcx-btn-confirmar-devolucao"
+                maxWidth="Infinity"
+                defaultButton="true"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    </GridPane>
+
+</VBox>

@@ -1,0 +1,149 @@
+.fundo {
+    -fx-background-color: linear-gradient(to bottom, #B5B5B5, #B5B5B5);
+}
+
+.account_gradient {
+    -fx-background-color: linear-gradient(to right, #3F423F, #3F423F);
+    -fx-background-radius: 8;
+}
+
+.tabela-pdv {
+    -fx-background-color: transparent;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* Cabeçalho */
+.tabela-pdv .column-header-background {
+    -fx-background-color: linear-gradient(to bottom, #F5F5F5, #EAEAEA);
+}
+
+.tabela-pdv .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #DDDDDD;
+    -fx-border-width: 0 1 1 0;
+}
+
+.tabela-pdv .column-header .label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #444444;
+    -fx-font-weight: 630;
+    -fx-alignment: CENTER-LEFT;
+    -fx-padding: 4 8;
+}
+
+/* Linhas */
+.tabela-pdv .table-row-cell {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #EEEEEE;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Zebra cinza */
+.tabela-pdv .table-row-cell:odd {
+    -fx-background-color: #F7F7F7;
+}
+
+/* Hover */
+.tabela-pdv .table-row-cell:hover {
+    -fx-background-color: #EDEDED;
+}
+
+/* Linha selecionada */
+.tabela-pdv .table-row-cell:selected {
+    -fx-background-color: #D6D6D6;
+}
+
+/* Células */
+.tabela-pdv .table-cell {
+    -fx-text-fill: #333333;
+    -fx-padding: 6 10;
+    -fx-alignment: CENTER-LEFT;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+/* Scrollbar discreta */
+.tabela-pdv .scroll-bar:vertical,
+.tabela-pdv .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.tabela-pdv .scroll-bar .thumb {
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+}
+
+/* Remove fundo azul padrão */
+.tabela-pdv .filler {
+    -fx-background-color: transparent;
+}
+
+.column-table {
+    -fx-alignment: CENTER;
+}
+
+.painel {
+    -fx-background-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-background-radius: 10;
+    -fx-padding: 20;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-alignment: LEFT;
+    -fx-padding: 10;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.gradient-topo {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3F423F, #3F423F);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 15;
+    -fx-font-size: 24px;
+    -fx-alignment: CENTER;
+    -fx-font-weight: 600;
+    -fx-text-fill: white;
+    -fx-background-radius: 8px;
+}
+
+.label-produto {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+.button-vermelho {
+    -fx-background-color: #E74C3C;  /* vermelho */
+    -fx-text-fill: white;           /* cor do texto */
+    -fx-font-size: 14px;            /* tamanho médio */
+    -fx-font-weight: 500;           /* peso médio */
+    -fx-background-radius: 8px;     /* bordas arredondadas */
+    -fx-padding: 10px 20px;         /* espaçamento interno */
+    -fx-cursor: hand;               /* cursor tipo mão */
+    -fx-border-width: 1px;
+    -fx-pref-width: 200px;
+}
+
+.button-verde {
+    -fx-background-color: #53A32C;  /* vermelho */
+    -fx-text-fill: white;           /* cor do texto */
+    -fx-font-size: 14px;            /* tamanho médio */
+    -fx-font-weight: 500;           /* peso médio */
+    -fx-background-radius: 8px;     /* bordas arredondadas */
+    -fx-padding: 10px 20px;         /* espaçamento interno */
+    -fx-cursor: hand;               /* cursor tipo mão */
+    -fx-border-width: 1px;
+    -fx-pref-width: 200px;
+}
+
+.painel-produto {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #F3F4F6, #F3F4F6);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 5;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-text-fill: white;
+    -fx-background-radius: 8px;
+}

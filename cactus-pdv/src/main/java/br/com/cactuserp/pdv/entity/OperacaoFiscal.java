@@ -1,0 +1,4 @@
+package br.com.cactuserp.pdv.entity;
+
+public class OperacaoFiscal {
+}

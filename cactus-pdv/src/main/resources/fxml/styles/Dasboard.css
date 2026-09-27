@@ -1,0 +1,196 @@
+.fundo {
+    -fx-background-color: linear-gradient(to bottom, #668253, #4c7838);
+    /*-fx-background-color: linear-gradient(to bottom, #696b69, #b5b5b5);*/
+
+    /*-fx-background-color: linear-gradient(to bottom right, #1f2f40, #2d3e50);*/
+    /*-fx-background-color: linear-gradient(to bottom right, #1e1e1e, #2b2b2b);*/
+
+
+
+}
+
+.account_gradient {
+    -fx-background-color: linear-gradient(to right, #FFFFFF, #FFFFFF);
+}
+
+.account_balance {
+    -fx-text-fill: #006400;
+    -fx-font-family: Calibri;
+    -fx-font-size: 2.5em;
+    -fx-font-weight: bold;
+}
+
+/* Account Summary View */
+.summary_view {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 5 10 5 10;
+    -fx-spacing: 5;
+    -fx-alignment: center_left;
+}
+
+/* Send Money View */
+.new_trans_container {
+    -fx-padding: 18 10 18 10;
+    -fx-spacing: 28;
+}
+
+.central_container {
+    /*-fx-padding: 0 10 0 10;*/
+}
+
+.central_container Label {
+
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 1.3em;
+    -fx-font-weight: bold;
+}
+
+.table-view {
+    -fx-font-family: "Verdana";     /* Pode ser "Arial", "Verdana", etc. */
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;         /* Isso deixa o texto em negrito */
+    -fx-background-color: #ffffff;       /* Cor de fundo da tabela */
+    -fx-background-radius: 8px;          /* Raio do fundo (arredondado) */
+    -fx-border-color: transparent;           /* Cor da borda */
+    -fx-border-radius: 8px;              /* Raio da borda (combina com background-radius) */
+    -fx-border-width: 1px;
+}
+
+.table-view .column-header {
+    -fx-background-color: #477d2e;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
+.central_container TextField {
+    -fx-text-fill: #2a572a;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #477d2e;
+    -fx-background-radius: 8px 8px 0 0; /* Arredonda somente a parte superior */
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent; /* Remove fundo duplicado */
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #ffffff;
+}
+
+.table-view .table-cell {
+    -fx-border-color: transparent; /* Sem borda interna */
+    -fx-padding: 5px;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #e5ede1; /* cor clara para linhas pares */
+}
+
+.table-view .table-row-cell:even {
+    -fx-background-color: #ffffff; /* cor para linhas ímpares */
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #3a7e3a; /* cor da seleção */
+    -fx-text-fill: white;
+}
+
+.column-table {
+    -fx-alignment: CENTER;
+}
+
+.sub_total {
+    -fx-padding: 20 10 20 10;
+    -fx-spacing: 5;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 1.3em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #006400;
+}
+
+.list_container {
+    -fx-padding: 20 10 20 10;
+}
+
+.new_trans_container_bottom {
+    -fx-padding: 10 10 10 10;
+    -fx-spacing: 10;
+}
+
+.new_trans_container_rodape Label {
+    -fx-padding: 10 0 0 10;
+    -fx-text-fill: #FFFFFF;
+}
+
+.new_trans_container_bottom TextField {
+    -fx-pref-height: 50;
+    -fx-text-fill: #006400;
+    -fx-background-color: #FFFFFF;
+    -fx-text-fill: #006400;
+    -fx-effect: dropshadow(three-pass-box, #AAAAAA, 3, 0, 0, 3);
+}
+
+.new_trans_container_bottom Label {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 1.3em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.new_trans_container Label {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 1.3em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF
+}
+
+.new_trans_container TextField {
+    -fx-pref-height: 50;
+    -fx-background-color: #FFFFFF;
+    -fx-text-fill: #006400;
+    -fx-effect: dropshadow(three-pass-box, #AAAAAA, 3, 0, 0, 3);
+}
+
+.new_trans_container Button {
+    -fx-background-color: linear-gradient(to right, #FFFFFF, #FFFFFF);
+    -fx-effect: dropshadow(three-pass-box, #AAAAAA, 3, 0, 0, 3);
+    -fx-pref-width: 230;
+    -fx-font-size: 1.5em;
+    -fx-font-family: "Calibri Light";
+    -fx-text-fill: #FFFFFF;
+}
+
+.transaction_listview {
+    -fx-font-family: "Segoe UI";
+    -fx-font-weight: bold;
+    -fx-font-size: 0.9em;
+}
+
+.new_trans_container_user Label {
+    -fx-padding: 10 0 0 10;
+    -fx-text-fill: #FFFFFF;
+    -fx-text-alignment: RIGHT;     /* Alinha o texto internamente */
+}
+
+.stack-pane-com-borda {
+    -fx-border-color: #456339;    /* Cor da borda */
+    -fx-border-width: 2;          /* Espessura da borda */
+    -fx-border-radius: 5;         /* Bordas arredondadas */
+    -fx-padding: 5;              /* Espaçamento interno */
+}

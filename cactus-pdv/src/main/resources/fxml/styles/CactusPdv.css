@@ -1,0 +1,418 @@
+.fundo {
+    -fx-background-color: linear-gradient(to bottom, #D8DED7, #D8DED7);
+    /*-fx-background-color: linear-gradient(to bottom, #388E3C, #81C784);*/
+}
+
+.fundoEncerramentoVenda {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #ffffff);
+}
+
+.gradient-pane {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #ffffff, #f2f2f2);
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 20;
+}
+
+.fundo-encerramento {
+    -fx-background-color: #D1D1D1;
+}
+
+.rodape-encerramento {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #FFFFFF, #FFFFFF);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-alignment: center;
+    -fx-padding: 15px;
+}
+
+.gradient-pane-encerramento {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3F423F, #3F423F);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 20;
+    -fx-font-size: 24px;
+    -fx-alignment: CENTER;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.painelVendas {
+    -fx-background-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-background-radius: 10;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-alignment: LEFT;
+    -fx-padding: 10;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.painelEncerramentoTipoPagamento {
+    -fx-background-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-background-radius: 10;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-alignment: LEFT;
+    -fx-padding: 10;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.painelEncerramentoPagamentosAdicionados {
+    -fx-background-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-background-radius: 10;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-alignment: LEFT;
+    -fx-padding: 10;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.painelEncerramentoResumoVenda {
+    -fx-background-color: #FFFFFF;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-background-radius: 10;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-alignment: LEFT;
+    -fx-padding: 10;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.painelLabelEncerramentoResumoVendaLeft {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-alignment: LEFT;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.painelLabelEncerramentoResumoVendaRight {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-alignment: left;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.linha-separadora {
+    -fx-background-color: #dddddd;
+    -fx-pref-height: 1;
+}
+
+.button-vermelho {
+    -fx-background-color: #E74C3C;  /* vermelho */
+    -fx-text-fill: white;           /* cor do texto */
+    -fx-font-size: 14px;            /* tamanho médio */
+    -fx-font-weight: 500;           /* peso médio */
+    -fx-background-radius: 8px;     /* bordas arredondadas */
+    -fx-padding: 10px 20px;         /* espaçamento interno */
+    -fx-cursor: hand;               /* cursor tipo mão */
+    -fx-border-width: 1px;
+    -fx-pref-width: 200px;
+}
+
+.button-verde {
+    -fx-background-color: #53A32C;  /* vermelho */
+    -fx-text-fill: white;           /* cor do texto */
+    -fx-font-size: 14px;            /* tamanho médio */
+    -fx-font-weight: 500;           /* peso médio */
+    -fx-background-radius: 8px;     /* bordas arredondadas */
+    -fx-padding: 10px 20px;         /* espaçamento interno */
+    -fx-cursor: hand;               /* cursor tipo mão */
+    -fx-border-width: 1px;
+    -fx-pref-width: 200px;
+}
+
+.button-verde-add-pgto{
+    -fx-background-color: #3F423F;  /* vermelho */
+    -fx-text-fill: white;           /* cor do texto */
+    -fx-font-size: 14px;            /* tamanho médio */
+    -fx-font-weight: 700;           /* peso médio */
+    -fx-background-radius: 8px;     /* bordas arredondadas */
+    -fx-padding: 10px 20px;         /* espaçamento interno */
+    -fx-cursor: hand;               /* cursor tipo mão */
+    -fx-border-width: 1px;
+}
+
+.gradient-pane-desc {
+    -fx-background-color: linear-gradient(to bottom, #D3D3D3, #FFFFFF);
+    /*-fx-background-color: linear-gradient(to bottom, #3b8d4c, #1e3f20);*/
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 20;
+    -fx-font-size: 30px;
+}
+
+.text-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 1, 0, 0, 1);
+}
+
+.textfield-grande {
+    -fx-font-size: 21px;
+    -fx-pref-height: 45px;
+    -fx-padding: 8 12;
+    -fx-text-fill: #236537;            /* Verde escuro */
+    -fx-font-weight: bold;             /* Negrito */
+    -fx-alignment: CENTER_RIGHT;       /* Alinha texto à direita */
+}
+
+.text-field:focused {
+    -fx-border-color: #2e7d32; /* Verde escuro ao focar */
+    -fx-box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+.stack-pane {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 4, 0, 0, 2);
+}
+
+.vbox {
+    -fx-spacing: 8;
+}
+
+.container-form {
+    -fx-padding: 5 10 5 10;
+
+}
+
+.container-form-pre-rodape {
+    -fx-padding: 0 10 5 10;
+}
+
+.container-form Label{
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.label-com-sombra {
+    -fx-text-fill: #FFFFFF; /* Texto branco */
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+
+    /* Sombra no texto
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 3, 0.5, 0.5, 0.5);
+    */
+}
+
+.text-field-campo-codigo {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #DADADA;
+    -fx-border-width: 1;
+    -fx-padding: 0 12;
+    -fx-font-size: 15px;
+    -fx-font-family: "Segoe UI", "Roboto", "Arial", sans-serif;
+}
+
+/* ===============================
+   TABLEVIEW PDV - CLEAN CINZA
+   =============================== */
+
+.tabela-pdv {
+    -fx-background-color: transparent;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* Cabeçalho */
+.tabela-pdv .column-header-background {
+    -fx-background-color: linear-gradient(to bottom, #F5F5F5, #EAEAEA);
+}
+
+.tabela-pdv .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #DDDDDD;
+    -fx-border-width: 0 1 1 0;
+}
+
+.tabela-pdv .column-header .label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #444444;
+    -fx-font-weight: 630;
+    -fx-alignment: CENTER-LEFT;
+    -fx-padding: 4 8;
+}
+
+/* Linhas */
+.tabela-pdv .table-row-cell {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #EEEEEE;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Zebra cinza */
+.tabela-pdv .table-row-cell:odd {
+    -fx-background-color: #F7F7F7;
+}
+
+/* Hover */
+.tabela-pdv .table-row-cell:hover {
+    -fx-background-color: #EDEDED;
+}
+
+/* Linha selecionada */
+.tabela-pdv .table-row-cell:selected {
+    -fx-background-color: #D6D6D6;
+}
+
+/* Células */
+.tabela-pdv .table-cell {
+    -fx-text-fill: #333333;
+    -fx-padding: 6 10;
+    -fx-alignment: CENTER-LEFT;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
+
+/* Scrollbar discreta */
+.tabela-pdv .scroll-bar:vertical,
+.tabela-pdv .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.tabela-pdv .scroll-bar .thumb {
+    -fx-background-color: #CCCCCC;
+    -fx-background-radius: 5;
+}
+
+/* Remove fundo azul padrão */
+.tabela-pdv .filler {
+    -fx-background-color: transparent;
+}
+
+.column-table {
+    -fx-alignment: CENTER;
+}
+
+.iniciar-movimento {
+
+}
+
+.label-movimento-lookup {
+    -fx-text-fill: #FFFFFF; /* Texto branco */
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+
+    -fx-pref-width: 230;
+    -fx-max-width: 230;
+    -fx-min-width: 230;
+
+    -fx-pref-height: 30;
+    -fx-max-height: 30;
+    -fx-min-height: 30;
+
+    -fx-alignment: center-left; /* centraliza texto na caixa */
+    -fx-padding: 0 0 0 10;
+}
+
+.text-field-lookup {
+    -fx-pref-width: infinity; /* ocupa todo espaço disponível */
+    -fx-max-width: infinity;  /* garante expansão máxima */
+}
+
+.label-field-movimento {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+    -fx-font-size: 11px;
+}
+
+.button-pdv {
+    -fx-background-color: #3F423F; /* cinza escuro elegante */
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-font-family: "Segoe UI", "Roboto", "Arial", sans-serif;
+
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+
+    -fx-min-height: 40px;
+    -fx-pref-height: 40px;
+
+    -fx-max-width: Infinity; /* FUNDAMENTAL */
+    -fx-cursor: hand;
+
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 4, 0.2, 0, 2);
+}
+
+.button-pdv:hover {
+    -fx-background-color: #374151;
+}
+
+.button-pdv:pressed {
+    -fx-background-color: #111827;
+}
+
+.gradient-rodape-resumo {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3F423F, #3F423F);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 10 20 20 10;
+    -fx-font-size: 11px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-font-weight: 600;
+    -fx-text-fill: white;
+    -fx-background-radius: 8px;
+}
+
+.label-resumo {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+.label-resumo-total {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.label-resumo-valor-total {
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+}
+
+.gradient-topo {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3F423F, #3F423F);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.2, 0, 4);
+    -fx-padding: 15;
+    -fx-font-size: 24px;
+    -fx-alignment: CENTER;
+    -fx-font-weight: 600;
+    -fx-text-fill: white;
+    -fx-background-radius: 8px;
+}
+
+/* Container do card de total — gradiente azul com sombra */
+.card-total {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2969c9, #1a4a8a);
+    -fx-background-radius: 10;
+    -fx-padding: 16 18 16 18;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.35), 12, 0.0, 0, 4);
+}
+
+/* Rótulo "Total a Pagar" — pequeno, em caixa alta, leve transparência */
+.card-total-label {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.05em;
+}
+
+/* O valor em si — grande, branco, em negrito */
+.card-total-valor {
+    -fx-text-fill: white;
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+}

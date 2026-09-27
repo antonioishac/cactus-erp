@@ -1,0 +1,308 @@
+/* =====================================================================
+   encerramento-venda.css  —  v2 (fontes maiores)
+   Estilos da tela de Finalizar Venda.
+
+   SUBSTITUI o arquivo /css/encerramento-venda.css atual.
+   ===================================================================== */
+
+.encv-root {
+    -fx-background-color: #ececec;
+}
+
+/* ---- Header ------------------------------------------------------- */
+.encv-header {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2969c9, #1a4a8a);
+    -fx-background-radius: 10;
+    -fx-padding: 14 20 14 20;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.25), 12, 0.0, 0, 4);
+}
+
+.encv-header-titulo {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.encv-header-subtitulo {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 12px;
+}
+
+/* ---- Card genérico ------------------------------------------------ */
+.encv-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0.0, 0, 2);
+}
+
+.encv-card-titulo {
+    -fx-text-fill: #555555;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Card de Total a Receber (mantém destaque) -------------------- */
+.encv-card-total {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2969c9, #1a4a8a);
+    -fx-background-radius: 10;
+    -fx-padding: 16 20 16 20;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.30), 14, 0.0, 0, 4);
+}
+
+.encv-card-total-label {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.encv-card-total-valor {
+    -fx-text-fill: white;
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Botões de forma de pagamento --------------------------------- */
+.encv-btn-pagamento {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
+    -fx-cursor: hand;
+    -fx-min-height: 80;
+}
+
+.encv-btn-pagamento:hover {
+    -fx-background-color: #ebebeb;
+    -fx-border-color: #b0b0b0;
+}
+
+/* FOCO (navegação por teclado) */
+.encv-btn-pagamento:focused {
+    -fx-border-color: #2969c9;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.35), 8, 0.0, 0, 0);
+}
+
+.encv-btn-pagamento-selecionado {
+    -fx-background-color: #f0f7e8;
+    -fx-border-color: #538649;
+    -fx-border-width: 2;
+}
+
+.encv-btn-pagamento-selecionado:hover {
+    -fx-background-color: #e6f0dc;
+}
+
+.encv-btn-pagamento-selecionado:focused {
+    -fx-border-color: #538649;
+    -fx-effect: dropshadow(gaussian, rgba(41,105,201,0.45), 10, 0.0, 0, 0);
+}
+
+.encv-btn-pagamento-icone {
+    -fx-icon-color: #555555;
+}
+
+.encv-btn-pagamento-icone-selecionado {
+    -fx-icon-color: #2d5a2d;
+}
+
+.encv-btn-pagamento-texto {
+    -fx-text-fill: #555555;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.encv-btn-pagamento-texto-selecionado {
+    -fx-text-fill: #2d5a2d;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Campo VALOR -------------------------------------------------- */
+.encv-secao-titulo {
+    -fx-text-fill: #555555;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.encv-input-valor {
+    -fx-background-color: #f0f7e8;
+    -fx-border-color: #538649;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 14 12 14;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d5a2d;
+    -fx-alignment: center-right;
+}
+
+.encv-input-valor:focused {
+    -fx-border-color: #2d5a2d;
+}
+
+/* ---- Botão grande "Adicionar Pagamento" --------------------------- */
+.encv-btn-adicionar {
+    -fx-background-color: #538649;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 14;
+    -fx-cursor: hand;
+    -fx-min-height: 50;
+}
+
+.encv-btn-adicionar:hover {
+    -fx-background-color: #467138;
+}
+
+.encv-btn-adicionar:disabled {
+    -fx-background-color: #cccccc;
+    -fx-text-fill: #888888;
+}
+
+/* ---- Pagamentos adicionados (lista vazia) ------------------------- */
+.encv-pagamentos-vazio {
+    -fx-text-fill: #aaaaaa;
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+}
+
+/* ---- Linhas de RESUMO (Subtotal, Desconto, Acréscimo) ------------- */
+/* FONTES MAIORES para o cliente conseguir ler também */
+
+.encv-resumo-linha-label {
+    -fx-text-fill: #555555;
+    -fx-font-size: 16px;
+}
+
+.encv-resumo-linha-valor {
+    -fx-text-fill: #333333;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.encv-resumo-desconto-label {
+    -fx-text-fill: #c9724f;
+    -fx-font-size: 16px;
+}
+
+.encv-resumo-desconto-valor {
+    -fx-text-fill: #cd3a20;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.encv-resumo-acrescimo-label {
+    -fx-text-fill: #2d7a3e;
+    -fx-font-size: 16px;
+}
+
+.encv-resumo-acrescimo-valor {
+    -fx-text-fill: #2d7a3e;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Progresso de pagamento --------------------------------------- */
+.encv-progresso-label {
+    -fx-text-fill: #555555;
+    -fx-font-size: 14px;
+}
+
+.encv-progresso-valor-recebido {
+    -fx-text-fill: #538649;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.encv-progresso-valor-saldo {
+    -fx-text-fill: #c9901e;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.encv-progresso-bar .track {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 4;
+}
+
+.encv-progresso-bar .bar {
+    -fx-background-color: #538649;
+    -fx-background-radius: 4;
+}
+
+/* ---- Troco em destaque (quando aplicável) ------------------------- */
+.encv-troco-container {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #538649, #2d5a2d);
+    -fx-background-radius: 10;
+    -fx-padding: 16 20 16 20;
+    -fx-effect: dropshadow(gaussian, rgba(83,134,73,0.25), 10, 0.0, 0, 3);
+}
+
+.encv-troco-label {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.encv-troco-valor {
+    -fx-text-fill: white;
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+}
+
+/* ---- Rodapé com botões de ação ------------------------------------ */
+.encv-rodape {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0.0, 0, 2);
+}
+
+.encv-btn-rodape {
+    -fx-background-color: white;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 14;
+    -fx-cursor: hand;
+    -fx-min-height: 52;
+}
+
+.encv-btn-cancelar {
+    -fx-text-fill: #555555;
+    -fx-border-color: #cccccc;
+}
+.encv-btn-cancelar:hover { -fx-background-color: #f5f5f5; -fx-border-color: #999999; }
+
+.encv-btn-desconto {
+    -fx-text-fill: #c9724f;
+    -fx-border-color: #c9724f;
+}
+.encv-btn-desconto:hover { -fx-background-color: #fdf3ee; }
+
+.encv-btn-acrescimo {
+    -fx-text-fill: #2d7a3e;
+    -fx-border-color: #2d7a3e;
+}
+.encv-btn-acrescimo:hover { -fx-background-color: #eef5ef; }
+
+.encv-btn-confirmar {
+    -fx-background-color: #538649;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(83,134,73,0.30), 8, 0.0, 0, 3);
+}
+.encv-btn-confirmar:hover { -fx-background-color: #467138; }
+.encv-btn-confirmar:disabled {
+    -fx-background-color: #cccccc;
+    -fx-text-fill: #888888;
+    -fx-effect: none;
+}

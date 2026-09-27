@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="br.com.cactuserp.pdv.controllers.DescontoAcrescimoController"
+      styleClass="dadc-root"
+      stylesheets="@../fxml/styles/desconto-acrescimo.css">
+
+    <!-- ============== CABEÇALHO ============== -->
+    <VBox fx:id="header" styleClass="dadc-header" spacing="2">
+        <Label fx:id="lblTitulo" text="Aplicar Desconto" styleClass="dadc-header-titulo"/>
+        <Label fx:id="lblInfoItem" text="—" styleClass="dadc-header-info"/>
+    </VBox>
+
+    <!-- ============== CORPO ============== -->
+    <VBox styleClass="dadc-corpo" spacing="12">
+
+        <!-- TIPO DE ENTRADA -->
+        <Label text="TIPO DE ENTRADA" styleClass="dadc-secao-titulo"/>
+        <HBox spacing="8">
+            <Button fx:id="btnValor" text="R$ Valor"
+                    onAction="#handleSelecionarValor"
+                    styleClass="dadc-toggle-btn,dadc-toggle-btn-ativo"
+                    maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="btnPercentual" text="Percentual"
+                    onAction="#handleSelecionarPercentual"
+                    styleClass="dadc-toggle-btn"
+                    maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        </HBox>
+
+        <!-- VALOR -->
+        <Label fx:id="lblCampoValor" text="VALOR DO DESCONTO" styleClass="dadc-secao-titulo"/>
+        <TextField fx:id="tfValor" promptText="0,00" styleClass="dadc-input-valor"/>
+
+        <!-- AVISO DE LIMITE -->
+        <HBox styleClass="dadc-aviso-limite">
+            <Label fx:id="lblAvisoLimite"
+                   text="Limite sem autorização: ..."
+                   styleClass="dadc-aviso-limite-texto"
+                   wrapText="true"
+                   maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+        </HBox>
+
+        <!-- PREVIEW -->
+        <VBox styleClass="dadc-preview" spacing="3">
+            <HBox>
+                <Label text="Valor original:" styleClass="dadc-preview-linha-label"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblValorOriginal" text="R$ 0,00" styleClass="dadc-preview-linha-valor"/>
+            </HBox>
+            <HBox>
+                <Label fx:id="lblOperacaoLabel" text="(-) Desconto:" styleClass="dadc-preview-linha-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblOperacaoValor" text="— —" styleClass="dadc-preview-linha-valor"/>
+            </HBox>
+            <HBox styleClass="dadc-preview-total-container">
+                <Label text="Total final:" styleClass="dadc-preview-total-label"
+                       maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <Label fx:id="lblTotalFinal" text="R$ 0,00" styleClass="dadc-preview-total-valor"/>
+            </HBox>
+        </VBox>
+
+    </VBox>
+
+    <!-- ============== BOTÕES ============== -->
+    <GridPane styleClass="dadc-rodape">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="50"/>
+            <ColumnConstraints percentWidth="50"/>
+        </columnConstraints>
+
+        <Button fx:id="btnCancelar"
+                text="[ESC] Cancelar"
+                onAction="#handleCancelar"
+                styleClass="dadc-btn,dadc-btn-cancelar"
+                maxWidth="Infinity"
+                cancelButton="true"
+                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
+        <Button fx:id="btnAplicar"
+                text="[ENTER] Aplicar"
+                onAction="#handleAplicar"
+                styleClass="dadc-btn,dadc-btn-aplicar"
+                maxWidth="Infinity"
+                defaultButton="true"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    </GridPane>
+
+</VBox>
