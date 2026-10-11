@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Template escrito à mão como XML puro (ver ANÁLISE: MÓDULO DE RELATÓRIOS no CLAUDE.md
+  raiz — formato clássico do JasperReports 6.x, compatível com Jaspersoft Studio).
+  Campos ($F{...}) = um subconjunto dos componentes de OportunidadeResponse.
+  estagioFunilNome já vem resolvido (join local dentro do próprio crm-service, não
+  cross-serviço); clienteId fica só como "#id" (sem lookup cross-serviço, mesma
+  limitação já registrada nos outros relatórios do monorepo). situacao (enum) chega
+  como String (Enum->name() genérico).
+  Paisagem: 7 colunas não cabem em retrato com fonte legível.
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="funil-oportunidades" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="782"
+              leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" whenNoDataType="AllSectionsNoDetail"
+              uuid="b8c9d0e1-d4e5-4f70-f18b-930415263748">
+
+    <parameter name="P_TITULO" class="java.lang.String">
+        <defaultValueExpression><![CDATA["Funil de Oportunidades"]]></defaultValueExpression>
+    </parameter>
+    <parameter name="P_FILTRO" class="java.lang.String"/>
+    <parameter name="P_DATA_GERACAO" class="java.lang.String"/>
+
+    <field name="estagioFunilNome" class="java.lang.String"/>
+    <field name="nome" class="java.lang.String"/>
+    <field name="clienteId" class="java.lang.Long"/>
+    <field name="valorEstimado" class="java.math.BigDecimal"/>
+    <field name="probabilidadePercentual" class="java.math.BigDecimal"/>
+    <!-- Convertido de java.time.LocalDate pra java.util.Date pelo ReportEngine. -->
+    <field name="dataPrevisaoFechamento" class="java.util.Date"/>
+    <field name="situacao" class="java.lang.String"/>
+
+    <variable name="V_TOTAL_VALOR" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorEstimado}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+
+    <title>
+        <band height="80">
+            <staticText>
+                <reportElement x="0" y="0" width="782" height="24"/>
+                <textElement><font size="16" isBold="true"/></textElement>
+                <text><![CDATA[Cactus ERP]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="26" width="782" height="18"/>
+                <textElement><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{P_TITULO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="46" width="550" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{P_FILTRO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="550" y="46" width="232" height="14"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["Gerado em: " + $P{P_DATA_GERACAO}]]></textFieldExpression>
+            </textField>
+            <line><reportElement x="0" y="66" width="782" height="1"/></line>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="130" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Estágio]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="130" y="0" width="220" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Nome]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="350" y="0" width="65" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Cliente]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="415" y="0" width="100" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Valor Estimado]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="515" y="0" width="85" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Probabilidade]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="600" y="0" width="90" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Previsão]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="690" y="0" width="92" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[Situação]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="16">
+            <textField textAdjust="ScaleFont">
+                <reportElement x="0" y="0" width="130" height="16"/>
+                <box leftPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{estagioFunilNome}]]></textFieldExpression>
+            </textField>
+            <textField textAdjust="ScaleFont">
+                <reportElement x="130" y="0" width="220" height="16"/>
+                <box leftPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{nome}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="350" y="0" width="65" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{clienteId} != null ? ("#" + $F{clienteId}) : null]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="415" y="0" width="100" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorEstimado}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00'%'" isBlankWhenNull="true">
+                <reportElement x="515" y="0" width="85" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{probabilidadePercentual}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+                <reportElement x="600" y="0" width="90" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$F{dataPrevisaoFechamento}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="690" y="0" width="92" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{situacao}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <pageFooter>
+        <band height="20">
+            <textField>
+                <reportElement x="657" y="0" width="125" height="16"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <!-- <summary> sempre DEPOIS de <pageFooter> (ordem fixa do XSD clássico). -->
+    <summary>
+        <band height="24">
+            <line><reportElement x="0" y="0" width="782" height="1"/></line>
+            <textField>
+                <reportElement x="0" y="4" width="415" height="16"/>
+                <textElement><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["TOTAL (" + $V{REPORT_COUNT} + " oportunidade(s))"]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="415" y="4" width="100" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_VALOR}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+</jasperReport>

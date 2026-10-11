@@ -370,3 +370,36 @@ export interface FormaPagamentoResumo {
   codigo: string
   descricao: string
 }
+
+// --- Relatórios (vendas-service, RelatorioVendasController) — calculados sob demanda ---
+
+/** Só vendas CONFIRMADA no período. */
+export interface VendaPeriodoItemResponse {
+  vendaId: number
+  dataVenda: string
+  empresaId: number
+  vendedorId: number
+  clienteId: number
+  valorTotal: number
+}
+
+export interface VendasPeriodoFiltro {
+  dataInicio: string
+  dataFim: string
+  vendedorId?: number
+  clienteId?: number
+}
+
+/** Agregado de `VendaItem` por produto, ordenado por quantidade vendida decrescente. */
+export interface ProdutoMaisVendidoResponse {
+  produtoId: number
+  quantidadeTotal: number
+  valorTotal: number
+}
+
+/** Agrupado pela data de lançamento da comissão, não pela data da venda. */
+export interface ComissaoVendedorPeriodoResponse {
+  vendedorId: number
+  valorComissaoTotal: number
+  quantidadeVendas: number
+}

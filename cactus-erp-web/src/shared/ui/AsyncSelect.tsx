@@ -29,6 +29,7 @@ export default function AsyncSelect<T>({
   toOption,
   labelValorAtual,
   value,
+  placeholder,
   ...rest
 }: AsyncSelectProps<T>) {
   const [digitando, setDigitando] = useState(false)
@@ -57,7 +58,9 @@ export default function AsyncSelect<T>({
       onBlur={() => setDigitando(false)}
       options={options}
       loading={carregando}
-      placeholder={termo === undefined ? 'Digite para buscar…' : undefined}
+      // `placeholder` do chamador (ex: "Todos os clientes" num filtro) tem prioridade;
+      // sem ele, mantém a dica padrão de busca.
+      placeholder={termo === undefined ? (placeholder ?? 'Digite para buscar…') : undefined}
     />
   )
 }

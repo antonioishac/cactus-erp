@@ -1,5 +1,6 @@
 package br.com.cactusdigital.erp.fiscal.repository;
 
+import br.com.cactusdigital.erp.fiscal.dto.NotaFiscalPeriodoItemResponse;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronica;
 import java.time.Instant;
 import java.util.List;
@@ -31,4 +32,21 @@ public interface NotaFiscalEletronicaRepository extends JpaRepository<NotaFiscal
             """)
     List<NotaFiscalEletronica> buscarAutorizadasNoPeriodoComItens(
             @Param("empresaId") Long empresaId, @Param("inicio") Instant inicio, @Param("fim") Instant fim);
+
+    /**
+     * Projeção plana pro relatório unificado "notas emitidas por período" (todas as
+     * situações, não só {@code AUTORIZADA} — diferente de {@link #buscarAutorizadasNoPeriodoComItens},
+     * que serve ao SPED) — {@code SELECT new} evita tocar a coleção {@code itens} por
+     * completo, sem precisar de {@code JOIN FETCH} nem risco de N+1: o relatório é um
+     * resumo, não o detalhamento item a item.
+     */
+    @Query("""
+            SELECT new br.com.cactusdigital.erp.fiscal.dto.NotaFiscalPeriodoItemResponse(
+                'NFE', CAST(n.numero AS string), n.serie, n.dataEmissao, n.situacao, n.valorTotal)
+            FROM NotaFiscalEletronica n
+            WHERE n.dataEmissao >= :inicio AND n.dataEmissao < :fim
+            AND (:empresaId IS NULL OR n.empresaId = :empresaId)
+            """)
+    List<NotaFiscalPeriodoItemResponse> buscarParaRelatorio(
+            @Param("inicio") Instant inicio, @Param("fim") Instant fim, @Param("empresaId") Long empresaId);
 }

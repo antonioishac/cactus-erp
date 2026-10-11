@@ -31,6 +31,23 @@ public interface SaldoEstoqueRepository extends JpaRepository<SaldoEstoque, Long
 
     Page<SaldoEstoque> findByDepositoId(Long depositoId, Pageable pageable);
 
+    /**
+     * Variante não paginada, com {@code JOIN FETCH} do depósito — usada pela exportação
+     * PDF/Excel (documento inteiro, não uma página de grade). {@code JOIN FETCH}
+     * necessário aqui, diferente de {@code EstoqueMovimentoRepository} (que só expõe
+     * {@code depositoId}, seguro contra N+1 via o próprio proxy lazy): o mapeamento pra
+     * {@code SaldoEstoqueResponse} lê {@code deposito.getNome()}, que de fato inicializa
+     * o proxy — sem fetch antecipado, um relatório sem paginação dispararia 1 SELECT por
+     * linha. Os 2 parâmetros opcionais cobrem os 3 filtros possíveis numa query só
+     * (ambos nulos = todos os saldos).
+     */
+    @Query("""
+            SELECT s FROM SaldoEstoque s JOIN FETCH s.deposito
+            WHERE (:produtoId IS NULL OR s.produtoId = :produtoId)
+            AND (:depositoId IS NULL OR s.deposito.id = :depositoId)
+            """)
+    List<SaldoEstoque> buscarParaRelatorio(@Param("produtoId") Long produtoId, @Param("depositoId") Long depositoId);
+
     /** Sem paginação — uso interno pra abrir inventário físico (snapshot de todos os saldos do depósito). */
     List<SaldoEstoque> findAllByDepositoIdAndQuantidadeGreaterThan(Long depositoId, java.math.BigDecimal quantidadeMinima);
 

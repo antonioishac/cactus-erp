@@ -58,8 +58,12 @@ import {
   removerMetaVendedor,
   removerObjetivoComissaoPerfil,
   removerRotaVendedor,
+  buscarComissoesPorVendedor,
+  buscarProdutosMaisVendidos,
+  buscarVendasPorPeriodo,
 } from './api'
 import type {
+  VendasPeriodoFiltro,
   ComissaoObjetivoRequest,
   ComissaoPerfilRequest,
   ComissoesFiltro,
@@ -606,5 +610,31 @@ export function useDepositosAtivos(empresaId: number | undefined) {
     queryKey: ['depositos-ativos-vendas', empresaId ?? -1],
     queryFn: () => listarDepositosAtivos(empresaId as number),
     enabled: empresaId !== undefined,
+  })
+}
+
+// --- Relatórios ---
+
+export function useVendasPorPeriodo(filtro: VendasPeriodoFiltro, enabled: boolean) {
+  return useQuery({
+    queryKey: ['relatorio-vendas-periodo', filtro],
+    queryFn: () => buscarVendasPorPeriodo(filtro),
+    enabled,
+  })
+}
+
+export function useProdutosMaisVendidos(dataInicio: string, dataFim: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['relatorio-produtos-mais-vendidos', dataInicio, dataFim],
+    queryFn: () => buscarProdutosMaisVendidos(dataInicio, dataFim),
+    enabled,
+  })
+}
+
+export function useComissoesPorVendedor(dataInicio: string, dataFim: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['relatorio-comissoes-vendedor', dataInicio, dataFim],
+    queryFn: () => buscarComissoesPorVendedor(dataInicio, dataFim),
+    enabled,
   })
 }

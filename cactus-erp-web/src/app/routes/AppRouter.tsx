@@ -68,6 +68,7 @@ import OrcamentosListPage from '@features/vendas/OrcamentosListPage'
 import OrcamentoFormPage from '@features/vendas/OrcamentoFormPage'
 import OrcamentoDetailPage from '@features/vendas/OrcamentoDetailPage'
 import VendasListPage from '@features/vendas/VendasListPage'
+import RelatoriosVendasPage from '@features/vendas/RelatoriosVendasPage'
 import VendaFormPage from '@features/vendas/VendaFormPage'
 import VendaDetailPage from '@features/vendas/VendaDetailPage'
 import ComissoesListPage from '@features/vendas/ComissoesListPage'
@@ -107,6 +108,7 @@ import TransferenciasBancariasListPage from '@features/financeiro/Transferencias
 import AplicacoesFinanceirasListPage from '@features/financeiro/AplicacoesFinanceirasListPage'
 import PosicaoCaixaPage from '@features/financeiro/PosicaoCaixaPage'
 import FluxoCaixaPage from '@features/financeiro/FluxoCaixaPage'
+import TitulosEmAbertoPage from '@features/financeiro/TitulosEmAbertoPage'
 import ConciliacaoBancariaPage from '@features/financeiro/ConciliacaoBancariaPage'
 import EdiBancarioPage from '@features/financeiro/EdiBancarioPage'
 import { MODULE_NAV } from '@shared/ui/NavConfig'
@@ -353,6 +355,7 @@ const router = createBrowserRouter([
           { path: 'condicoes-pagamento/novo', element: <CondicaoPagamentoFormPage /> },
           { path: 'condicoes-pagamento/:id', element: <CondicaoPagamentoFormPage /> },
           { path: 'notas-fiscais-tipos', element: <NotasFiscaisTiposPage /> },
+          { path: 'relatorios', element: <RelatoriosVendasPage /> },
           { path: 'comissoes', element: <ComissoesListPage /> },
         ],
       },
@@ -442,6 +445,7 @@ const router = createBrowserRouter([
           { path: 'aplicacoes', element: <AplicacoesFinanceirasListPage /> },
           { path: 'posicao-caixa', element: <PosicaoCaixaPage /> },
           { path: 'fluxo-caixa', element: <FluxoCaixaPage /> },
+          { path: 'titulos-em-aberto', element: <TitulosEmAbertoPage /> },
           { path: 'conciliacao-bancaria', element: <ConciliacaoBancariaPage /> },
           { path: 'edi-bancario', element: <EdiBancarioPage /> },
         ],

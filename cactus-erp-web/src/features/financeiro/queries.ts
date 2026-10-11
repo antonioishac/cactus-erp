@@ -15,6 +15,7 @@ import {
   buscarContaPagar,
   buscarContaReceber,
   buscarFluxoCaixa,
+  buscarTitulosEmAberto,
   buscarFormasPagamentoParaSelecao,
   buscarFornecedorResumo,
   buscarFornecedoresParaSelecao,
@@ -77,6 +78,7 @@ import {
   transferirEntreContas,
 } from './api'
 import type {
+  TitulosEmAbertoFiltro,
   AplicacaoFinanceiraRequest,
   AtualizarClassificacaoTituloRequest,
   BaixaRequest,
@@ -722,6 +724,16 @@ export function useFluxoCaixa(
     queryKey: ['financeiro-fluxo-caixa', empresaId, dataInicio, dataFim, agrupamento],
     queryFn: () => buscarFluxoCaixa(empresaId as number, dataInicio as string, dataFim as string, agrupamento),
     enabled: empresaId !== undefined && dataInicio !== undefined && dataFim !== undefined,
+  })
+}
+
+// --- Relatório: Títulos em aberto ---
+
+export function useTitulosEmAberto(filtro: TitulosEmAbertoFiltro | undefined) {
+  return useQuery({
+    queryKey: ['financeiro-titulos-em-aberto', filtro],
+    queryFn: () => buscarTitulosEmAberto(filtro as TitulosEmAbertoFiltro),
+    enabled: filtro !== undefined,
   })
 }
 

@@ -1,7 +1,12 @@
 import { cadastroBaseApi, estoqueApi, vendasApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type { AppError } from '@shared/api/problemDetail'
 import type {
+  ComissaoVendedorPeriodoResponse,
+  ProdutoMaisVendidoResponse,
+  VendaPeriodoItemResponse,
+  VendasPeriodoFiltro,
   ClienteResumo,
   ColaboradorResumo,
   ComissaoObjetivoRequest,
@@ -414,4 +419,43 @@ export async function buscarFormasPagamentoParaSelecao(): Promise<FormaPagamento
 export async function listarDepositosAtivos(empresaId: number): Promise<DepositoResumo[]> {
   const { data } = await estoqueApi.get<DepositoResumo[]>(`/api/v1/depositos/empresa/${empresaId}/ativos`)
   return data
+}
+
+// --- Relatórios (JSON pra tela + PDF/Excel com os mesmos filtros) ---
+
+export async function buscarVendasPorPeriodo(filtro: VendasPeriodoFiltro): Promise<VendaPeriodoItemResponse[]> {
+  const { data } = await vendasApi.get<VendaPeriodoItemResponse[]>('/api/v1/relatorios/vendas-periodo', { params: filtro })
+  return data
+}
+
+export async function exportarVendasPorPeriodo(filtro: VendasPeriodoFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(vendasApi, `/api/v1/relatorios/vendas-periodo/${formato}`, `vendas-periodo.${formato}`, { ...filtro })
+}
+
+export async function buscarProdutosMaisVendidos(dataInicio: string, dataFim: string): Promise<ProdutoMaisVendidoResponse[]> {
+  const { data } = await vendasApi.get<ProdutoMaisVendidoResponse[]>('/api/v1/relatorios/produtos-mais-vendidos', {
+    params: { dataInicio, dataFim },
+  })
+  return data
+}
+
+export async function exportarProdutosMaisVendidos(dataInicio: string, dataFim: string, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(vendasApi, `/api/v1/relatorios/produtos-mais-vendidos/${formato}`, `produtos-mais-vendidos.${formato}`, {
+    dataInicio,
+    dataFim,
+  })
+}
+
+export async function buscarComissoesPorVendedor(dataInicio: string, dataFim: string): Promise<ComissaoVendedorPeriodoResponse[]> {
+  const { data } = await vendasApi.get<ComissaoVendedorPeriodoResponse[]>('/api/v1/relatorios/comissoes-vendedor', {
+    params: { dataInicio, dataFim },
+  })
+  return data
+}
+
+export async function exportarComissoesPorVendedor(dataInicio: string, dataFim: string, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(vendasApi, `/api/v1/relatorios/comissoes-vendedor/${formato}`, `comissoes-vendedor.${formato}`, {
+    dataInicio,
+    dataFim,
+  })
 }

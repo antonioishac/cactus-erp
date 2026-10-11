@@ -119,6 +119,19 @@ public class ReportEngine {
      * {@code SimpleDateFormat}, caminho maduro/estável desde a origem do JasperReports).
      * Declarar o campo como {@code java.util.Date} no {@code .jrxml} (não mais
      * {@code java.time.LocalDate}) é o que torna essa conversão efetiva.
+     * <p>
+     * {@code Instant} (ex: {@code EstoqueMovimentoResponse.dataMovimento}, auditoria
+     * {@code criadoEm}/{@code atualizadoEm} de toda {@code BaseEntity}) segue o mesmo
+     * motivo/solução — convertido pra {@code java.util.Date} puro via
+     * {@code Date.from(Instant)}; campo também declarado {@code java.util.Date} no
+     * {@code .jrxml}.
+     * <p>
+     * {@code Enum} vira {@code name()} — alguns DTOs de resposta JSON já existentes
+     * (ex: {@code BalanceteItemResponse.tipo}/{@code natureza}) expõem o enum cru de
+     * propósito pra API; não faz sentido mudar a resposta JSON só pra servir o relatório,
+     * então a conversão acontece aqui, de forma genérica, sem precisar de um record
+     * paralelo "só pra PDF" por módulo. Declarar o campo como {@code java.lang.String} no
+     * {@code .jrxml} é o que torna isso efetivo.
      */
     private Object paraValorDeTemplate(Object valor) {
         if (valor instanceof LocalDate data) {
@@ -126,6 +139,12 @@ public class ReportEngine {
         }
         if (valor instanceof LocalDateTime dataHora) {
             return Timestamp.valueOf(dataHora);
+        }
+        if (valor instanceof java.time.Instant instante) {
+            return java.util.Date.from(instante);
+        }
+        if (valor instanceof Enum<?> enumValor) {
+            return enumValor.name();
         }
         return valor;
     }

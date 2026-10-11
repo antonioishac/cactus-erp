@@ -1,5 +1,6 @@
 package br.com.cactusdigital.erp.fiscal.repository;
 
+import br.com.cactusdigital.erp.fiscal.dto.NotaFiscalPeriodoItemResponse;
 import br.com.cactusdigital.erp.fiscal.entity.CteCabecalho;
 import java.time.Instant;
 import java.util.List;
@@ -27,4 +28,18 @@ public interface CteCabecalhoRepository extends JpaRepository<CteCabecalho, Long
             """)
     List<CteCabecalho> buscarAutorizadosNoPeriodoComComponentes(
             @Param("empresaId") Long empresaId, @Param("inicio") Instant inicio, @Param("fim") Instant fim);
+
+    /** Projeção plana pro relatório unificado "notas emitidas por período" — ver Javadoc
+     * de {@code NotaFiscalEletronicaRepository#buscarParaRelatorio}. {@code valorTotalServico}
+     * faz o papel de "valor total" (é o valor do frete em si, distinto de
+     * {@code valorTotalCarga}, que é o valor da mercadoria transportada). */
+    @Query("""
+            SELECT new br.com.cactusdigital.erp.fiscal.dto.NotaFiscalPeriodoItemResponse(
+                'CTE', CAST(c.numero AS string), c.serie, c.dataEmissao, c.situacao, c.valorTotalServico)
+            FROM CteCabecalho c
+            WHERE c.dataEmissao >= :inicio AND c.dataEmissao < :fim
+            AND (:empresaId IS NULL OR c.empresaId = :empresaId)
+            """)
+    List<NotaFiscalPeriodoItemResponse> buscarParaRelatorio(
+            @Param("inicio") Instant inicio, @Param("fim") Instant fim, @Param("empresaId") Long empresaId);
 }

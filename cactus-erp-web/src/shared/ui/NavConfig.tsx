@@ -265,6 +265,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         path: '/vendas/notas-fiscais-tipos',
         requiredAuthorities: ['VENDAS_CONSULTAR'],
       },
+      {
+        key: 'vendas-relatorios',
+        label: 'Relatórios',
+        path: '/vendas/relatorios',
+        requiredAuthorities: ['VENDAS_CONSULTAR'],
+      },
     ],
   },
   {
@@ -507,6 +513,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         key: 'financeiro-fluxo-caixa',
         label: 'Fluxo de Caixa',
         path: '/financeiro/fluxo-caixa',
+        requiredAuthorities: ['FINANCEIRO_CONSULTAR'],
+      },
+      {
+        key: 'financeiro-titulos-em-aberto',
+        label: 'Títulos em Aberto',
+        path: '/financeiro/titulos-em-aberto',
         requiredAuthorities: ['FINANCEIRO_CONSULTAR'],
       },
       {

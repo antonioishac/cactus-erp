@@ -2497,3 +2497,45 @@ confirmados limpos depois de cada sub-item e no conjunto final. Validação func
 achados de backend (filtro de `ConfiguracaoTributaria`, contrato de Kit) feita via `curl`
 contra os serviços reais, não em navegador — registrado com honestidade, mesmo padrão já usado
 quando essa limitação apareceu antes nesta sessão. `BACKLOG.md` atualizado fechando os 7 itens.
+
+## Exportação de relatórios PDF/Excel — Fase 17 do backend chega ao frontend (2026-10-01)
+
+Requisito do usuário registrado em 2026-09-27: todo relatório sai com integração no frontend,
+não só a API. Esta entrega fecha isso para os 8 relatórios que existem hoje no backend.
+
+### Peças compartilhadas novas
+- `shared/api/download.ts` — `baixarArquivo(api, url, nomeSugerido, params)`: blob, link sintético
+  e nome resolvido do `Content-Disposition`. Era código duplicado em `ged/api.ts` e
+  `financeiro/api.ts` (EDI Bancário); os dois passaram a usar o helper. `FormatoRelatorio = 'pdf' | 'xlsx'`
+  é também o sufixo do endpoint (`/relatorios/<nome>/pdf|xlsx`).
+- `shared/ui/ExportarRelatorioButtons.tsx` — botões "PDF"/"Excel" padrão de toda tela de relatório,
+  com carregamento próprio por botão. Sempre exporta com os MESMOS filtros da tela. Com
+  `responseType: 'blob'`, o corpo do erro (ProblemDetail) não é lido, então a mensagem sai pelo
+  `kind` (texto específico pra 403/rede).
+
+### Telas
+- `estoque/CurvaAbcPage` e `financeiro/FluxoCaixaPage`: ganharam os botões (antes só JSON).
+- `financeiro/TitulosEmAbertoPage` (NOVA, `/financeiro/titulos-em-aberto`, menu Financeiro): alterna
+  entre a receber e a pagar, tem vencimento opcional (vazio = carteira inteira) e cliente ou
+  fornecedor via `AsyncSelect` (zerado ao trocar de lado, porque o id de um cadastro não vale no
+  outro). Tag de dias de atraso, linha de totais idêntica à do PDF e clique na linha abre o título.
+- `vendas/RelatoriosVendasPage` (NOVA, `/vendas/relatorios`, menu Vendas): 3 abas (Vendas por
+  Período com filtro de vendedor/cliente, Produtos Mais Vendidos, Comissões por Vendedor) com
+  período compartilhado. O vendedor é resolvido pelo colaborador vinculado, mesmo critério de
+  `ComissoesListPage`.
+
+### Bug real corrigido em componente compartilhado
+`AsyncSelect` sempre sobrescrevia o `placeholder` do chamador com "Digite para buscar…". Agora o
+`placeholder` passado tem prioridade, e o padrão continua quando nenhum é passado. Isso corrigiu
+também 2 telas existentes que já passavam texto e eram ignoradas em silêncio:
+`compras/PedidosListPage` ("Filtrar por fornecedor") e `compras/RequisicoesListPage` ("Filtrar
+por solicitante").
+
+### Verificação (navegador real, Playwright, login pelo fluxo OAuth2/PKCE de verdade)
+`tsc -b`, `oxlint` e `vitest` (13/13) limpos. E2E nas 4 telas: os 8 relatórios × PDF + Excel = 16
+downloads reais pela interface. Os totais da tela batem com o backend e com o PDF (títulos a
+receber 21 = R$ 2.553,33 / atualizado R$ 2.360,35; a pagar 13 = R$ 831,00 / R$ 832,09; vendas 9 =
+R$ 411,82; comissões R$ 21,09). Zero erro de console, fora o 404 já conhecido do produto órfão
+`#999999` dos dados de teste (tratado, a tela mostra `#id`). Achado do meu script, não do produto:
+o nome acessível do botão é "file-pdf PDF", porque o Ant Design inclui o `aria-label` do ícone,
+então o seletor precisa casar por regex, não por nome exato.

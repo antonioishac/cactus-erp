@@ -598,6 +598,36 @@ export interface FluxoCaixaPeriodoResponse {
   saldoAcumulado: number
 }
 
+// --- Relatório: Títulos em aberto (Contas a Receber/Pagar) ---
+
+export type TipoTituloRelatorio = 'RECEBER' | 'PAGAR'
+
+/** `pessoaId` é o cliente (RECEBER) ou o fornecedor (PAGAR); vencimento omitido = carteira inteira. */
+export interface TitulosEmAbertoFiltro {
+  tipo: TipoTituloRelatorio
+  empresaId: number
+  dataInicio?: string
+  dataFim?: string
+  pessoaId?: number
+}
+
+export interface TituloEmAbertoResponse {
+  tituloId: number
+  pessoaId: number
+  numeroDocumento?: string
+  descricao?: string
+  dataEmissao: string
+  dataVencimento: string
+  situacao: SituacaoTitulo
+  diasAtraso?: number
+  valorOriginal: number
+  valorPago: number
+  valorSaldo: number
+  valorMulta: number
+  valorJuros: number
+  valorAtualizado: number
+}
+
 // --- Conciliação Bancária ---
 
 export interface ExtratoBancarioImportacaoResponse {

@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Template escrito à mão como XML puro (ver ANÁLISE: MÓDULO DE RELATÓRIOS no CLAUDE.md
+  raiz — formato clássico do JasperReports 6.x, compatível com Jaspersoft Studio).
+  Campos ($F{...}) = componentes do record TituloEmAbertoResponse, convertidos pra
+  Map<String,Object> por ReportEngine. Um template só pros dois lados (Receber/Pagar) —
+  título e rótulo da coluna de pessoa (Cliente/Fornecedor) vêm por parâmetro.
+  Paisagem: 13 colunas não cabem em retrato com fonte legível.
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="titulos-em-aberto" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="782"
+              leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" whenNoDataType="AllSectionsNoDetail"
+              uuid="7c2d9e4f-1a3b-4c5d-8e6f-0a1b2c3d4e5f">
+
+    <parameter name="P_TITULO" class="java.lang.String"/>
+    <parameter name="P_ROTULO_PESSOA" class="java.lang.String"/>
+    <parameter name="P_PERIODO" class="java.lang.String"/>
+    <parameter name="P_FILTRO" class="java.lang.String"/>
+    <parameter name="P_DATA_GERACAO" class="java.lang.String"/>
+
+    <field name="tituloId" class="java.lang.Long"/>
+    <field name="pessoaId" class="java.lang.Long"/>
+    <field name="numeroDocumento" class="java.lang.String"/>
+    <field name="descricao" class="java.lang.String"/>
+    <!-- Convertidos de java.time.LocalDate pra java.util.Date pelo ReportEngine. -->
+    <field name="dataEmissao" class="java.util.Date"/>
+    <field name="dataVencimento" class="java.util.Date"/>
+    <field name="situacao" class="java.lang.String"/>
+    <field name="diasAtraso" class="java.lang.Integer"/>
+    <field name="valorOriginal" class="java.math.BigDecimal"/>
+    <field name="valorPago" class="java.math.BigDecimal"/>
+    <field name="valorSaldo" class="java.math.BigDecimal"/>
+    <field name="valorMulta" class="java.math.BigDecimal"/>
+    <field name="valorJuros" class="java.math.BigDecimal"/>
+    <field name="valorAtualizado" class="java.math.BigDecimal"/>
+
+    <variable name="V_TOTAL_ORIGINAL" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorOriginal}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+    <variable name="V_TOTAL_PAGO" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorPago}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+    <variable name="V_TOTAL_SALDO" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorSaldo}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+    <variable name="V_TOTAL_MULTA" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorMulta}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+    <variable name="V_TOTAL_JUROS" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorJuros}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+    <variable name="V_TOTAL_ATUALIZADO" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorAtualizado}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+    </variable>
+
+    <title>
+        <band height="80">
+            <staticText>
+                <reportElement x="0" y="0" width="782" height="24"/>
+                <textElement><font size="16" isBold="true"/></textElement>
+                <text><![CDATA[Cactus ERP]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="26" width="782" height="18"/>
+                <textElement><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{P_TITULO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="0" y="46" width="500" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["Vencimento: " + $P{P_PERIODO} + "   |   " + $P{P_FILTRO}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="500" y="46" width="282" height="14"/>
+                <textElement textAlignment="Right"><font size="9"/></textElement>
+                <textFieldExpression><![CDATA["Gerado em: " + $P{P_DATA_GERACAO}]]></textFieldExpression>
+            </textField>
+            <line><reportElement x="0" y="66" width="782" height="1"/></line>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="45" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Título]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="45" y="0" width="60" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{P_ROTULO_PESSOA}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="105" y="0" width="95" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Documento]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="200" y="0" width="58" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Emissão]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="258" y="0" width="58" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Vencimento]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="316" y="0" width="55" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Situação]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="371" y="0" width="40" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Atraso]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="411" y="0" width="70" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Original]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="481" y="0" width="65" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Pago]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="546" y="0" width="70" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Saldo]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="616" y="0" width="52" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Multa]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="668" y="0" width="52" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Juros]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="720" y="0" width="62" height="20" backcolor="#EFEFEF" mode="Opaque"/>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Atualizado]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="16">
+            <textField>
+                <reportElement x="0" y="0" width="45" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["#" + $F{tituloId}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="45" y="0" width="60" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["#" + $F{pessoaId}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true" textAdjust="ScaleFont">
+                <reportElement x="105" y="0" width="95" height="16"/>
+                <box leftPadding="2"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{numeroDocumento}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="200" y="0" width="58" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{dataEmissao}]]></textFieldExpression>
+            </textField>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="258" y="0" width="58" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{dataVencimento}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="316" y="0" width="55" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{situacao}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="371" y="0" width="40" height="16"/>
+                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{diasAtraso}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="411" y="0" width="70" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorOriginal}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="481" y="0" width="65" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorPago}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="546" y="0" width="70" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorSaldo}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="616" y="0" width="52" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorMulta}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="668" y="0" width="52" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorJuros}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="720" y="0" width="62" height="16"/>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$F{valorAtualizado}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <pageFooter>
+        <band height="20">
+            <textField>
+                <reportElement x="657" y="0" width="125" height="16"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <!-- <summary> sempre DEPOIS de <pageFooter> (ordem fixa do XSD clássico). -->
+    <summary>
+        <band height="24">
+            <line><reportElement x="0" y="0" width="782" height="1"/></line>
+            <textField>
+                <reportElement x="0" y="4" width="411" height="16"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["TOTAL (" + $V{REPORT_COUNT} + " título(s))"]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="411" y="4" width="70" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_ORIGINAL}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="481" y="4" width="65" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_PAGO}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="546" y="4" width="70" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_SALDO}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="616" y="4" width="52" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_MULTA}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="668" y="4" width="52" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_JUROS}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00" isBlankWhenNull="true">
+                <reportElement x="720" y="4" width="62" height="16"/>
+                <box rightPadding="3"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{V_TOTAL_ATUALIZADO}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+</jasperReport>

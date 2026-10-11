@@ -1,4 +1,5 @@
 import { cadastroBaseApi, financeiroApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   AplicacaoFinanceiraRequest,
@@ -35,6 +36,8 @@ import type {
   ExtratoBancarioImportacaoResponse,
   ExtratoBancarioItemResponse,
   FluxoCaixaPeriodoResponse,
+  TituloEmAbertoResponse,
+  TitulosEmAbertoFiltro,
   FormaPagamentoResumo,
   FornecedorResumo,
   GerarAjusteConciliacaoRequest,
@@ -424,6 +427,35 @@ export async function buscarFluxoCaixa(
   return data
 }
 
+export async function exportarFluxoCaixa(
+  empresaId: number,
+  dataInicio: string,
+  dataFim: string,
+  agrupamento: 'DIA' | 'MES',
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(financeiroApi, `/api/v1/relatorios/fluxo-caixa/${formato}`, `fluxo-caixa.${formato}`, {
+    empresaId,
+    dataInicio,
+    dataFim,
+    agrupamento,
+  })
+}
+
+// --- Relatório: Títulos em aberto (Contas a Receber/Pagar) ---
+
+export async function buscarTitulosEmAberto(filtro: TitulosEmAbertoFiltro): Promise<TituloEmAbertoResponse[]> {
+  const { data } = await financeiroApi.get<TituloEmAbertoResponse[]>('/api/v1/relatorios/titulos-em-aberto', {
+    params: filtro,
+  })
+  return data
+}
+
+export async function exportarTitulosEmAberto(filtro: TitulosEmAbertoFiltro, formato: FormatoRelatorio): Promise<void> {
+  const nome = filtro.tipo === 'RECEBER' ? 'contas-receber-em-aberto' : 'contas-pagar-em-aberto'
+  await baixarArquivo(financeiroApi, `/api/v1/relatorios/titulos-em-aberto/${formato}`, `${nome}.${formato}`, { ...filtro })
+}
+
 // --- Conciliação Bancária ---
 
 export async function listarImportacoesExtrato(
@@ -508,22 +540,8 @@ export async function gerarRemessaBancaria(request: GerarRemessaRequest): Promis
   return data
 }
 
-/** Mesmo padrão de `features/ged/api.ts` (`baixarEDisparar`) — blob + link sintético,
- * nome do arquivo resolvido do `Content-Disposition` quando presente. */
 export async function baixarArquivoRemessa(id: number): Promise<void> {
-  const { data, headers } = await financeiroApi.get<Blob>(`/api/v1/edi-bancario/remessas/${id}/arquivo`, { responseType: 'blob' })
-  const contentDisposition: string | undefined = headers['content-disposition']
-  const match = contentDisposition?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i)
-  const nomeArquivo = match?.[1] ? decodeURIComponent(match[1]) : `remessa-${id}.rem`
-
-  const blobUrl = window.URL.createObjectURL(data)
-  const link = document.createElement('a')
-  link.href = blobUrl
-  link.download = nomeArquivo
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(blobUrl)
+  await baixarArquivo(financeiroApi, `/api/v1/edi-bancario/remessas/${id}/arquivo`, `remessa-${id}.rem`)
 }
 
 export async function listarRetornosBancarios(

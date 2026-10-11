@@ -79,6 +79,29 @@ mapa já registrado como pendência na Fase 1a) num único payload pronto pro PD
 trabalho de composição cross-serviço — natural responsabilidade do novo
 `sincronizacao-service` (seção 4), não de um dos dois serviços de origem.
 
+### 2.3-bis Reavaliação (2026-09-27) — os 7 gaps de push, agora que outros módulos existem
+
+Quando a Fase 6 foi construída (2026-08-31), só `controle-estoque-service` existia como
+destino possível. Desde então o monorepo ganhou `vendas-service` (Fase 7) e
+`financeiro-service` (com Contas a Pagar/Receber, Caixa e Bancos, Tesouraria) — o usuário
+pediu pra reavaliar se algum dos 7 gaps da tabela 2.2 já tem destino real hoje. Verificação
+feita lendo o código de verdade (entidades/campos/enums), não por suposição — resultado é
+**misto**: alguns encaixam bem, dois têm atrito real de modelo que não dá pra fingir que
+não existe.
+
+| Domínio PDV | Destino candidato | Encaixe | Observação |
+|---|---|---|---|
+| `PDV_SANGRIA` | `financeiro-service.MovimentoCaixaBanco` (`ContaBancaria.tipo=CAIXA_INTERNO`, `tipoMovimento=SAIDA`) | ✅ **Bom, baixo esforço** | `CAIXA_INTERNO` existe especificamente pra "dinheiro em espécie, sem banco associado" (`bancoId` nulo) — desenhado sem o PDV em mente, mas serve. Falta só: novo valor no enum fechado `OrigemMovimentoCaixa` (hoje só tem `BAIXA_CONTA_RECEBER/PAGAR`, `ESTORNO_*`, `TRANSFERENCIA`, `APLICACAO_FINANCEIRA`, `RESGATE_APLICACAO`, `CHEQUE_*`, `AJUSTE`, `CONCILIACAO` — nenhum de PDV ainda), e decidir o mapeamento "qual `ContaBancaria` recebe" (1 por loja? 1 por terminal/PDV?). |
+| `PDV_SUPRIMENTO` | idem, `tipoMovimento=ENTRADA` | ✅ **Bom, baixo esforço** | Mesmo caminho da Sangria, sentido oposto. |
+| `CLIENTE_FIADO_LANCAMENTO` | `financeiro-service.ContaReceber`/`BaixaContaReceber` | ✅ **Bom, baixo esforço** | `ContaReceber.clienteId` já é referência solta (`Long`, sem FK), exatamente como o PDV precisa. Tipo `C` (crédito concedido) → gera `ContaReceber` nova; tipo `P` (pagamento) → gera `BaixaContaReceber` no título correspondente. Falta só: novo valor no `origemTipo` da `ContaReceber` (hoje cobre `VENDA`/`COMPRA`/`MANUAL`/`RENEGOCIACAO` — não confirmado se tem mais, mas certamente não tem `FIADO_PDV` ainda). |
+| `PDV_MOVIMENTO` (abertura/fechamento de caixa) | `financeiro-service`, mesma base de Caixa/Bancos | ⚠️ **Parcial, esforço médio** | Tecnicamente dá pra registrar o saldo de abertura/fechamento como um `MovimentoCaixaBanco`, mas falta decidir a granularidade da `ContaBancaria` (loja inteira vs. por terminal/PDV individual — cada PDV físico tem seu próprio caixa de verdade) antes de implementar, senão o saldo de dois terminais da mesma loja se mistura numa única conta. |
+| `PDV_CONFERENCIA_CAIXA` (+`_DETALHE`) | idem, via `OrigemMovimentoCaixa.AJUSTE` só quando há divergência | ⚠️ **Parcial, esforço médio** | Contagem física (por cédula/moeda) não tem entidade equivalente em `financeiro-service` — não é um "movimento", é uma auditoria de conferência. Proposta mínima: se o valor contado bater com o esperado, só fica registrado na auditoria do `sincronizacao-service` (payload já é guardado ali); se divergir, gera um `AJUSTE` (enum já existe) no valor da diferença. Não cria entidade nova em `financeiro-service` — decisão pendente de confirmar com o usuário antes de codar. |
+| `PDV_VENDA_CABECALHO`/`_DETALHE` (+`_HISTORICO`) | `vendas-service.VendaCabecalho`/`VendaItem` | ❌ **Não fecha ainda, esforço real** | `VendaCabecalho.vendedor` é FK **obrigatória** (`nullable=false`) pra um `Vendedor`, que por sua vez exige `colaboradorId` **único** (`unique=true`) — ou seja, toda venda do PDV precisa de um `Vendedor` real pré-cadastrado pro operador do caixa, mesmo que ele seja só um caixa sem comissão nenhuma. `condicoesPagamento` (FK obrigatória) também é **obrigatória** — pensada pra parcelamento B2B, não pra "pago à vista no balcão". `notaFiscalTipo` (FK obrigatória) também precisa resolver pra NFC-e. Nenhum desses 3 tem um "modo simplificado"/valor genérico hoje. **Não é um bloqueio definitivo, mas não é plug-and-play** — exige ou (a) sintetizar registros padrão (`Vendedor`/`VendaCondicoesPagamento`/`NotaFiscalTipo` "genéricos de balcão") automaticamente na hora do import, ou (b) relaxar essas 3 colunas pra `nullable`, o que é uma mudança de schema em produção-relevante do `vendas-service`, não trivial. |
+| `PDV_TOTAL_TIPO_PAGAMENTO` | depende de #1 acima (venda) | ❌ **Não fecha, achado novo** | `VendaCabecalho.formaPagamentoId` é um campo **único** (`Long`, não uma coleção) — só suporta 1 forma de pagamento por venda. O PDV já suporta pagamento **fracionado** (`PDV_TOTAL_TIPO_PAGAMENTO` é N linhas por venda — parte dinheiro, parte cartão, etc.), então mesmo resolvendo o gap de Venda acima, esse detalhe específico exigiria uma entidade nova em `vendas-service` (`VendaTotalPagamento` ou similar) — hoje não existe. |
+| `PDV_DEVOLUCAO` | nenhum | ❌ **Gap real, sem destino** | `vendas-service.VendaService#cancelar` só permite cancelar em `RASCUNHO` — devolução pós-venda confirmada (com estoque/comissão já lançados) é explicitamente "fora de escopo, fluxo de devolução fica pra quando a Fase 8/NF-e existir" (registrado desde a Fase 7). Continua sem nenhum destino no ERP hoje. |
+
+**Conclusão da reavaliação**: dos 7 gaps originais, **3 têm caminho claro e barato** (Sangria/Suprimento/Fiado — só extensão de enum + endpoint), **2 são viáveis mas precisam de uma decisão de modelagem antes de codar** (abertura/fechamento de caixa por terminal; conferência de caixa como ajuste), e **2 continuam sem solução real** (Venda do PDV em si, por atrito de modelo com o `vendas-service` que foi desenhado pra B2B/atacado, não pra balcão; e Devolução, que nunca foi construída em lugar nenhum). Ver item de `BACKLOG.md` ("Fase 6-B") para o roadmap de fechamento, em ordem de esforço crescente.
+
 ### 2.4 Conclusão do inventário
 
 **A Fase 6 tem duas metades de tamanho muito diferente**: exportar cadastro (2.1) é

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Proposta de rodapé — Cactus PDV</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #e8e8e8;
+    padding: 24px;
+  }
+  h1 { font-size: 18px; color: #222; margin: 0 0 4px; }
+  p.sub { color: #666; font-size: 13px; margin: 0 0 20px; }
+
+  .screen {
+    width: 1300px;
+    max-width: 100%;
+    background: #f4f4f4;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  /* Cabeçalho — só pra dar contexto, não é o foco da proposta */
+  .topbar {
+    background: linear-gradient(180deg,#1f4e8c,#173d70);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar .venda-num { font-size: 20px; font-weight: 700; }
+  .topbar .venda-status { font-size: 11px; opacity: .85; letter-spacing: .5px; }
+  .topbar .meta { display: flex; gap: 36px; text-align: right; }
+  .topbar .meta div span { display:block; }
+  .topbar .meta .label { font-size: 10px; opacity: .7; letter-spacing: .5px; }
+  .topbar .meta .value { font-size: 14px; font-weight: 600; }
+
+  .body-placeholder {
+    height: 340px;
+    background: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 13px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  /* ======== RODAPÉ — a proposta de verdade ======== */
+  .footer {
+    background: #17181a;
+    padding: 10px 14px 12px;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .grupo {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 0 12px;
+    position: relative;
+  }
+  .grupo:first-child { padding-left: 0; }
+
+  .grupo-label {
+    position: absolute;
+    top: -16px;
+    left: 12px;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: #6b6f76;
+    font-weight: 600;
+  }
+  .grupo:first-child .grupo-label { left: 0; }
+
+  .divisor {
+    width: 1px;
+    background: #3a3c40;
+    margin: 4px 6px;
+    align-self: stretch;
+  }
+
+  .tecla {
+    min-width: 92px;
+    border-radius: 6px;
+    padding: 10px 8px 9px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: default;
+    user-select: none;
+  }
+  .tecla .fnum {
+    font-size: 10px;
+    font-weight: 700;
+    opacity: .85;
+  }
+  .tecla .label {
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.15;
+  }
+
+  /* semântica de cor — só 4 significados */
+  .tecla.vermelho { background: #7a2622; color: #ffd9d5; }
+  .tecla.cinza     { background: #2c2d30; color: #d8d9db; }
+  .tecla.azul      { background: #24466e; color: #d7e6ff; }
+  .tecla.verde     { background: #2f7a3a; color: #ffffff; }
+
+  .tecla.finalizar {
+    min-width: 170px;
+    background: #2f7a3a;
+    color: #fff;
+    font-size: 15px;
+    box-shadow: 0 0 0 2px #47a854 inset;
+  }
+  .tecla.finalizar .label { font-size: 14px; }
+
+  .spacer { flex: 1; }
+
+  .legenda {
+    max-width: 1300px;
+    margin-top: 16px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #444;
+  }
+  .legenda h2 { font-size: 13px; margin: 0 0 8px; color: #222; }
+  .legenda ul { margin: 0; padding-left: 18px; }
+  .legenda li { margin-bottom: 4px; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; position:relative; top:1px; }
+</style>
+</head>
+<body>
+
+<h1>Proposta de rodapé — agrupado por função, com divisores</h1>
+<p class="sub">Mockup estático, só pra revisão visual — nenhum código do PDV foi alterado. Mesmos atalhos F1–F12 de hoje, reorganizados em 3 blocos.</p>
+
+<div class="screen">
+  <div class="topbar">
+    <div>
+      <div class="venda-num">VENDA Nº #41</div>
+      <div class="venda-status">EM ANDAMENTO</div>
+    </div>
+    <div class="meta">
+      <div><span class="label">OPERADOR</span><span class="value">Juliana Aparecida Ramos</span></div>
+      <div><span class="label">PDV</span><span class="value">PDV-001</span></div>
+      <div><span class="label">HORA</span><span class="value">21:33:29</span></div>
+    </div>
+  </div>
+
+  <div class="body-placeholder">(itens da venda / totais — sem alteração nesta proposta)</div>
+
+  <div class="footer">
+    <div class="grupo">
+      <div class="grupo-label">VENDA</div>
+      <div class="tecla vermelho"><span class="fnum">F1</span><span class="label">Canc.Item</span></div>
+      <div class="tecla vermelho"><span class="fnum">F2</span><span class="label">Canc.Venda</span></div>
+      <div class="tecla cinza"><span class="fnum">F3</span><span class="label">Quantidade</span></div>
+      <div class="tecla cinza"><span class="fnum">F4</span><span class="label">Acréscimo</span></div>
+      <div class="tecla cinza"><span class="fnum">F6</span><span class="label">Desconto</span></div>
+    </div>
+
+    <div class="divisor"></div>
+
+    <div class="grupo">
+      <div class="grupo-label">CLIENTE / ITEM</div>
+      <div class="tecla azul"><span class="fnum">F5</span><span class="label">Cliente</span></div>
+      <div class="tecla azul"><span class="fnum">F11</span><span class="label">Loc.Item</span></div>
+    </div>
+
+    <div class="divisor"></div>
+
+    <div class="grupo">
+      <div class="grupo-label">CAIXA</div>
+      <div class="tecla cinza"><span class="fnum">F8</span><span class="label">Suprim.</span></div>
+      <div class="tecla cinza"><span class="fnum">F9</span><span class="label">Sangria</span></div>
+      <div class="tecla cinza"><span class="fnum">F10</span><span class="label">Pré-Venda</span></div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="tecla finalizar"><span class="fnum">F7</span><span class="label">✓ FINALIZAR</span></div>
+
+    <div class="divisor"></div>
+
+    <div class="tecla cinza"><span class="fnum">F12</span><span class="label">Menu</span></div>
+  </div>
+</div>
+
+<div class="legenda">
+  <h2>O que mudou em relação ao rodapé atual</h2>
+  <ul>
+    <li><b>3 blocos visuais</b> (Venda / Cliente-Item / Caixa) separados por uma linha fina, com um rótulo pequeno acima de cada bloco — antes eram 12 botões soltos em fileira única, sem agrupamento.</li>
+    <li><b>Só 4 cores com significado fixo</b>: <span class="swatch" style="background:#7a2622"></span>vermelho = cancelar, <span class="swatch" style="background:#2c2d30"></span>cinza = ajuste/operacional, <span class="swatch" style="background:#24466e"></span>azul = cliente/busca, <span class="swatch" style="background:#2f7a3a"></span>verde = só o Finalizar. Antes as cores pareciam soltas (azul, laranja, verde, cinza sem padrão claro).</li>
+    <li><b>F7 Finalizar isolado e maior</b>, ancorado perto do fim, antes do Menu — é a ação mais frequente e mais importante, precisa se destacar de verdade.</li>
+    <li><b>Mesmos atalhos de teclado (F1–F12)</b>, nenhuma tecla muda de número — só a posição visual do botão na tela muda, pra ficar mais fácil de "escanear" com o olho. Como o PDV é 100% por teclado (sem depender de mouse), reordenar a posição visual não atrapalha quem já decorou os atalhos.</li>
+  </ul>
+</div>
+
+</body>
+</html>

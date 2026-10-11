@@ -1,4 +1,5 @@
 import { gedApi } from '@shared/api/httpClients'
+import { baixarArquivo } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   DocumentoRequest,
@@ -108,28 +109,12 @@ export async function adicionarVersaoDocumento(
   return data
 }
 
-async function baixarEDisparar(url: string, nomeSugerido: string): Promise<void> {
-  const { data, headers } = await gedApi.get<Blob>(url, { responseType: 'blob' })
-  const contentDisposition: string | undefined = headers['content-disposition']
-  const match = contentDisposition?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i)
-  const nomeArquivo = match?.[1] ? decodeURIComponent(match[1]) : nomeSugerido
-
-  const blobUrl = window.URL.createObjectURL(data)
-  const link = document.createElement('a')
-  link.href = blobUrl
-  link.download = nomeArquivo
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(blobUrl)
-}
-
 export async function baixarUltimaVersao(id: number, nomeSugerido: string): Promise<void> {
-  await baixarEDisparar(`/api/v1/documentos/${id}/conteudo`, nomeSugerido)
+  await baixarArquivo(gedApi, `/api/v1/documentos/${id}/conteudo`, nomeSugerido)
 }
 
 export async function baixarVersao(id: number, versaoId: number, nomeSugerido: string): Promise<void> {
-  await baixarEDisparar(`/api/v1/documentos/${id}/versoes/${versaoId}/conteudo`, nomeSugerido)
+  await baixarArquivo(gedApi, `/api/v1/documentos/${id}/versoes/${versaoId}/conteudo`, nomeSugerido)
 }
 
 export async function excluirDocumento(id: number): Promise<void> {

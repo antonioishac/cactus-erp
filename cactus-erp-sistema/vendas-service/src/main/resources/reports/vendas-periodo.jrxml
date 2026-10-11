@@ -10,7 +10,7 @@
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
               name="vendas-periodo" pageWidth="595" pageHeight="842" columnWidth="535"
-              leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20"
+              leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" whenNoDataType="AllSectionsNoDetail"
               uuid="b1e2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d">
 
     <parameter name="P_TITULO" class="java.lang.String">
@@ -33,6 +33,7 @@
 
     <variable name="V_TOTAL_GERAL" class="java.math.BigDecimal" calculation="Sum">
         <variableExpression><![CDATA[$F{valorTotal}]]></variableExpression>
+        <initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
     </variable>
 
     <title>
@@ -48,12 +49,12 @@
                 <textFieldExpression><![CDATA[$P{P_TITULO}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="46" width="267" height="14"/>
+                <reportElement x="0" y="46" width="380" height="14"/>
                 <textElement><font size="9"/></textElement>
                 <textFieldExpression><![CDATA["Período: " + $P{P_PERIODO} + "   |   " + $P{P_FILTRO}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="267" y="46" width="268" height="14"/>
+                <reportElement x="380" y="46" width="155" height="14"/>
                 <textElement textAlignment="Right"><font size="9"/></textElement>
                 <textFieldExpression><![CDATA["Gerado em: " + $P{P_DATA_GERACAO}]]></textFieldExpression>
             </textField>
@@ -95,7 +96,7 @@
             </staticText>
             <staticText>
                 <reportElement x="390" y="0" width="145" height="20" backcolor="#EFEFEF" mode="Opaque"/>
-                <box><pen lineWidth="0.5"/></box>
+                <box rightPadding="3"><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
                 <text><![CDATA[Valor Total]]></text>
             </staticText>
@@ -136,7 +137,7 @@
             </textField>
             <textField pattern="#,##0.00">
                 <reportElement x="390" y="0" width="145" height="16"/>
-                <box><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
+                <box rightPadding="3"><pen lineWidth="0.25" lineColor="#CCCCCC"/></box>
                 <textElement textAlignment="Right" verticalAlignment="Middle"><font size="9"/></textElement>
                 <textFieldExpression><![CDATA[$F{valorTotal}]]></textFieldExpression>
             </textField>

@@ -302,6 +302,58 @@ identificado, não de quando foi resolvido.
 
 ## Backend (cactus-erp-sistema)
 
+- [ ] **Fase 6-B — Fechar os 7 gaps de push PDV→ERP (Sangria/Suprimento/
+      Fiado/Caixa/Conferência/Venda/Devolução), agora que vendas-service e
+      financeiro-service existem** — reavaliação completa feita em
+      2026-09-27 (pedido do usuário: "entender e deixar no backlog como
+      vamos realizar a sincronização"), verificada lendo o código real
+      (entidades/campos/enums), não por suposição — resultado detalhado em
+      `FASE6_SINCRONIZACAO_PDV.md`, seção "2.3-bis Reavaliação (2026-09-27)".
+      Resumo, em ordem de esforço crescente:
+      1. **Sangria/Suprimento** (fácil) → `financeiro-service.MovimentoCaixaBanco`
+         com `ContaBancaria.tipo=CAIXA_INTERNO` (já existe, feito sem o PDV em
+         mente mas serve) — falta só adicionar valores novos no enum fechado
+         `OrigemMovimentoCaixa` e decidir a granularidade da conta (ver item 4).
+      2. **Fiado** (fácil) → `financeiro-service.ContaReceber`/`BaixaContaReceber`
+         — `clienteId` já é referência solta, encaixe natural (tipo C=crédito
+         gera título novo, tipo P=pagamento gera baixa) — falta só um valor
+         novo no `origemTipo` da `ContaReceber`.
+      3. **Conferência de Caixa** (médio, decisão pendente) — não vira
+         entidade nova em `financeiro-service`; proposta é só gerar um
+         `AJUSTE` (enum já existe) quando o valor contado divergir do
+         esperado, mantendo o resto só na auditoria do
+         `sincronizacao-service` — precisa confirmar com o usuário antes de
+         codar.
+      4. **Abertura/fechamento de caixa (`PDV_MOVIMENTO`)** (médio, decisão
+         pendente) — tecnicamente cabe na mesma base de Caixa/Bancos, mas
+         precisa decidir granularidade: 1 `ContaBancaria` por loja (mistura
+         saldo de terminais diferentes) ou 1 por terminal físico (mais
+         correto, mais registros pra manter).
+      5. **Venda do PDV (`PDV_VENDA_CABECALHO`/`_DETALHE`)** (difícil, achado
+         real) — `vendas-service.VendaCabecalho` foi desenhado pra venda
+         B2B/atacado, não pra balcão: `vendedor` é FK obrigatória exigindo
+         um `Vendedor` cadastrado por operador de caixa (com `colaboradorId`
+         único), `condicoesPagamento` obrigatória não faz sentido pra "pago
+         à vista", `notaFiscalTipo` obrigatória precisa resolver pra NFC-e.
+         Não é bloqueio definitivo, mas exige ou sintetizar registros
+         "genéricos de balcão" no import ou relaxar essas 3 colunas pra
+         nullable (mudança de schema não trivial).
+      6. **Total por tipo de pagamento (`PDV_TOTAL_TIPO_PAGAMENTO`)** (difícil,
+         achado novo) — depende do item 5 primeiro, e mesmo assim
+         `VendaCabecalho.formaPagamentoId` só aceita 1 forma de pagamento
+         por venda (`Long` único, não coleção) — o PDV já suporta pagamento
+         fracionado (várias formas na mesma venda), então precisaria de uma
+         entidade nova (`VendaTotalPagamento` ou similar) que não existe
+         hoje.
+      7. **Devolução (`PDV_DEVOLUCAO`)** (sem destino ainda) — `VendaService
+         #cancelar` só permite cancelar em `RASCUNHO`; devolução pós-venda
+         confirmada continua "fora de escopo" desde a Fase 7, sem nenhum
+         destino no ERP.
+      **Próximo passo sugerido**: atacar os itens 1-2 primeiro (baixo
+      esforço, alto valor — fecham 3 dos 7 gaps originais), depois voltar
+      pro usuário com as decisões de modelagem pendentes (itens 3-4) antes
+      de encarar os dois mais difíceis (5-7). (2026-09-27, `FASE6_SINCRONIZACAO_PDV.md`)
+
 - [x] **Fase 15 — SPED Fiscal (EFD ICMS/IPI) + EFD Contribuições (extensão do
       `fiscal-service`)** — feita por completo e validada ao vivo em
       2026-09-20. Blocos 0/C/D/E (EFD ICMS/IPI) e 0/A/C/M (EFD Contribuições),
@@ -602,13 +654,58 @@ identificado, não de quando foi resolvido.
       piloto (`controle-estoque-service`, export PDF/Excel da Curva ABC) e
       `vendas-service` (vendas por período/vendedor/cliente, produtos mais
       vendidos, comissões por vendedor) já feitos e validados ao vivo (ver
-      ANÁLISE: MÓDULO DE RELATÓRIOS no root `CLAUDE.md`). Falta replicar o
-      padrão pro resto: `financeiro-service` (export do Fluxo
-      de Caixa já existente + relatório novo de Contas a Pagar/Receber em
-      aberto), `contabilidade-service` (export de Balancete/Razão já
-      existente), `gestao-compras-service` (pedidos por período/fornecedor),
-      `business-intelligence-service` (export dos 3 indicadores já
-      existentes), `cadastro-base-service` (listagem cadastral), e desenho
+      ANÁLISE: MÓDULO DE RELATÓRIOS no root `CLAUDE.md`). **`financeiro-service`
+      feito no backend em 2026-10-01** (export do Fluxo de Caixa + relatório
+      novo de Títulos em Aberto a Receber/Pagar, validado ao vivo e conferido
+      visualmente). **Integração com o frontend feita (2026-10-01)** para os
+      8 relatórios existentes (Curva ABC, Fluxo de Caixa, Títulos em Aberto, 3
+      de Vendas), com telas novas `/financeiro/titulos-em-aberto` e
+      `/vendas/relatorios`, validadas em navegador real. Os 6 templates foram
+      renderizados e conferidos visualmente; corrigidos PDF vazio sem página,
+      "TOTAL null", filtro cortado no cabeçalho e números colados na borda (ver
+      root `CLAUDE.md`). **`contabilidade-service` feito no backend em
+      2026-10-10** (export de Balancete em paisagem + Razão em retrato,
+      validado ao vivo e conferido visualmente nos 2 templates — sem bug
+      encontrado nesta rodada, já nascendo com todas as convenções fixadas
+      nas fases anteriores). Achado técnico generalizado em
+      `common.report.ReportEngine#paraValorDeTemplate`: conversão automática
+      de qualquer campo `Enum` pra `.name()` String, reaproveitável por todo
+      relatório futuro com campo enum (`BalanceteItemResponse.tipo`/
+      `natureza`, `RazaoItemResponse.tipoPartida`). Frontend deste módulo
+      ainda não integrado — ver requisito confirmado abaixo. **`gestao-compras-
+      service` feito no backend em 2026-10-10** (pedidos de compra por
+      período, filtro opcional de fornecedor/situação, validado ao vivo e
+      conferido visualmente — sem bug encontrado, mesmo padrão já maduro).
+      Frontend deste módulo também ainda não integrado. O usuário autorizou
+      seguir direto pro próximo módulo sem pausa pra revisão de layout desta
+      vez ("manda ver", 2026-10-10) — a pausa de 2026-09-27 fica registrada
+      como prática padrão, mas não é mais bloqueante por padrão: seguir
+      construindo e perguntar se a pausa deve voltar a valer.
+      **`business-intelligence-service` feito no backend em 2026-10-10**
+      (export dos 3 indicadores já existentes — Valor de Estoque/Curva ABC/
+      Compras por Fornecedor —, validado ao vivo e conferido visualmente, com
+      o fallback `#id` pra produto/depósito/fornecedor órfão herdado de graça
+      do próprio DTO, que já denormaliza nome — único módulo do monorepo que
+      já fazia isso antes desta rodada). Frontend deste módulo também ainda
+      não integrado. **`controle-estoque-service` fechado por completo em
+      2026-10-11** (saldo de estoque por depósito + ficha de movimentação por
+      produto — os 2 relatórios que faltavam além da Curva ABC/piloto —,
+      validado ao vivo e conferido visualmente, incl. um segundo achado
+      técnico generalizado em `ReportEngine` pra campos `java.time.Instant`,
+      mesma técnica já usada pra `Enum`). Frontend deste módulo também ainda
+      não integrado. **`cadastro-base-service` fechado em 2026-10-11**
+      (listagem cadastral de clientes/fornecedores/produtos, o relatório mais
+      simples do lote — validado ao vivo e conferido visualmente; achado real
+      corrigido ANTES de validar com volume: a 1ª versão pulava a hidratação
+      das coleções de `Pessoa`/`Produto` no pressuposto errado de que isso
+      evitaria N+1 — na real o mapper MapStruct monta essas coleções de
+      qualquer forma, hidratar ou não, então pular a hidratação CAUSA o N+1
+      em vez de evitar; corrigido reaproveitando as mesmas hidratações já
+      usadas pelo `GET` paginado de cada recurso). Com isso, os 6 módulos
+      originalmente escopados (financeiro/contabilidade/compras/BI/estoque/
+      cadastro-base) estão todos fechados. Frontend desses relatórios ainda
+      não integrado em nenhum dos 6 (exceto os 8 relatórios originais de
+      financeiro/estoque/vendas, já cobertos em 2026-10-01). Falta o desenho
       ainda em aberto pra `gestao-documentos-service`/`os-service`/
       `crm-service`/`fiscal-service`/`loja-virtual-service`.
       **Requisito confirmado pelo usuário (2026-09-27): todo relatório
@@ -616,25 +713,35 @@ identificado, não de quando foi resolvido.
       API** — botão de exportar/baixar PDF/Excel em cada tela relevante,
       sempre que for possível. Isso não é mais um "fica pra depois do
       backend" implícito — é parte do escopo de cada relatório entregue daqui
-      pra frente. Nenhum relatório desta fase (nem o piloto Curva ABC, nem os
-      3 de Vendas) tem essa integração ainda: `estoque/CurvaAbcPage.tsx` só
-      mostra a tabela JSON, sem botão de exportar; não existe nenhuma tela de
-      "Vendas por Período"/"Produtos Mais Vendidos"/"Comissões por Vendedor"
-      no frontend hoje. Ao retomar esta fase, cada módulo devia sair com
-      backend + frontend juntos (ou pelo menos o botão de exportar
-      adicionado às telas já existentes que exibem o relatório em JSON), não
-      backend isolado esperando uma "Entrega" de frontend à parte.
+      pra frente. Atendido para os 8 relatórios existentes em 2026-10-01
+      (componente padrão `shared/ui/ExportarRelatorioButtons`). Cada módulo
+      novo sai com backend + frontend juntos, não backend isolado esperando uma
+      "Entrega" de frontend à parte.
       **PAUSADO a pedido do usuário (2026-09-27)**: antes de seguir pro
-      próximo módulo, o usuário quer validar por conta própria e averiguar
-      como ficaram os layouts dos relatórios já gerados (PDF/Excel de
-      Curva ABC e dos 3 relatórios de Vendas) — os arquivos de teste foram
-      gerados em `/tmp` durante a validação ao vivo desta sessão, não ficaram
-      salvos no repo; pode ser necessário regerar via `GET
-      /api/v1/relatorios/.../pdf|xlsx` pra essa revisão. Não continuar o
-      rollout pro próximo módulo sem essa validação de layout confirmada.
+      próximo módulo, o usuário quer validar por conta própria os layouts
+      dos relatórios já gerados. Desde 2026-10-01 dá pra baixar todos pelos
+      botões PDF/Excel das próprias telas. Não continuar o rollout pro
+      próximo módulo sem essa validação de layout confirmada.
       (2026-09-27, root `CLAUDE.md`)
+- [ ] **PDF/Excel dos relatórios mostram `#id` em vez de nome** (vendedor,
+      cliente, produto, fornecedor). A tela resolve os nomes via lookup
+      cross-serviço; o arquivo exportado não, porque cada serviço só guarda a
+      referência solta. Pra um relatório impresso/arquivado isso é uma
+      limitação real. Decidir a abordagem antes do próximo módulo de
+      relatórios: (a) o serviço que gera o relatório busca os nomes em lote no
+      dono do dado (ex: `cadastro-base-service`) na hora de gerar; ou (b) nome
+      denormalizado no momento da gravação (como o BI já faz). (2026-10-01)
 
 ## Operacional / ambiente
+
+- [ ] **Variável de ambiente GLOBAL `DB_PASSWORD` derruba todo serviço do
+      ERP no boot** (`Access denied`, erro 1045). Ela provavelmente veio da
+      mudança do `cactus-pdv` pra `${DB_PASSWORD:changeme}`. Todo serviço do ERP
+      lê `${DB_PASSWORD:<senha_local>}`, então a variável global sobrescreve a
+      senha de cada `*_app`. Contorno atual: `env -u DB_PASSWORD mvn -pl
+      <servico> spring-boot:run`. Decidir a correção definitiva: renomear a
+      variável do PDV (ex: `PDV_DB_PASSWORD`) ou usar um nome por serviço no
+      ERP. (2026-10-01)
 
 - [ ] **Processos Java em background não sobrevivem a reinício de sessão do
       harness — e o Docker Desktop também pode cair junto** — `mvn

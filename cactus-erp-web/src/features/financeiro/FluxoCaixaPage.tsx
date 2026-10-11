@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Card, Flex, Input, Select, Table, Typography } from 'antd'
 import dayjs from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarFluxoCaixa } from './api'
 import { useFluxoCaixa } from './queries'
 import type { AgrupamentoFluxoCaixa, FluxoCaixaPeriodoResponse } from './types'
 
@@ -38,6 +40,11 @@ export default function FluxoCaixaPage() {
               { value: 'DIA', label: 'Por dia' },
               { value: 'MES', label: 'Por mês' },
             ]}
+          />
+          <ExportarRelatorioButtons
+            disabled={!empresaAtivaId}
+            motivoDesabilitado="Selecione uma empresa ativa"
+            onExportar={(formato) => exportarFluxoCaixa(empresaAtivaId as number, dataInicio, dataFim, agrupamento, formato)}
           />
         </Flex>
 

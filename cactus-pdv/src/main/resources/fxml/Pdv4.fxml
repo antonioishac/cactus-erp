@@ -190,32 +190,40 @@
                     <Label fx:id="lblEconomia" text="R$ 0,00" styleClass="pdv-card-economia-valor"/>
                 </VBox>
 
-                <!-- Card Resumo -->
-                <VBox styleClass="pdv-card-resumo" spacing="6">
-                    <HBox>
+                <!-- Card Resumo — cores por significado (vermelho=sai valor,
+                     verde=entra valor, cinza claro=só contagem) + divisória
+                     separando o bloco de dinheiro do bloco de contagem, mesmo
+                     padrão já validado no rodapé. -->
+                <VBox styleClass="pdv-card-resumo" spacing="8">
+                    <HBox alignment="CENTER_LEFT">
                         <Label text="Subtotal:" styleClass="pdv-resumo-label"
                                maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                         <Label fx:id="lblSubtotal" text="R$ 0,00" styleClass="pdv-resumo-valor"/>
                     </HBox>
-                    <HBox fx:id="linhaDesconto" visible="false" managed="false">
-                        <Label text="(-) Desconto:" styleClass="pdv-resumo-label"
+                    <HBox fx:id="linhaDesconto" visible="false" managed="false" spacing="6" alignment="CENTER_LEFT">
+                        <FontIcon iconLiteral="mdi2m-minus-circle" iconSize="14" styleClass="pdv-resumo-desconto-icone"/>
+                        <Label text="Desconto:" styleClass="pdv-resumo-desconto-label"
                                maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="lblDesconto" text="R$ 0,00" styleClass="pdv-resumo-valor"/>
+                        <Label fx:id="lblDesconto" text="R$ 0,00" styleClass="pdv-resumo-desconto-valor"/>
                     </HBox>
-                    <HBox fx:id="linhaAcrescimo" visible="false" managed="false">
-                        <Label text="(+) Acréscimo:" styleClass="pdv-resumo-label"
+                    <HBox fx:id="linhaAcrescimo" visible="false" managed="false" spacing="6" alignment="CENTER_LEFT">
+                        <FontIcon iconLiteral="mdi2p-plus-circle" iconSize="14" styleClass="pdv-resumo-acrescimo-icone"/>
+                        <Label text="Acréscimo:" styleClass="pdv-resumo-acrescimo-label"
                                maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="lblAcrescimo" text="R$ 0,00" styleClass="pdv-resumo-valor"/>
+                        <Label fx:id="lblAcrescimo" text="R$ 0,00" styleClass="pdv-resumo-acrescimo-valor"/>
                     </HBox>
-                    <HBox>
-                        <Label text="Itens:" styleClass="pdv-resumo-label"
+
+                    <Region styleClass="pdv-resumo-divisor" maxWidth="Infinity"/>
+
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Itens:" styleClass="pdv-resumo-contagem-label"
                                maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="lblQtdItems" text="0" styleClass="pdv-resumo-valor"/>
+                        <Label fx:id="lblQtdItems" text="0" styleClass="pdv-resumo-contagem-valor"/>
                     </HBox>
-                    <HBox>
-                        <Label text="Unidades:" styleClass="pdv-resumo-label"
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Unidades:" styleClass="pdv-resumo-contagem-label"
                                maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <Label fx:id="lblQtdProdutos" text="0" styleClass="pdv-resumo-valor"/>
+                        <Label fx:id="lblQtdProdutos" text="0" styleClass="pdv-resumo-contagem-valor"/>
                     </HBox>
                     <HBox fx:id="linhaCancelados" visible="false" managed="false">
                         <Label text="Cancelados:" styleClass="pdv-resumo-cancelados-label"
@@ -244,75 +252,86 @@
         </GridPane>
 
         <!-- ============================================== -->
-        <!--  FOOTER — 12 ATALHOS COLORIDOS                 -->
+        <!--  FOOTER — 12 ATALHOS, AGRUPADOS POR FUNÇÃO      -->
+        <!--  (proposta validada com o usuário via mockup em -->
+        <!--   cactus-pdv/_reference/rodape-proposta-v2.html) -->
         <!-- ============================================== -->
-        <GridPane styleClass="pdv-footer" hgap="6"
-                  VBox.vgrow="NEVER"
-                  minHeight="68"
-                  prefHeight="68">
-            <columnConstraints>
-                <ColumnConstraints percentWidth="7"/>   <!-- F1 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F2 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F3 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F4 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F5 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F6 -->
-                <ColumnConstraints percentWidth="16"/>  <!-- F7 FINALIZAR (maior) -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F8 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F9 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F10 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F11 -->
-                <ColumnConstraints percentWidth="7"/>   <!-- F12 -->
-            </columnConstraints>
+        <!-- alignment=CENTER (não CENTER_LEFT) — em telas largas, centraliza o
+             conjunto de atalhos em vez de esticar um espaçador até a borda
+             direita e deixar um vão preto enorme no meio (achado real testando
+             numa janela maximizada, o mockup HTML era estreito demais pra
+             revelar isso). -->
+        <HBox styleClass="pdv-footer" alignment="CENTER"
+              VBox.vgrow="NEVER">
 
-            <Button text="F1&#10;Canc.Item" styleClass="pdv-btn-atalho,pdv-btn-atalho-cancelar"
-                    maxWidth="Infinity" GridPane.columnIndex="0">
-                <graphic><FontIcon iconLiteral="mdi2c-close-circle" iconSize="16" iconColor="white"/></graphic>
+            <!-- Grupo VENDA -->
+            <VBox styleClass="pdv-footer-grupo" spacing="4" alignment="TOP_LEFT">
+                <Label text="VENDA" styleClass="pdv-footer-grupo-label"/>
+                <HBox spacing="6">
+                    <Button text="F1&#10;Canc.Item" styleClass="pdv-btn-atalho,pdv-btn-atalho-cancelar">
+                        <graphic><FontIcon iconLiteral="mdi2c-close-circle" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F2&#10;Canc.Venda" styleClass="pdv-btn-atalho,pdv-btn-atalho-cancelar">
+                        <graphic><FontIcon iconLiteral="mdi2c-cart-off" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F3&#10;Quantidade" styleClass="pdv-btn-atalho">
+                        <graphic><FontIcon iconLiteral="mdi2n-numeric" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F4&#10;Acréscimo" styleClass="pdv-btn-atalho">
+                        <graphic><FontIcon iconLiteral="mdi2p-plus-circle" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F6&#10;Desconto" styleClass="pdv-btn-atalho">
+                        <graphic><FontIcon iconLiteral="mdi2t-tag" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+
+            <Region styleClass="pdv-footer-divisor"/>
+
+            <!-- Grupo CLIENTE / ITEM -->
+            <VBox styleClass="pdv-footer-grupo" spacing="4" alignment="TOP_LEFT">
+                <Label text="CLIENTE / ITEM" styleClass="pdv-footer-grupo-label"/>
+                <HBox spacing="6">
+                    <Button text="F5&#10;Cliente" styleClass="pdv-btn-atalho,pdv-btn-atalho-cliente">
+                        <graphic><FontIcon iconLiteral="mdi2a-account-search" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F11&#10;Loc.Item" styleClass="pdv-btn-atalho,pdv-btn-atalho-busca">
+                        <graphic><FontIcon iconLiteral="mdi2p-package-variant" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+
+            <Region styleClass="pdv-footer-divisor"/>
+
+            <!-- Grupo CAIXA -->
+            <VBox styleClass="pdv-footer-grupo" spacing="4" alignment="TOP_LEFT">
+                <Label text="CAIXA" styleClass="pdv-footer-grupo-label"/>
+                <HBox spacing="6">
+                    <Button text="F8&#10;Suprim." styleClass="pdv-btn-atalho">
+                        <graphic><FontIcon iconLiteral="mdi2c-cash-plus" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F9&#10;Sangria" styleClass="pdv-btn-atalho">
+                        <graphic><FontIcon iconLiteral="mdi2c-cash-minus" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                    <Button text="F10&#10;Pré-Venda" styleClass="pdv-btn-atalho">
+                        <graphic><FontIcon iconLiteral="mdi2c-clock-outline" iconSize="16" iconColor="white"/></graphic>
+                    </Button>
+                </HBox>
+            </VBox>
+
+            <!-- Vão fixo (não elástico) antes do Finalizar — mantém ele visualmente
+                 isolado dos outros grupos sem depender de esticar até a borda da janela -->
+            <Region minWidth="36" prefWidth="36" maxWidth="36"/>
+
+            <Button text="F7&#10;FINALIZAR" styleClass="pdv-btn-atalho,pdv-btn-atalho-finalizar">
+                <graphic><FontIcon iconLiteral="mdi2c-check-circle-outline" iconSize="22" iconColor="white"/></graphic>
             </Button>
-            <Button text="F2&#10;Canc.Venda" styleClass="pdv-btn-atalho,pdv-btn-atalho-cancelar"
-                    maxWidth="Infinity" GridPane.columnIndex="1">
-                <graphic><FontIcon iconLiteral="mdi2c-cart-off" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F3&#10;Quantidade" styleClass="pdv-btn-atalho"
-                    maxWidth="Infinity" GridPane.columnIndex="2">
-                <graphic><FontIcon iconLiteral="mdi2n-numeric" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F4&#10;Acréscimo" styleClass="pdv-btn-atalho,pdv-btn-atalho-acrescimo"
-                    maxWidth="Infinity" GridPane.columnIndex="3">
-                <graphic><FontIcon iconLiteral="mdi2p-plus-circle" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F5&#10;Cliente" styleClass="pdv-btn-atalho,pdv-btn-atalho-cliente"
-                    maxWidth="Infinity" GridPane.columnIndex="4">
-                <graphic><FontIcon iconLiteral="mdi2a-account-search" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F6&#10;Desconto" styleClass="pdv-btn-atalho,pdv-btn-atalho-desconto"
-                    maxWidth="Infinity" GridPane.columnIndex="5">
-                <graphic><FontIcon iconLiteral="mdi2t-tag" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F7 · FINALIZAR" styleClass="pdv-btn-atalho,pdv-btn-atalho-finalizar"
-                    maxWidth="Infinity" GridPane.columnIndex="6">
-                <graphic><FontIcon iconLiteral="mdi2c-check-bold" iconSize="20" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F8&#10;Suprim." styleClass="pdv-btn-atalho"
-                    maxWidth="Infinity" GridPane.columnIndex="7">
-                <graphic><FontIcon iconLiteral="mdi2c-cash-plus" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F9&#10;Sangria" styleClass="pdv-btn-atalho"
-                    maxWidth="Infinity" GridPane.columnIndex="8">
-                <graphic><FontIcon iconLiteral="mdi2c-cash-minus" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F10&#10;Pré-Venda" styleClass="pdv-btn-atalho"
-                    maxWidth="Infinity" GridPane.columnIndex="9">
-                <graphic><FontIcon iconLiteral="mdi2c-clock-outline" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F11&#10;Loc.Item" styleClass="pdv-btn-atalho,pdv-btn-atalho-busca"
-                    maxWidth="Infinity" GridPane.columnIndex="10">
-                <graphic><FontIcon iconLiteral="mdi2p-package-variant" iconSize="16" iconColor="white"/></graphic>
-            </Button>
-            <Button text="F12&#10;Menu" styleClass="pdv-btn-atalho"
-                    maxWidth="Infinity" GridPane.columnIndex="11">
+
+            <Region styleClass="pdv-footer-divisor"/>
+
+            <Button text="F12&#10;Menu" styleClass="pdv-btn-atalho,pdv-btn-atalho-menu">
                 <graphic><FontIcon iconLiteral="mdi2m-menu" iconSize="16" iconColor="white"/></graphic>
             </Button>
-        </GridPane>
+        </HBox>
     </VBox>
 </AnchorPane>

@@ -84,6 +84,56 @@ public class IndicadoresService {
                 item.getQuantidadePedidos(), item.getValorTotalComprado()));
     }
 
+    // -------------------------------------------------------- Exportação PDF/Excel
+    // Mesmo cálculo/resolução de nome dos 3 métodos paginados acima, sem Pageable —
+    // a exportação é o documento inteiro, não uma página de grade.
+
+    @Transactional(readOnly = true)
+    public List<EstoqueValorIndicadorResponse> estoqueValor(LocalDate dataReferencia, Long depositoId) {
+        List<EstoqueValorSnapshot> itens = depositoId != null
+                ? estoqueValorSnapshotRepository.findByDataReferenciaAndDepositoId(dataReferencia, depositoId)
+                : estoqueValorSnapshotRepository.findByDataReferencia(dataReferencia);
+
+        Map<Long, String> nomesProduto = nomesProduto(itens.stream().map(EstoqueValorSnapshot::getProdutoId).toList());
+        Map<Long, String> nomesDeposito = nomesDeposito(itens.stream().map(EstoqueValorSnapshot::getDepositoId).toList());
+
+        return itens.stream()
+                .map(item -> new EstoqueValorIndicadorResponse(
+                        item.getDataReferencia(), item.getDepositoId(), nomesDeposito.get(item.getDepositoId()),
+                        item.getProdutoId(), nomesProduto.get(item.getProdutoId()),
+                        item.getQuantidade(), item.getCustoMedioPonderado(), item.getValorTotal()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CurvaAbcIndicadorResponse> curvaAbc(LocalDate dataReferencia, Long depositoId) {
+        List<CurvaAbcSnapshot> itens = depositoId != null
+                ? curvaAbcSnapshotRepository.findByDataReferenciaAndDepositoId(dataReferencia, depositoId)
+                : curvaAbcSnapshotRepository.findByDataReferencia(dataReferencia);
+
+        Map<Long, String> nomesProduto = nomesProduto(itens.stream().map(CurvaAbcSnapshot::getProdutoId).toList());
+        Map<Long, String> nomesDeposito = nomesDeposito(itens.stream().map(CurvaAbcSnapshot::getDepositoId).toList());
+
+        return itens.stream()
+                .map(item -> new CurvaAbcIndicadorResponse(
+                        item.getDataReferencia(), item.getDepositoId(), nomesDeposito.get(item.getDepositoId()),
+                        item.getProdutoId(), nomesProduto.get(item.getProdutoId()),
+                        item.getValorMovimentado(), item.getPercentualParticipacao(), item.getPercentualAcumulado(), item.getClassificacao()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComprasFornecedorIndicadorResponse> comprasFornecedor(String anoMes) {
+        List<ComprasFornecedorResumo> itens = comprasFornecedorResumoRepository.findByAnoMes(anoMes);
+        Map<Long, String> nomesFornecedor = nomesFornecedor(itens.stream().map(ComprasFornecedorResumo::getFornecedorId).toList());
+
+        return itens.stream()
+                .map(item -> new ComprasFornecedorIndicadorResponse(
+                        item.getAnoMes(), item.getFornecedorId(), nomesFornecedor.get(item.getFornecedorId()),
+                        item.getQuantidadePedidos(), item.getValorTotalComprado()))
+                .toList();
+    }
+
     private Map<Long, String> nomesProduto(List<Long> ids) {
         return mapaDeNomes(ids, produtoDimRepository::findByProdutoIdIn, ProdutoDim::getProdutoId, ProdutoDim::getNome);
     }

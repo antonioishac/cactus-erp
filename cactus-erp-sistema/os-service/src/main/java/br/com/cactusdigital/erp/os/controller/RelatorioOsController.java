@@ -1,0 +1,94 @@
+package br.com.cactusdigital.erp.os.controller;
+
+import br.com.cactusdigital.erp.common.report.ReportEngine;
+import br.com.cactusdigital.erp.common.report.ReportFormat;
+import br.com.cactusdigital.erp.common.report.ReportHttpSupport;
+import br.com.cactusdigital.erp.os.dto.OsAberturaResponse;
+import br.com.cactusdigital.erp.os.service.RelatorioOsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Ordens de serviço por período/status — relatório gerencial do os-service (ver ANÁLISE:
+ * MÓDULO DE RELATÓRIOS no CLAUDE.md raiz). JSON (consulta/tela), PDF
+ * (impressão/arquivamento) e XLSX (análise), calculados sob demanda a partir de
+ * {@link RelatorioOsService}.
+ */
+@Tag(name = "Relatórios — OS", description = "Ordens de serviço por período/status — calculado sob demanda, não persistido")
+@RestController
+@RequestMapping("/api/v1/relatorios")
+@RequiredArgsConstructor
+public class RelatorioOsController {
+
+    private static final DateTimeFormatter FORMATO_DATA_GERACAO = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter FORMATO_DATA_PERIODO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private final RelatorioOsService service;
+    private final ReportEngine reportEngine;
+
+    @Operation(summary = "Ordens de serviço por período", description = "Filtro por dataInicio, opcionalmente por status/empresa")
+    @ApiResponse(responseCode = "200", description = "OS do período, ordenadas por data")
+    @GetMapping("/os-periodo")
+    @PreAuthorize("hasAuthority('OS_CONSULTAR')")
+    public List<OsAberturaResponse> osPorPeriodo(
+            @RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
+            @RequestParam(required = false) Long osStatusId, @RequestParam(required = false) Long empresaId) {
+        return service.osPorPeriodo(dataInicio, dataFim, osStatusId, empresaId);
+    }
+
+    @Operation(summary = "Exportar ordens de serviço por período em PDF")
+    @ApiResponse(responseCode = "200", description = "Arquivo PDF gerado")
+    @GetMapping(value = "/os-periodo/pdf", produces = "application/pdf")
+    @PreAuthorize("hasAuthority('OS_CONSULTAR')")
+    public ResponseEntity<byte[]> osPorPeriodoPdf(
+            @RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
+            @RequestParam(required = false) Long osStatusId, @RequestParam(required = false) Long empresaId) {
+        return exportarOsPorPeriodo(dataInicio, dataFim, osStatusId, empresaId, ReportFormat.PDF);
+    }
+
+    @Operation(summary = "Exportar ordens de serviço por período em Excel")
+    @ApiResponse(responseCode = "200", description = "Arquivo XLSX gerado")
+    @GetMapping(value = "/os-periodo/xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @PreAuthorize("hasAuthority('OS_CONSULTAR')")
+    public ResponseEntity<byte[]> osPorPeriodoXlsx(
+            @RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
+            @RequestParam(required = false) Long osStatusId, @RequestParam(required = false) Long empresaId) {
+        return exportarOsPorPeriodo(dataInicio, dataFim, osStatusId, empresaId, ReportFormat.XLSX);
+    }
+
+    private ResponseEntity<byte[]> exportarOsPorPeriodo(LocalDate dataInicio, LocalDate dataFim, Long osStatusId, Long empresaId, ReportFormat formato) {
+        List<OsAberturaResponse> dados = service.osPorPeriodo(dataInicio, dataFim, osStatusId, empresaId);
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("P_PERIODO", periodo(dataInicio, dataFim));
+        parametros.put("P_FILTRO", "Status: " + filtroOuTodos(osStatusId) + "   |   Empresa: " + filtroOuTodos(empresaId));
+        parametros.put("P_DATA_GERACAO", dataGeracao());
+        byte[] conteudo = reportEngine.gerar(getClass().getClassLoader(), "reports/os-periodo.jrxml", dados, parametros, formato);
+        return ReportHttpSupport.download(conteudo, formato, "os-periodo");
+    }
+
+    private String periodo(LocalDate dataInicio, LocalDate dataFim) {
+        return dataInicio.format(FORMATO_DATA_PERIODO) + " a " + dataFim.format(FORMATO_DATA_PERIODO);
+    }
+
+    private String filtroOuTodos(Long id) {
+        return id != null ? "#" + id : "Todos";
+    }
+
+    private String dataGeracao() {
+        return LocalDateTime.now().format(FORMATO_DATA_GERACAO);
+    }
+}

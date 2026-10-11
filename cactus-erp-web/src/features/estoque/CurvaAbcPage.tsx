@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Button, Card, Flex, InputNumber, Select, Table, Tag, Typography } from 'antd'
 import { BarChartOutlined } from '@ant-design/icons'
 import { useAuth } from '@features/auth/useAuth'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
 import ProdutoResumoCell from '@shared/ui/ProdutoResumoCell'
+import { exportarCurvaAbc } from './api'
 import { useDepositosAtivos, useCurvaAbc } from './queries'
 import type { CurvaAbcItemResponse } from './types'
 
@@ -47,6 +49,7 @@ export default function CurvaAbcPage() {
           <Button type="primary" icon={<BarChartOutlined />} loading={isFetching} onClick={() => setCalcularHabilitado(true)}>
             Calcular
           </Button>
+          <ExportarRelatorioButtons onExportar={(formato) => exportarCurvaAbc(depositoId, dias, formato)} />
         </Flex>
 
         <Table<CurvaAbcItemResponse>

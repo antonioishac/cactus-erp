@@ -1,4 +1,5 @@
 import { cadastroBaseApi, estoqueApi, segurancaApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type { ProdutoResumo } from '@shared/api/produtoLookup'
 import type {
@@ -307,4 +308,8 @@ export async function calcularCurvaAbc(depositoId: number | undefined, dias: num
     params: { depositoId, dias },
   })
   return data
+}
+
+export async function exportarCurvaAbc(depositoId: number | undefined, dias: number, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(estoqueApi, `/api/v1/relatorios/curva-abc/${formato}`, `curva-abc.${formato}`, { depositoId, dias })
 }

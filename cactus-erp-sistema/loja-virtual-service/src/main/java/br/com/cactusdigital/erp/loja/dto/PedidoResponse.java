@@ -28,5 +28,6 @@ public record PedidoResponse(
         SituacaoPedido situacao,
         Instant dataPagamento,
         String motivoCancelamento,
-        List<ItemPedidoResponse> itens) {
+        List<ItemPedidoResponse> itens,
+        Instant dataCriacao) {
 }

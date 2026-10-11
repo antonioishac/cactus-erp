@@ -2,6 +2,7 @@ package br.com.cactusdigital.erp.bi.repository;
 
 import br.com.cactusdigital.erp.bi.entity.EstoqueValorSnapshot;
 import java.time.LocalDate;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,12 @@ public interface EstoqueValorSnapshotRepository extends JpaRepository<EstoqueVal
     Page<EstoqueValorSnapshot> findByDataReferencia(LocalDate dataReferencia, Pageable pageable);
 
     Page<EstoqueValorSnapshot> findByDataReferenciaAndDepositoId(LocalDate dataReferencia, Long depositoId, Pageable pageable);
+
+    /** Variante não paginada — usada pela exportação PDF/Excel (documento inteiro, não
+     * uma página de grade). */
+    List<EstoqueValorSnapshot> findByDataReferencia(LocalDate dataReferencia);
+
+    List<EstoqueValorSnapshot> findByDataReferenciaAndDepositoId(LocalDate dataReferencia, Long depositoId);
 
     /** {@code @Modifying} bulk delete — executa imediatamente contra o banco, ao
      * contrário de um {@code deleteByX} derivado sem {@code @Modifying} (que faz

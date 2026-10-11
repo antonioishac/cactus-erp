@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Proposta de rodapé v2 — Cactus PDV (ponta de mercado)</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", -apple-system, Arial, sans-serif;
+    background: #e8e8e8;
+    padding: 24px;
+  }
+  h1 { font-size: 18px; color: #222; margin: 0 0 4px; }
+  p.sub { color: #666; font-size: 13px; margin: 0 0 20px; max-width: 900px; }
+
+  .screen {
+    width: 1360px;
+    max-width: 100%;
+    background: #f4f4f4;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+
+  .topbar {
+    background: linear-gradient(180deg,#1f4e8c,#173d70);
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .topbar .venda-num { font-size: 20px; font-weight: 700; }
+  .topbar .venda-status { font-size: 11px; opacity: .85; letter-spacing: .5px; }
+  .topbar .meta { display: flex; gap: 36px; text-align: right; }
+  .topbar .meta div span { display:block; }
+  .topbar .meta .label { font-size: 10px; opacity: .7; letter-spacing: .5px; }
+  .topbar .meta .value { font-size: 14px; font-weight: 600; }
+
+  .body-placeholder {
+    height: 330px;
+    background: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 13px;
+  }
+
+  /* ======== RODAPÉ v2 — visual de POS premium ======== */
+  .footer-wrap {
+    position: relative;
+    padding-top: 22px;
+    background: linear-gradient(180deg,#1c1e22 0%,#101114 100%);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.35) inset;
+  }
+
+  .footer {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 18px 18px;
+  }
+
+  .grupo {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0 14px;
+    position: relative;
+  }
+  .grupo:first-child { padding-left: 0; }
+
+  .grupo-label {
+    position: absolute;
+    top: -18px;
+    left: 14px;
+    font-size: 9.5px;
+    letter-spacing: 1.6px;
+    color: #6e7480;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .grupo:first-child .grupo-label { left: 0; }
+
+  .divisor {
+    width: 1px;
+    margin: 8px 8px;
+    align-self: stretch;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.14) 30%, rgba(255,255,255,0.14) 70%, transparent);
+  }
+
+  .tecla {
+    min-width: 96px;
+    border-radius: 14px;
+    padding: 12px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: default;
+    user-select: none;
+    position: relative;
+    border-top: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04) inset;
+  }
+  .tecla svg { width: 22px; height: 22px; }
+  .tecla .fnum {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 9px;
+    font-weight: 800;
+    opacity: .55;
+    letter-spacing: .5px;
+  }
+  .tecla .label {
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+
+  .tecla.vermelho { background: linear-gradient(180deg,#a3372f,#7d2620); color: #ffdad5; }
+  .tecla.cinza     { background: linear-gradient(180deg,#35373c,#26272b); color: #dfe1e5; }
+  .tecla.azul      { background: linear-gradient(180deg,#2f5c94,#204873); color: #e2edff; }
+
+  .tecla.finalizar {
+    min-width: 200px;
+    border-radius: 16px;
+    background: linear-gradient(180deg,#3fbf52,#249137);
+    color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset, 0 6px 20px rgba(47,175,70,0.45);
+    padding: 12px 14px 10px;
+  }
+  .tecla.finalizar svg { width: 28px; height: 28px; }
+  .tecla.finalizar .label { font-size: 15px; letter-spacing: .3px; }
+  .tecla.finalizar .fnum { opacity: .75; }
+
+  .tecla.menu {
+    min-width: 64px;
+    background: linear-gradient(180deg,#2c2e33,#1e1f23);
+    color: #b6bac2;
+  }
+
+  .spacer { flex: 1; }
+
+  .legenda {
+    max-width: 1360px;
+    margin-top: 16px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: #444;
+  }
+  .legenda h2 { font-size: 13px; margin: 0 0 8px; color: #222; }
+  .legenda ul { margin: 0; padding-left: 18px; }
+  .legenda li { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+
+<h1>Proposta de rodapé v2 — visual de ponta de mercado</h1>
+<p class="sub">Mesma organização já validada (3 blocos + Finalizar isolado + F1–F12 intactos), agora com ícone em cada tecla, profundidade real (gradiente + sombra, não cor chapada), Finalizar como "botão herói" com brilho, e tipografia mais forte. Mockup estático — nada foi alterado no código do PDV ainda.</p>
+
+<div class="screen">
+  <div class="topbar">
+    <div>
+      <div class="venda-num">VENDA Nº #41</div>
+      <div class="venda-status">EM ANDAMENTO</div>
+    </div>
+    <div class="meta">
+      <div><span class="label">OPERADOR</span><span class="value">Juliana Aparecida Ramos</span></div>
+      <div><span class="label">PDV</span><span class="value">PDV-001</span></div>
+      <div><span class="label">HORA</span><span class="value">21:33:29</span></div>
+    </div>
+  </div>
+
+  <div class="body-placeholder">(itens da venda / totais — sem alteração nesta proposta)</div>
+
+  <div class="footer-wrap">
+    <div class="footer">
+      <div class="grupo">
+        <div class="grupo-label">Venda</div>
+
+        <div class="tecla vermelho">
+          <span class="fnum">F1</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+          <span class="label">Canc.Item</span>
+        </div>
+
+        <div class="tecla vermelho">
+          <span class="fnum">F2</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          <span class="label">Canc.Venda</span>
+        </div>
+
+        <div class="tecla cinza">
+          <span class="fnum">F3</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="9" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="15" y2="20"/></svg>
+          <span class="label">Quantidade</span>
+        </div>
+
+        <div class="tecla cinza">
+          <span class="fnum">F4</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="label">Acréscimo</span>
+        </div>
+
+        <div class="tecla cinza">
+          <span class="fnum">F6</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/></svg>
+          <span class="label">Desconto</span>
+        </div>
+      </div>
+
+      <div class="divisor"></div>
+
+      <div class="grupo">
+        <div class="grupo-label">Cliente / Item</div>
+
+        <div class="tecla azul">
+          <span class="fnum">F5</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3.1-6 7-6s7 2.5 7 6"/></svg>
+          <span class="label">Cliente</span>
+        </div>
+
+        <div class="tecla azul">
+          <span class="fnum">F11</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><line x1="20" y1="20" x2="15.5" y2="15.5"/></svg>
+          <span class="label">Loc.Item</span>
+        </div>
+      </div>
+
+      <div class="divisor"></div>
+
+      <div class="grupo">
+        <div class="grupo-label">Caixa</div>
+
+        <div class="tecla cinza">
+          <span class="fnum">F8</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.5"/><path d="M12 3v8"/><path d="M8.5 7.5 12 11l3.5-3.5"/></svg>
+          <span class="label">Suprim.</span>
+        </div>
+
+        <div class="tecla cinza">
+          <span class="fnum">F9</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="16" height="7" rx="1.5"/><path d="M12 11V3"/><path d="M8.5 6.5 12 3l3.5 3.5"/></svg>
+          <span class="label">Sangria</span>
+        </div>
+
+        <div class="tecla cinza">
+          <span class="fnum">F10</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+          <span class="label">Pré-Venda</span>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="tecla finalizar">
+        <span class="fnum">F7</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+        <span class="label">FINALIZAR</span>
+      </div>
+
+      <div class="divisor"></div>
+
+      <div class="tecla menu">
+        <span class="fnum">F12</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        <span class="label">Menu</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="legenda">
+  <h2>O que mudou da v1 pra essa (v2)</h2>
+  <ul>
+    <li><b>Ícone em toda tecla</b> (X, carrinho, régua, +, %, pessoa, lupa, caixa com seta, relógio, check) — leitura visual muito mais rápida que só texto, padrão de todo POS de mercado (Square, Toast, Clover).</li>
+    <li><b>Profundidade real</b>: gradiente sutil + sombra em cada botão (parece uma tecla física elevada), em vez de cor chapada.</li>
+    <li><b>Finalizar como botão-herói</b>: maior, cantos mais arredondados, gradiente verde vibrante com brilho (glow) ao redor — impossível não notar qual é a ação principal.</li>
+    <li><b>Números de atalho (F1...F12) discretos no canto</b> em vez de ocupar linha própria — dá mais espaço pro ícone+label, que é o que o olho busca primeiro.</li>
+    <li>Estrutura de agrupamento (3 blocos + divisória) continua a mesma já validada — só a execução visual mudou.</li>
+  </ul>
+</div>
+
+</body>
+</html>

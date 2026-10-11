@@ -288,33 +288,89 @@
     -fx-font-weight: bold;
 }
 
-/* Card RESUMO (branco com linhas Subtotal/Itens/Unidades/Cancelados) */
+/* Card RESUMO (branco com linhas Subtotal/Desconto/Acréscimo/Itens/Unidades/
+   Cancelados) — cores por significado (vermelho=sai valor, verde=entra
+   valor, cinza claro=só contagem) em vez de tudo na mesma cor neutra, mais
+   uma divisória separando o bloco de dinheiro do bloco de contagem. Mesmo
+   critério de agrupamento por cor+divisor já validado no rodapé. Fonte
+   subiu de 14px pra 16px (dinheiro) a pedido do usuário — mais fácil de ler
+   à distância. */
 .pdv-card-resumo {
     -fx-background-color: white;
     -fx-background-radius: 10;
-    -fx-padding: 14 18 14 18;
+    -fx-padding: 16 18 16 18;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0.0, 0, 2);
 }
 
+/* Subtotal — valor de referência, continua neutro/escuro, com destaque */
 .pdv-resumo-label {
     -fx-text-fill: #555555;
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
 }
 
 .pdv-resumo-valor {
-    -fx-text-fill: #333333;
+    -fx-text-fill: #262825;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+/* Desconto — vermelho, mesmo tom já usado em Cancelar/Cancelados */
+.pdv-resumo-desconto-label {
+    -fx-text-fill: #c9523a;
+    -fx-font-size: 16px;
+}
+.pdv-resumo-desconto-valor {
+    -fx-text-fill: #c9523a;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.pdv-resumo-desconto-icone {
+    -fx-icon-color: #c9523a;
+}
+
+/* Acréscimo — verde, mesmo tom já usado em Finalizar/Economia */
+.pdv-resumo-acrescimo-label {
+    -fx-text-fill: #2d7a3e;
+    -fx-font-size: 16px;
+}
+.pdv-resumo-acrescimo-valor {
+    -fx-text-fill: #2d7a3e;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.pdv-resumo-acrescimo-icone {
+    -fx-icon-color: #2d7a3e;
+}
+
+/* Linha fina separando o bloco de dinheiro (Subtotal/Desconto/Acréscimo) do
+   bloco de contagem (Itens/Unidades) — Region puro, mesma técnica do
+   divisor do rodapé (min/max-height fixos, sem depender de -fx-padding). */
+.pdv-resumo-divisor {
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+    -fx-background-color: #e4e4e4;
+}
+
+/* Itens / Unidades — só contagem, não é dinheiro: cinza mais claro e um
+   pouco menor que o bloco de valores acima, pra ficar visualmente secundário */
+.pdv-resumo-contagem-label {
+    -fx-text-fill: #9a9a9a;
+    -fx-font-size: 14px;
+}
+.pdv-resumo-contagem-valor {
+    -fx-text-fill: #6e6e6e;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
 }
 
 .pdv-resumo-cancelados-label {
     -fx-text-fill: #c9523a;
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
 }
 
 .pdv-resumo-cancelados-valor {
     -fx-text-fill: #c9523a;
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
 }
 
@@ -357,78 +413,117 @@
 }
 
 /* ============================================================
-   FOOTER COM 12 ATALHOS
+   FOOTER COM 12 ATALHOS — agrupados por função (VENDA / CLIENTE-ITEM /
+   CAIXA), com FINALIZAR isolado como "botão herói". Proposta validada com
+   o usuário via mockup em cactus-pdv/_reference/rodape-proposta-v2.html
+   antes de implementar aqui — ver esse arquivo pra referência visual.
    ============================================================ */
 .pdv-footer {
-    -fx-background-color: #2d2d2d;
-    -fx-padding: 8;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #1c1e22, #101114);
+    -fx-padding: 16 16 14 16;
 }
 
-/* Botão base de atalho */
-.pdv-btn-atalho {
-    -fx-background-color: #555555;
-    -fx-text-fill: white;
-    -fx-font-size: 10px;
+/* Rótulo pequeno acima de cada grupo de botões (VENDA / CLIENTE-ITEM / CAIXA) */
+.pdv-footer-grupo-label {
+    -fx-text-fill: #6e7480;
+    -fx-font-size: 9.5px;
     -fx-font-weight: bold;
-    -fx-background-radius: 6;
-    -fx-padding: 12 4 12 4;
+}
+
+/* Linha vertical fina separando os grupos. Achado real: -fx-padding não tem
+   efeito nenhum no retângulo desenhado de um Region puro (padding é conceito
+   de área de conteúdo, e Region não tem conteúdo) — por isso a linha não
+   aparecia. A técnica certa é dar uma caixa mais larga e "recortar" o fundo
+   pra dentro com -fx-background-insets, deixando só uma linha fina visível
+   com respiro dos dois lados. */
+.pdv-footer-divisor {
+    -fx-min-width: 17;
+    -fx-max-width: 17;
+    -fx-background-color: rgba(255,255,255,0.22);
+    -fx-background-insets: 6 8 6 8;
+}
+
+/* Botão base de atalho — gradiente + sombra, parece uma tecla elevada
+   em vez de cor chapada.
+   Achado real (2026-09-27): 10.5px + cor levemente tingida (não branco puro)
+   ficava ilegível na tela real numa janela grande/redimensionada — corrigido
+   com fonte maior (12.5px) e branco puro em todo botão (antes cada variação
+   semântica tingia o texto — vermelho-claro, azul-claro etc. —, o que
+   reduzia contraste sem necessidade; a cor de fundo já basta pra distinguir
+   a categoria). Rodapé cresceu de 108→120 pra dar espaço a essa fonte maior
+   sem cortar a segunda linha do texto. */
+.pdv-btn-atalho {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #35373c, #26272b);
+    -fx-text-fill: white;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 14;
+    -fx-padding: 9 8 7 8;
     -fx-cursor: hand;
-    -fx-min-height: 50;
+    -fx-min-width: 96;
+    -fx-min-height: 72;
+    -fx-pref-height: 72;
     -fx-content-display: top;
-    -fx-graphic-text-gap: 2;
+    -fx-graphic-text-gap: 5;
     -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 6, 0.0, 0, 3);
 }
 
 .pdv-btn-atalho:hover {
-    -fx-background-color: #6a6a6a;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3f4147, #2e3035);
 }
 
-/* Variações por cor semântica */
+/* Variações por cor semântica — só 4 significados fixos:
+   vermelho = cancelar, cinza (base) = ajuste/operacional,
+   azul = cliente/busca, verde = só o Finalizar. */
 .pdv-btn-atalho-cancelar {
-    -fx-background-color: #c9523a;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #a3372f, #7d2620);
 }
 .pdv-btn-atalho-cancelar:hover {
-    -fx-background-color: #b04429;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #b23d34, #8a2b24);
 }
 
-.pdv-btn-atalho-acrescimo {
-    -fx-background-color: #2d7a3e;
-}
-.pdv-btn-atalho-acrescimo:hover {
-    -fx-background-color: #246330;
-}
-
-.pdv-btn-atalho-desconto {
-    -fx-background-color: #c9724f;
-}
-.pdv-btn-atalho-desconto:hover {
-    -fx-background-color: #b56041;
-}
-
-.pdv-btn-atalho-cliente {
-    -fx-background-color: #4a5fb8;
-}
-.pdv-btn-atalho-cliente:hover {
-    -fx-background-color: #3d4f9d;
-}
-
+.pdv-btn-atalho-cliente,
 .pdv-btn-atalho-busca {
-    -fx-background-color: #4a5fb8;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2f5c94, #204873);
 }
+.pdv-btn-atalho-cliente:hover,
 .pdv-btn-atalho-busca:hover {
-    -fx-background-color: #3d4f9d;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #35659f, #26507f);
 }
 
-/* F7 FINALIZAR - destaque máximo */
+/* F12 Menu — mesma base cinza, um pouco mais estreito (ação rara), mas texto
+   branco puro igual aos outros — de-ênfase vem só do tamanho, não de deixar
+   o texto quase ilegível. */
+.pdv-btn-atalho-menu {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #2c2e33, #1e1f23);
+    -fx-min-width: 76;
+}
+.pdv-btn-atalho-menu:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #34363c, #26272b);
+}
+
+/* F7 FINALIZAR — botão herói: maior, mais arredondado, brilho ao redor.
+   Achado real: herdava min-height:64 do .pdv-btn-atalho base, insuficiente
+   pro ícone maior (22px) + 2 linhas de texto em fonte maior (12px) — o texto
+   "FINALIZAR" ficava cortado/invisível, sobrando só o ícone. Os botões sem
+   rótulo de grupo acima (Finalizar/Menu) têm o footer inteiro (~82px) de
+   sobra vertical, diferente dos agrupados (que dividem esse espaço com o
+   rótulo do grupo) — por isso dá pra deixar mais alto sem mudar a altura
+   total do rodapé. */
 .pdv-btn-atalho-finalizar {
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #538649, #2d5a2d);
+    -fx-min-width: 190;
+    -fx-min-height: 84;
+    -fx-pref-height: 84;
+    -fx-background-radius: 16;
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #3fbf52, #249137);
     -fx-text-fill: white;
-    -fx-font-size: 11px;
+    -fx-font-size: 13.5px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(83,134,73,0.50), 8, 0.0, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(47,175,70,0.55), 16, 0.35, 0, 3);
 }
 .pdv-btn-atalho-finalizar:hover {
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #467138, #244a24);
+    -fx-background-color: linear-gradient(from 0% 0% to 0% 100%, #49cc5d, #2aa03e);
 }
 
 /* Ícones dentro dos botões de atalho */
@@ -687,16 +782,12 @@
     -fx-cell-size: 56px;            /* antes era 42px */
 }
 
+/* Altura ajustada pro rodapé agrupado (rótulo de grupo + botão maior, fonte
+   12.5px) — ver bloco de estilo principal do rodapé mais acima no arquivo. */
 .pdv-footer {
-    -fx-min-height: 84;
-    -fx-pref-height: 84;
-    -fx-max-height: 84;
-}
-
-.pdv-btn-atalho {
-    -fx-min-height: 64;
-    -fx-pref-height: 64;
-    -fx-padding: 6 4 6 4;     /* reduz vertical pra caber tudo bem */
+    -fx-min-height: 120;
+    -fx-pref-height: 120;
+    -fx-max-height: 120;
 }
 
 .bloqueio-root {

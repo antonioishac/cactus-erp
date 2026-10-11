@@ -18,4 +18,11 @@ public interface EstoqueMovimentoRepository extends JpaRepository<EstoqueMovimen
 
     /** Base pra curva ABC: todas as saídas do período, pra agregar valor movimentado por produto (sem paginação de propósito). */
     List<EstoqueMovimento> findByTipoMovimentoAndDataMovimentoBetween(TipoMovimentoEstoque tipoMovimento, Instant inicio, Instant fim);
+
+    /** Base pra ficha de movimentação (relatório) — ledger cronológico de um produto no
+     * período, limite superior exclusivo (mesmo critério já usado no {@code fiscal-service}
+     * pros exports SPED: {@code dataInicio.atStartOfDay}/{@code dataFim.plusDays(1).atStartOfDay},
+     * evita incluir o instante exato da meia-noite do dia seguinte). */
+    List<EstoqueMovimento> findByProdutoIdAndDataMovimentoGreaterThanEqualAndDataMovimentoLessThanOrderByDataMovimentoAsc(
+            Long produtoId, Instant inicio, Instant fimExclusivo);
 }
