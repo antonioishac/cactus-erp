@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Card, DatePicker, Flex, Select, Table, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarEstoqueValor } from './api'
 import { useDepositosAtivos, useEstoqueValor } from './queries'
 import type { EstoqueValorFiltro, EstoqueValorIndicadorResponse } from './types'
 
@@ -51,6 +53,7 @@ export default function EstoqueValorPage() {
               setPagina(0)
             }}
           />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarEstoqueValor(filtro, formato)} />
         </Flex>
 
         <Table<EstoqueValorIndicadorResponse>

@@ -313,3 +313,43 @@ export async function calcularCurvaAbc(depositoId: number | undefined, dias: num
 export async function exportarCurvaAbc(depositoId: number | undefined, dias: number, formato: FormatoRelatorio): Promise<void> {
   await baixarArquivo(estoqueApi, `/api/v1/relatorios/curva-abc/${formato}`, `curva-abc.${formato}`, { depositoId, dias })
 }
+
+// --- Relatórios: Saldo por Depósito e Ficha de Movimentação ---
+
+export async function exportarSaldoEstoque(
+  produtoId: number | undefined,
+  depositoId: number | undefined,
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(estoqueApi, `/api/v1/relatorios/saldo-estoque/${formato}`, `saldo-estoque.${formato}`, {
+    produtoId,
+    depositoId,
+  })
+}
+
+export async function buscarFichaMovimentacao(
+  produtoId: number,
+  dataInicio: string,
+  dataFim: string,
+  depositoId: number | undefined,
+): Promise<EstoqueMovimentoResponse[]> {
+  const { data } = await estoqueApi.get<EstoqueMovimentoResponse[]>('/api/v1/relatorios/ficha-movimentacao-produto', {
+    params: { produtoId, dataInicio, dataFim, depositoId },
+  })
+  return data
+}
+
+export async function exportarFichaMovimentacao(
+  produtoId: number,
+  dataInicio: string,
+  dataFim: string,
+  depositoId: number | undefined,
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(
+    estoqueApi,
+    `/api/v1/relatorios/ficha-movimentacao-produto/${formato}`,
+    `ficha-movimentacao-produto.${formato}`,
+    { produtoId, dataInicio, dataFim, depositoId },
+  )
+}

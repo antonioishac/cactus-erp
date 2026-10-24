@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Card, Flex, Input, Select, Table, Typography } from 'antd'
 import { PlusOutlined, ShopOutlined, UserOutlined } from '@ant-design/icons'
 import SituacaoTag from '@shared/ui/SituacaoTag'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
 import { formatarDocumento } from '@shared/domain/pessoaUtils'
+import { exportarFornecedoresCadastro } from './api'
 import { useFornecedores } from './queries'
 import type { FornecedorResponse, FornecedoresFiltro } from './types'
 
@@ -61,6 +63,7 @@ export default function FornecedoresListPage() {
             ]}
             onChange={(valor) => atualizarFiltro({ situacao: valor })}
           />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarFornecedoresCadastro(filtro, formato)} />
         </Flex>
 
         <Table<FornecedorResponse>

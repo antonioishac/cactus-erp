@@ -12,6 +12,7 @@ import {
   buscarColaboradorResumo,
   buscarColaboradoresParaSelecao,
   buscarOsAbertura,
+  buscarOsPorPeriodo,
   buscarProdutosParaSelecao,
   criarOsAbertura,
   criarOsEquipamento,
@@ -266,5 +267,20 @@ export function useBuscaProdutosParaSelecao(nome: string | undefined) {
     queryKey: ['produtos-para-selecao-os', nome],
     queryFn: () => buscarProdutosParaSelecao(nome),
     enabled: nome !== undefined && nome.length >= 2,
+  })
+}
+
+// --- Relatório: Ordens de Serviço por Período ---
+
+export function useOsPorPeriodo(
+  dataInicio: string | undefined,
+  dataFim: string | undefined,
+  osStatusId: number | undefined,
+  empresaId: number | undefined,
+) {
+  return useQuery({
+    queryKey: ['os-periodo', dataInicio, dataFim, osStatusId, empresaId],
+    queryFn: () => buscarOsPorPeriodo(dataInicio as string, dataFim as string, osStatusId, empresaId),
+    enabled: !!dataInicio && !!dataFim,
   })
 }

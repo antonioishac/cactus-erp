@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import {
+  AccountBookOutlined,
   BarChartOutlined,
   ContactsOutlined,
   DatabaseOutlined,
@@ -7,8 +8,10 @@ import {
   FileProtectOutlined,
   FileTextOutlined,
   SafetyOutlined,
+  ShopOutlined,
   ShoppingCartOutlined,
   ShoppingOutlined,
+  SwapOutlined,
   TeamOutlined,
   ToolOutlined,
 } from '@ant-design/icons'
@@ -176,6 +179,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         requiredAuthorities: ['ESTOQUE_CONSULTAR'],
       },
       {
+        key: 'estoque-ficha-movimentacao',
+        label: 'Ficha de Movimentação',
+        path: '/estoque/ficha-movimentacao',
+        requiredAuthorities: ['ESTOQUE_CONSULTAR'],
+      },
+      {
         key: 'estoque-curva-abc',
         label: 'Curva ABC',
         path: '/estoque/curva-abc',
@@ -206,6 +215,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         key: 'compras-pedidos',
         label: 'Pedidos',
         path: '/compras/pedidos',
+        requiredAuthorities: ['COMPRAS_CONSULTAR'],
+      },
+      {
+        key: 'compras-relatorios',
+        label: 'Relatórios',
+        path: '/compras/relatorios',
         requiredAuthorities: ['COMPRAS_CONSULTAR'],
       },
       {
@@ -326,6 +341,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         requiredAuthorities: ['OS_CONSULTAR'],
       },
       {
+        key: 'os-relatorios',
+        label: 'Relatórios',
+        path: '/os/relatorios',
+        requiredAuthorities: ['OS_CONSULTAR'],
+      },
+      {
         key: 'os-equipamentos',
         label: 'Tipos de Equipamento',
         path: '/os/equipamentos',
@@ -356,6 +377,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         key: 'fiscal-notas-servico',
         label: 'Notas de Serviço (NFS-e)',
         path: '/fiscal/notas-servico',
+        requiredAuthorities: ['FISCAL_CONSULTAR'],
+      },
+      {
+        key: 'fiscal-notas-periodo',
+        label: 'Notas por Período',
+        path: '/fiscal/notas-periodo',
         requiredAuthorities: ['FISCAL_CONSULTAR'],
       },
       {
@@ -532,6 +559,111 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         label: 'EDI Bancário',
         path: '/financeiro/edi-bancario',
         requiredAuthorities: ['CAIXA_CONSULTAR'],
+      },
+    ],
+  },
+  {
+    key: 'contabilidade',
+    label: 'Contabilidade',
+    path: '/contabilidade',
+    icon: <AccountBookOutlined />,
+    requiredAuthorities: ['CONTABIL_CONSULTAR', 'CONTABIL_LANCAR', 'CONTABIL_GERENCIAR'],
+    children: [
+      {
+        key: 'contabilidade-plano-contas',
+        label: 'Plano de Contas',
+        path: '/contabilidade/plano-contas',
+        requiredAuthorities: ['CONTABIL_CONSULTAR'],
+      },
+      {
+        key: 'contabilidade-centros-custo',
+        label: 'Centros de Custo',
+        path: '/contabilidade/centros-custo',
+        requiredAuthorities: ['CONTABIL_CONSULTAR'],
+      },
+      {
+        key: 'contabilidade-lancamentos',
+        label: 'Lançamentos Contábeis',
+        path: '/contabilidade/lancamentos',
+        requiredAuthorities: ['CONTABIL_CONSULTAR'],
+      },
+      {
+        key: 'contabilidade-balancete',
+        label: 'Balancete',
+        path: '/contabilidade/balancete',
+        requiredAuthorities: ['CONTABIL_CONSULTAR'],
+      },
+      {
+        key: 'contabilidade-razao',
+        label: 'Razão',
+        path: '/contabilidade/razao',
+        requiredAuthorities: ['CONTABIL_CONSULTAR'],
+      },
+    ],
+  },
+  {
+    key: 'loja-virtual',
+    label: 'Loja Virtual',
+    path: '/loja-virtual',
+    icon: <ShopOutlined />,
+    requiredAuthorities: ['LOJA_CONSULTAR', 'LOJA_GERENCIAR'],
+    children: [
+      {
+        key: 'loja-virtual-lojas',
+        label: 'Lojas',
+        path: '/loja-virtual/lojas',
+        requiredAuthorities: ['LOJA_CONSULTAR'],
+      },
+      {
+        key: 'loja-virtual-categorias',
+        label: 'Categorias',
+        path: '/loja-virtual/categorias',
+        requiredAuthorities: ['LOJA_CONSULTAR'],
+      },
+      {
+        key: 'loja-virtual-atributos',
+        label: 'Atributos de Categoria',
+        path: '/loja-virtual/atributos',
+        requiredAuthorities: ['LOJA_CONSULTAR'],
+      },
+      {
+        key: 'loja-virtual-produtos',
+        label: 'Produtos',
+        path: '/loja-virtual/produtos',
+        requiredAuthorities: ['LOJA_CONSULTAR'],
+      },
+      {
+        key: 'loja-virtual-pedidos',
+        label: 'Pedidos',
+        path: '/loja-virtual/pedidos',
+        requiredAuthorities: ['LOJA_CONSULTAR'],
+      },
+    ],
+  },
+  {
+    key: 'sincronizacao',
+    label: 'Sincronização PDV',
+    path: '/sincronizacao',
+    icon: <SwapOutlined />,
+    requiredAuthorities: ['SINCRONIZACAO_CONSULTAR', 'SINCRONIZACAO_GERENCIAR', 'SEGURANCA_GERENCIAR'],
+    children: [
+      {
+        key: 'sincronizacao-registros',
+        label: 'Registros',
+        path: '/sincronizacao/registros',
+        requiredAuthorities: ['SINCRONIZACAO_CONSULTAR'],
+      },
+      {
+        key: 'sincronizacao-lotes',
+        label: 'Lotes',
+        path: '/sincronizacao/lotes',
+        requiredAuthorities: ['SINCRONIZACAO_CONSULTAR'],
+      },
+      {
+        key: 'sincronizacao-clientes-loja',
+        label: 'Clientes de Loja (OAuth2)',
+        path: '/sincronizacao/clientes-loja',
+        requiredAuthorities: ['SEGURANCA_GERENCIAR'],
       },
     ],
   },

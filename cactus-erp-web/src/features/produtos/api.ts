@@ -1,4 +1,5 @@
 import { cadastroBaseApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   CestResponse,
@@ -47,6 +48,12 @@ export async function criarProduto(request: ProdutoRequest): Promise<ProdutoResp
 export async function atualizarProduto(id: number, request: ProdutoRequest): Promise<ProdutoResponse> {
   const { data } = await cadastroBaseApi.put<ProdutoResponse>(`${BASE_URL}/${id}`, request)
   return data
+}
+
+export async function exportarProdutosCadastro(filtro: ProdutosFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(cadastroBaseApi, `/api/v1/relatorios/produtos-cadastro/${formato}`, `produtos-cadastro.${formato}`, {
+    ...filtro,
+  })
 }
 
 export async function recalcularTributacaoPadrao(

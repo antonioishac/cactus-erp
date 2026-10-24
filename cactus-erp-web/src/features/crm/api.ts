@@ -1,4 +1,5 @@
 import { cadastroBaseApi, crmApi, segurancaApi, vendasApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   AtividadeRequest,
@@ -16,6 +17,7 @@ import type {
   MoverEstagioRequest,
   OportunidadeRequest,
   OportunidadeResponse,
+  SituacaoOportunidade,
   UsuarioResumo,
   VendedorResumo,
 } from './types'
@@ -230,4 +232,13 @@ export async function buscarUsuariosParaSelecao(busca: string | undefined): Prom
     params: { busca, size: 20 },
   })
   return data.conteudo
+}
+
+// --- Relatório: Funil de Oportunidades ---
+
+export async function exportarFunilOportunidades(
+  situacao: SituacaoOportunidade | undefined,
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(crmApi, `/api/v1/relatorios/funil-oportunidades/${formato}`, `funil-oportunidades.${formato}`, { situacao })
 }

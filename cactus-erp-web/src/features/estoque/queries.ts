@@ -13,6 +13,7 @@ import {
   buscarProdutosParaSelecao,
   buscarUsuariosParaSelecao,
   cadastrarNumeroSerie,
+  buscarFichaMovimentacao,
   calcularCurvaAbc,
   cancelarInventario,
   cancelarTransferencia,
@@ -401,5 +402,18 @@ export function useCurvaAbc(depositoId: number | undefined, dias: number, enable
     queryKey: ['curva-abc', depositoId, dias],
     queryFn: () => calcularCurvaAbc(depositoId, dias),
     enabled,
+  })
+}
+
+export function useFichaMovimentacao(
+  produtoId: number | undefined,
+  dataInicio: string | undefined,
+  dataFim: string | undefined,
+  depositoId: number | undefined,
+) {
+  return useQuery({
+    queryKey: ['ficha-movimentacao-produto', produtoId, dataInicio, dataFim, depositoId],
+    queryFn: () => buscarFichaMovimentacao(produtoId as number, dataInicio as string, dataFim as string, depositoId),
+    enabled: !!produtoId && !!dataInicio && !!dataFim,
   })
 }

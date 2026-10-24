@@ -59,6 +59,13 @@ public class AtributoCategoriaService {
     public AtributoCategoriaResponse criar(AtributoCategoriaRequest request) {
         AtributoCategoria atributo = mapper.toEntity(request);
         atributo.setCategoriaLoja(categoriaLojaService.buscarEntidade(request.categoriaLojaId()));
+        // Achado real (2026-10-11): mapper.toEntity() sobrescreve o @Builder.Default com null quando
+        // request.ordem() vem ausente — mesmo bug já corrigido em CategoriaLojaService#criar, só que
+        // esquecido aqui. Guard idêntico ao de lá, não um @Mapping(defaultValue) no mapper, pra
+        // manter o mesmo padrão já em uso neste módulo.
+        if (request.ordem() == null) {
+            atributo.setOrdem(0);
+        }
         if (request.opcoes() != null) {
             request.opcoes().forEach(o -> atributo.getOpcoes().add(
                     AtributoCategoriaOpcao.builder().atributoCategoria(atributo).valor(o.valor()).ordem(o.ordem() != null ? o.ordem() : 0).build()));

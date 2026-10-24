@@ -4,6 +4,8 @@ import dayjs from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
 import AsyncSelect from '@shared/ui/AsyncSelect'
 import ProdutoResumoCell from '@shared/ui/ProdutoResumoCell'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarSaldoEstoque } from './api'
 import { useBuscaProdutosParaSelecao, useDepositosAtivos, useSaldos } from './queries'
 import type { SaldoEstoqueResponse, SaldosFiltro } from './types'
 
@@ -51,6 +53,9 @@ export default function SaldosListPage() {
               setFiltro((f) => ({ ...f, depositoId }))
               setPagina(0)
             }}
+          />
+          <ExportarRelatorioButtons
+            onExportar={(formato) => exportarSaldoEstoque(filtro.produtoId, filtro.depositoId, formato)}
           />
         </Flex>
 

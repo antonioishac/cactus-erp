@@ -14,6 +14,7 @@ import {
   buscarFornecedorResumo,
   buscarFornecedoresParaSelecao,
   buscarPedido,
+  buscarPedidosCompraPeriodo,
   buscarProdutosParaSelecao,
   buscarProdutoUnidadesParaSelecao,
   buscarRecebimento,
@@ -47,6 +48,7 @@ import type {
   RecebimentoCompraRequest,
   RequisicaoCompraRequest,
   RequisicoesFiltro,
+  SituacaoPedidoCompra,
 } from './types'
 
 const QUERY_KEY_REQUISICOES = ['compras-requisicoes'] as const
@@ -368,5 +370,20 @@ export function useLotesParaSelecao(produtoId: number | undefined) {
     queryKey: ['lotes-para-selecao-compras', produtoId ?? -1],
     queryFn: () => listarLotesParaSelecao(produtoId),
     enabled: produtoId !== undefined,
+  })
+}
+
+// --- Relatório: Pedidos de Compra por Período ---
+
+export function usePedidosCompraPeriodo(
+  dataInicio: string | undefined,
+  dataFim: string | undefined,
+  fornecedorId: number | undefined,
+  situacao: SituacaoPedidoCompra | undefined,
+) {
+  return useQuery({
+    queryKey: ['pedidos-compra-periodo', dataInicio, dataFim, fornecedorId, situacao],
+    queryFn: () => buscarPedidosCompraPeriodo(dataInicio as string, dataFim as string, fornecedorId, situacao),
+    enabled: !!dataInicio && !!dataFim,
   })
 }

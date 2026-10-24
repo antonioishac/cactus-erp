@@ -34,6 +34,7 @@ import LotesListPage from '@features/estoque/LotesListPage'
 import NumerosSerieListPage from '@features/estoque/NumerosSerieListPage'
 import KitsPage from '@features/estoque/KitsPage'
 import CurvaAbcPage from '@features/estoque/CurvaAbcPage'
+import FichaMovimentacaoPage from '@features/estoque/FichaMovimentacaoPage'
 import UsuariosListPage from '@features/seguranca/UsuariosListPage'
 import UsuarioFormPage from '@features/seguranca/UsuarioFormPage'
 import PapeisListPage from '@features/seguranca/PapeisListPage'
@@ -53,6 +54,7 @@ import PedidosListPage from '@features/compras/PedidosListPage'
 import PedidoFormPage from '@features/compras/PedidoFormPage'
 import PedidoDetailPage from '@features/compras/PedidoDetailPage'
 import ConfiguracaoComprasPage from '@features/compras/ConfiguracaoComprasPage'
+import RelatorioPedidosCompraPage from '@features/compras/RelatorioPedidosCompraPage'
 import EstoqueValorPage from '@features/bi/EstoqueValorPage'
 import CurvaAbcIndicadorPage from '@features/bi/CurvaAbcIndicadorPage'
 import ComprasFornecedorPage from '@features/bi/ComprasFornecedorPage'
@@ -79,11 +81,13 @@ import CteDetailPage from '@features/fiscal/CteDetailPage'
 import NotasServicoListPage from '@features/fiscal/NotasServicoListPage'
 import NotaServicoDetailPage from '@features/fiscal/NotaServicoDetailPage'
 import ListasServicoMunicipalListPage from '@features/fiscal/ListasServicoMunicipalListPage'
+import NotasPeriodoPage from '@features/fiscal/NotasPeriodoPage'
 import OsAberturasListPage from '@features/os/OsAberturasListPage'
 import OsAberturaFormPage from '@features/os/OsAberturaFormPage'
 import OsAberturaDetailPage from '@features/os/OsAberturaDetailPage'
 import OsStatusListPage from '@features/os/OsStatusListPage'
 import OsEquipamentosListPage from '@features/os/OsEquipamentosListPage'
+import RelatorioOsPeriodoPage from '@features/os/RelatorioOsPeriodoPage'
 import OportunidadesKanbanPage from '@features/crm/OportunidadesKanbanPage'
 import OportunidadesListPage from '@features/crm/OportunidadesListPage'
 import OportunidadeFormPage from '@features/crm/OportunidadeFormPage'
@@ -111,6 +115,23 @@ import FluxoCaixaPage from '@features/financeiro/FluxoCaixaPage'
 import TitulosEmAbertoPage from '@features/financeiro/TitulosEmAbertoPage'
 import ConciliacaoBancariaPage from '@features/financeiro/ConciliacaoBancariaPage'
 import EdiBancarioPage from '@features/financeiro/EdiBancarioPage'
+import PlanoContasListPage from '@features/contabilidade/PlanoContasListPage'
+import CentrosCustoListPage from '@features/contabilidade/CentrosCustoListPage'
+import LancamentosListPage from '@features/contabilidade/LancamentosListPage'
+import LancamentoFormPage from '@features/contabilidade/LancamentoFormPage'
+import LancamentoDetailPage from '@features/contabilidade/LancamentoDetailPage'
+import BalancetePage from '@features/contabilidade/BalancetePage'
+import RazaoPage from '@features/contabilidade/RazaoPage'
+import LojasListPage from '@features/loja-virtual/LojasListPage'
+import CategoriasListPage from '@features/loja-virtual/CategoriasListPage'
+import AtributosCategoriaListPage from '@features/loja-virtual/AtributosCategoriaListPage'
+import ProdutosListPage2 from '@features/loja-virtual/ProdutosListPage'
+import ProdutoLojaFormPage from '@features/loja-virtual/ProdutoLojaFormPage'
+import PedidosListPage2 from '@features/loja-virtual/PedidosListPage'
+import PedidoLojaDetailPage from '@features/loja-virtual/PedidoDetailPage'
+import RegistrosSincronizacaoListPage from '@features/sincronizacao/RegistrosSincronizacaoListPage'
+import LotesSincronizacaoListPage from '@features/sincronizacao/LotesSincronizacaoListPage'
+import ClientesLojaListPage from '@features/sincronizacao/ClientesLojaListPage'
 import { MODULE_NAV } from '@shared/ui/NavConfig'
 import AppLayout from '@app/layout/AppLayout'
 import RequireAuth from './RequireAuth'
@@ -170,6 +191,21 @@ if (!crmNav) {
 const financeiroNav = MODULE_NAV.find((entry) => entry.key === 'financeiro')
 if (!financeiroNav) {
   throw new Error("NavConfig sem entrada 'financeiro' — AppRouter depende dela pra montar as rotas de Contas a Receber/Pagar.")
+}
+
+const contabilidadeNav = MODULE_NAV.find((entry) => entry.key === 'contabilidade')
+if (!contabilidadeNav) {
+  throw new Error("NavConfig sem entrada 'contabilidade' — AppRouter depende dela pra montar as rotas de Plano de Contas/Lançamentos.")
+}
+
+const sincronizacaoNav = MODULE_NAV.find((entry) => entry.key === 'sincronizacao')
+if (!sincronizacaoNav) {
+  throw new Error("NavConfig sem entrada 'sincronizacao' — AppRouter depende dela pra montar as rotas de Registros/Lotes/Clientes de Loja.")
+}
+
+const lojaVirtualNav = MODULE_NAV.find((entry) => entry.key === 'loja-virtual')
+if (!lojaVirtualNav) {
+  throw new Error("NavConfig sem entrada 'loja-virtual' — AppRouter depende dela pra montar as rotas de Lojas/Categorias/Produtos/Pedidos.")
 }
 
 const router = createBrowserRouter([
@@ -249,6 +285,7 @@ const router = createBrowserRouter([
           { path: 'lotes', element: <LotesListPage /> },
           { path: 'numeros-serie', element: <NumerosSerieListPage /> },
           { path: 'kits', element: <KitsPage /> },
+          { path: 'ficha-movimentacao', element: <FichaMovimentacaoPage /> },
           { path: 'curva-abc', element: <CurvaAbcPage /> },
           { path: 'configuracao', element: <ConfiguracaoEstoquePage /> },
         ],
@@ -308,6 +345,7 @@ const router = createBrowserRouter([
           { path: 'pedidos', element: <PedidosListPage /> },
           { path: 'pedidos/novo', element: <PedidoFormPage /> },
           { path: 'pedidos/:id', element: <PedidoDetailPage /> },
+          { path: 'relatorios', element: <RelatorioPedidosCompraPage /> },
           { path: 'configuracao', element: <ConfiguracaoComprasPage /> },
         ],
       },
@@ -377,6 +415,7 @@ const router = createBrowserRouter([
           { path: 'notas-servico', element: <NotasServicoListPage /> },
           { path: 'notas-servico/:id', element: <NotaServicoDetailPage /> },
           { path: 'listas-servico', element: <ListasServicoMunicipalListPage /> },
+          { path: 'notas-periodo', element: <NotasPeriodoPage /> },
         ],
       },
       {
@@ -393,6 +432,7 @@ const router = createBrowserRouter([
           { path: 'aberturas/:id', element: <OsAberturaDetailPage /> },
           { path: 'status', element: <OsStatusListPage /> },
           { path: 'equipamentos', element: <OsEquipamentosListPage /> },
+          { path: 'relatorios', element: <RelatorioOsPeriodoPage /> },
         ],
       },
       {
@@ -448,6 +488,57 @@ const router = createBrowserRouter([
           { path: 'titulos-em-aberto', element: <TitulosEmAbertoPage /> },
           { path: 'conciliacao-bancaria', element: <ConciliacaoBancariaPage /> },
           { path: 'edi-bancario', element: <EdiBancarioPage /> },
+        ],
+      },
+      {
+        path: contabilidadeNav.path.slice(1),
+        element: (
+          <RequireAuthority anyOf={contabilidadeNav.requiredAuthorities}>
+            <Outlet />
+          </RequireAuthority>
+        ),
+        children: [
+          { index: true, element: <Navigate to="plano-contas" replace /> },
+          { path: 'plano-contas', element: <PlanoContasListPage /> },
+          { path: 'centros-custo', element: <CentrosCustoListPage /> },
+          { path: 'lancamentos', element: <LancamentosListPage /> },
+          { path: 'lancamentos/novo', element: <LancamentoFormPage /> },
+          { path: 'lancamentos/:id', element: <LancamentoDetailPage /> },
+          { path: 'balancete', element: <BalancetePage /> },
+          { path: 'razao', element: <RazaoPage /> },
+        ],
+      },
+      {
+        path: lojaVirtualNav.path.slice(1),
+        element: (
+          <RequireAuthority anyOf={lojaVirtualNav.requiredAuthorities}>
+            <Outlet />
+          </RequireAuthority>
+        ),
+        children: [
+          { index: true, element: <Navigate to="lojas" replace /> },
+          { path: 'lojas', element: <LojasListPage /> },
+          { path: 'categorias', element: <CategoriasListPage /> },
+          { path: 'atributos', element: <AtributosCategoriaListPage /> },
+          { path: 'produtos', element: <ProdutosListPage2 /> },
+          { path: 'produtos/novo', element: <ProdutoLojaFormPage /> },
+          { path: 'produtos/:id', element: <ProdutoLojaFormPage /> },
+          { path: 'pedidos', element: <PedidosListPage2 /> },
+          { path: 'pedidos/:id', element: <PedidoLojaDetailPage /> },
+        ],
+      },
+      {
+        path: sincronizacaoNav.path.slice(1),
+        element: (
+          <RequireAuthority anyOf={sincronizacaoNav.requiredAuthorities}>
+            <Outlet />
+          </RequireAuthority>
+        ),
+        children: [
+          { index: true, element: <Navigate to="registros" replace /> },
+          { path: 'registros', element: <RegistrosSincronizacaoListPage /> },
+          { path: 'lotes', element: <LotesSincronizacaoListPage /> },
+          { path: 'clientes-loja', element: <ClientesLojaListPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

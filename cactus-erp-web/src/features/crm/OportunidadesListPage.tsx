@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Flex, Table, Tag, Typography } from 'antd'
+import { Button, Card, Flex, Select, Table, Tag, Typography } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
 import { ClienteResumoCell, VendedorResumoCell } from './ResumoCells'
+import { exportarFunilOportunidades } from './api'
 import { useOportunidades } from './queries'
 import { SITUACAO_OPORTUNIDADE_LABEL } from './types'
-import type { OportunidadeResponse } from './types'
+import type { OportunidadeResponse, SituacaoOportunidade } from './types'
 
 const { Title } = Typography
 const TAMANHO_PAGINA = 10
@@ -21,6 +23,7 @@ const COR_SITUACAO: Record<string, string> = {
 export default function OportunidadesListPage() {
   const navigate = useNavigate()
   const [pagina, setPagina] = useState(0)
+  const [situacaoRelatorio, setSituacaoRelatorio] = useState<SituacaoOportunidade | undefined>(undefined)
   const { data, isLoading, isPlaceholderData } = useOportunidades(pagina, TAMANHO_PAGINA)
 
   return (
@@ -35,6 +38,19 @@ export default function OportunidadesListPage() {
       </Flex>
 
       <Card>
+        <Flex gap={12} align="center" wrap="wrap" style={{ marginBottom: 16 }}>
+          <span>Relatório do funil:</span>
+          <Select
+            allowClear
+            style={{ width: 200 }}
+            placeholder="Abertas (padrão)"
+            value={situacaoRelatorio}
+            onChange={setSituacaoRelatorio}
+            options={Object.entries(SITUACAO_OPORTUNIDADE_LABEL).map(([value, label]) => ({ value, label }))}
+          />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarFunilOportunidades(situacaoRelatorio, formato)} />
+        </Flex>
+
         <Table<OportunidadeResponse>
           rowKey="id"
           loading={isLoading || isPlaceholderData}

@@ -14,15 +14,18 @@ import br.com.cactusdigital.erp.cadastro.specification.ClienteSpecifications;
 import br.com.cactusdigital.erp.common.domain.Situacao;
 import br.com.cactusdigital.erp.common.exception.BusinessException;
 import br.com.cactusdigital.erp.common.exception.NotFoundException;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
 
 @Service
 @RequiredArgsConstructor
@@ -48,9 +51,11 @@ class ClienteServiceImpl implements ClienteService {
         return pagina.map(clienteMapper::toResponse);
     }
 
-    /** Evita N+1 nas 3 coleções de {@code Pessoa} (enderecos/contatos/telefones) que
+    /**
+     * Evita N+1 nas 3 coleções de {@code Pessoa} (enderecos/contatos/telefones) que
      * {@link ClienteResponse} expõe — ver Javadoc de
-     * {@code ClienteRepository#hidratarEnderecos}. */
+     * {@code ClienteRepository#hidratarEnderecos}.
+     */
     private void hidratarColecoesDePessoa(Page<Cliente> pagina) {
         if (pagina.isEmpty()) {
             return;

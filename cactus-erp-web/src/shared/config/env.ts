@@ -27,4 +27,13 @@ export const env = {
   osApiUrl: required(import.meta.env.VITE_OS_API_URL, 'VITE_OS_API_URL'),
   crmApiUrl: required(import.meta.env.VITE_CRM_API_URL, 'VITE_CRM_API_URL'),
   financeiroApiUrl: required(import.meta.env.VITE_FINANCEIRO_API_URL, 'VITE_FINANCEIRO_API_URL'),
+  contabilidadeApiUrl: required(
+    import.meta.env.VITE_CONTABILIDADE_API_URL,
+    'VITE_CONTABILIDADE_API_URL',
+  ),
+  lojaApiUrl: required(import.meta.env.VITE_LOJA_API_URL, 'VITE_LOJA_API_URL'),
+  sincronizacaoApiUrl: required(
+    import.meta.env.VITE_SINCRONIZACAO_API_URL,
+    'VITE_SINCRONIZACAO_API_URL',
+  ),
 }

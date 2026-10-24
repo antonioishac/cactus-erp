@@ -11,6 +11,27 @@ Convenção: `[ ]` aberto, `[x]` feito (mantido riscado por um tempo pra rastro,
 removido quando não agregar mais valor manter). Datas são de quando o item foi
 identificado, não de quando foi resolvido.
 
+## 🔴 CRÍTICO — Reforma Tributária (IBS/CBS/Imposto Seletivo)
+
+Diferente de todo o resto deste arquivo, **este item não é um débito técnico
+nem uma melhoria — é obrigação legal já VENCIDA**: a Nota Técnica 2025.002
+tornou os campos de IBS/CBS obrigatórios em produção na NF-e/NFC-e desde
+03/ago/2026 pro Regime Normal (Simples Nacional/MEI entra em 04/jan/2027). O
+motor tributário atual (`cadastro-base-service`, Fase 1b) não modela nada
+disso — só cobre ICMS/IPI/PIS/COFINS/ISS no formato pré-reforma. Qualquer
+emissão fiscal real feita por este sistema a partir dessas datas, sem o
+subsistema IBS/CBS, está **fora de conformidade com a SEFAZ**. Mitigante
+atual: nenhuma emissão real foi feita ainda (bloqueio de certificado de
+homologação, ver seção Fiscal abaixo) — mas isso deixa de proteger o sistema
+no momento em que o certificado existir e a emissão real for liberada.
+Detalhamento completo (estrutura do Grupo `UB`, subgrupos `IBSUF`/`IBSMun`/
+`CBS`, decisão confirmada com o usuário de tratar como fase própria) na seção
+"Backend" abaixo e no root `CLAUDE.md`, ANÁLISE: MÓDULO CONTÁBIL E FISCAL.
+**Ação recomendada**: priorizar uma rodada de pesquisa dedicada (campo-a-campo
+de cada subgrupo, antes de qualquer código — não modelar tributo real "no
+chute") assim que a capacidade de trabalho permitir, independente da ordem dos
+outros itens deste backlog.
+
 ## Frontend (cactus-erp-web)
 
 ### Funcionais — valem revisitar
@@ -62,33 +83,47 @@ identificado, não de quando foi resolvido.
       "salve o cadastro primeiro" quando `entidadeId` ainda não existe, mesmo
       padrão das sub-abas de Empresa/OsAbertura. `tsc -b`/`oxlint`/`vitest`/
       `vite build` confirmados limpos.
-- [ ] **Financeiro: desconciliar item já conciliado sem botão na tela** — a
-      API (`useDesconciliarItem`) já existe e está pronta, `ConciliacaoBancariaPage`
-      só nunca ligou nenhum botão a ela (só concilia manual/automático/gera
-      ajuste). Pequeno, isolado — próxima vez que a tela de Conciliação
-      Bancária for revisitada. (2026-09-07, `cactus-erp-web/CLAUDE.md`,
-      Entrega 21)
-- [ ] **Financeiro: `AplicacoesFinanceirasListPage` sem filtro por conta
-      bancária** — as outras 3 listagens do módulo (Movimentos/Cheques
-      Emitidos/Cheques Recebidos) já têm um `Select` de "filtrar por conta",
-      só Aplicações Financeiras não — descoberto como ambiguidade real
-      durante o próprio teste ao vivo desta entrega (`.first()` no script de
-      teste resgatou a aplicação errada por engano, sem impacto no produto,
-      mas evidenciando que um usuário real teria a mesma confusão visual
-      sem esse filtro). (2026-09-07, `cactus-erp-web/CLAUDE.md`, Entrega 21)
-- [ ] **`sincronizacao-service` sem nenhuma tela no `cactus-erp-web`** — o
-      serviço (Fase 6, porta 8087 — outbox/RabbitMQ/DLQ/auditoria da sync
-      ERP↔PDV, provisionamento de client-por-loja) só é operável hoje via
-      Swagger/API direta; `SINCRONIZACAO_*` existe no catálogo real de
-      authorities (confirmado na auditoria de `NavConfig.tsx` de
-      2026-09-13) sem nenhuma entrada de menu. Candidato a módulo próprio
-      futuro (telas de: registros de sincronização/status/motivo de erro,
-      reprocessamento manual, gestão de clients-loja). (2026-09-13, achado
-      durante a auditoria de `NavConfig.tsx`)
-- [ ] **Segurança: fluxo de criação de usuário + papel** —
-      `PapeisEmpresaTab`/`AtribuirPapelEmpresaModal` não têm um "criar usuário
-      já com um papel" num passo só, hoje é sempre 2 passos. Aceitável, mas
-      vale reavaliar se virar atrito real no uso. (2026-09-02,
+- [x] ~~**Financeiro: desconciliar item já conciliado sem botão na tela**~~ —
+      **esclarecido em 2026-10-12, já estava feito**: `ConciliacaoBancariaPage`
+      já tem o botão "Desconciliar" por item, dentro da linha expandida de
+      cada importação (`ItensImportacaoExpandidos`, só nos itens já
+      `conciliado=true`, gate por `CAIXA_MOVIMENTAR`) — a entrada original do
+      backlog estava desatualizada, não reconferida depois de implementada.
+      (originalmente 2026-09-07, `cactus-erp-web/CLAUDE.md`, Entrega 21)
+- [x] ~~**Financeiro: `AplicacoesFinanceirasListPage` sem filtro por conta
+      bancária**~~ — **esclarecido em 2026-10-12, já estava feito**: a tela
+      já tem o `Select` "Todas as contas" no cabeçalho, igual às outras 3
+      listagens do módulo, alimentando `useAplicacoesFinanceiras(contaBancariaId, ...)`
+      — a entrada original do backlog estava desatualizada. (originalmente
+      2026-09-07, `cactus-erp-web/CLAUDE.md`, Entrega 21)
+- [x] ~~**`sincronizacao-service` sem nenhuma tela no `cactus-erp-web`**~~ —
+      **fechado em 2026-10-12**: módulo novo `features/sincronizacao/`
+      (porta 8087) — `RegistrosSincronizacaoListPage` (filtro status/loja,
+      botão "Reprocessar" só em registros `ERRO`, `SINCRONIZACAO_GERENCIAR`),
+      `LotesSincronizacaoListPage` (resumo aceito/rejeitado por lote),
+      `ClientesLojaListPage` (provisiona o client OAuth2 Client Credentials
+      por loja — endpoint vive no **`seguranca-service`**, não no
+      `sincronizacao-service`, confirmado por agente de exploração antes de
+      codar — `clientSecret` só aparece na resposta de criação, alerta
+      explícito na UI de que não será mostrado de novo, com botão copiar).
+      Novo item de menu "Sincronização PDV". Validado ao vivo (sem navegador
+      disponível — contrato de API via curl, `seguranca-service`+
+      `sincronizacao-service` reais, usuário de teste criado via SQL direto e
+      removido ao final): listagem de registros/lotes reais, filtro por
+      status, reprocessar um registro `ERRO` real virando `RECEBIDO`,
+      provisionar/listar client de loja, RBAC confirmado real (`OPERADOR` sem
+      `SINCRONIZACAO_GERENCIAR` — 403 real em reprocessar; sem
+      `SEGURANCA_GERENCIAR` — 403 real em provisionar client). (2026-09-13,
+      achado durante a auditoria de `NavConfig.tsx`; fechado 2026-10-12)
+- [x] ~~**Segurança: fluxo de criação de usuário + papel**~~ — **esclarecido
+      em 2026-10-12, já estava feito**: `UsuarioFormPage` já tem
+      `papelInicialId`/`empresaInicialId` (campos só na criação, fora de
+      `UsuarioRequest`, mostrados em `DadosGeraisUsuarioTab`) — ao criar, o
+      form chama `atribuirPapelEmpresa` numa chamada avulsa logo depois do
+      `POST /usuarios`, antes de navegar pro usuário recém-criado (falha
+      nessa chamada avulsa não impede a navegação — o papel pode ser
+      atribuído depois pela aba "Papéis por Empresa"). A entrada original do
+      backlog estava desatualizada. (originalmente 2026-09-02,
       `cactus-erp-web/CLAUDE.md` item 14)
 - [x] ~~Vendas — telas do frontend pendentes~~ — **fechado em 2026-09-06**
       (Entrega 14, `cactus-erp-web/CLAUDE.md`): Vendedores/Perfis de Comissão,
@@ -281,11 +316,13 @@ identificado, não de quando foi resolvido.
       mapeia pro código `tPag` da SEFAZ), regime tributário normal na NFC-e
       (só Simples Nacional/CSOSN hoje), notificação de mudança de situação do
       pedido/expiração de carrinho (e-mail/SMS), portal de acompanhamento pro
-      cliente final, admin frontend em dois níveis (plataforma Cactus vs cada
-      loja/lojista — nenhum construído), modo canal (sincronização de
-      catálogo com um `cadastro-base-service` de cliente que já tem o Cactus
-      ERP completo). (2026-09-04, root `CLAUDE.md`, Fase 13; atualizado
-      2026-09-12)
+      cliente final, admin self-service por lojista (login do próprio lojista
+      na própria conta — admin da PLATAFORMA, staff Cactus, já tem frontend
+      completo desde 2026-10-11/12, ver `cactus-erp-web/CLAUDE.md` Entrega 22:
+      Lojas/Categorias/Atributos/Produtos/Variantes/Pedidos), modo canal
+      (sincronização de catálogo com um `cadastro-base-service` de cliente que
+      já tem o Cactus ERP completo). (2026-09-04, root `CLAUDE.md`, Fase 13;
+      atualizado 2026-10-12)
 
 ### Cosméticos / baixa prioridade
 
@@ -381,8 +418,9 @@ identificado, não de quando foi resolvido.
       contra o ACBr Monitor real nesta sessão (mesma decisão de segurança das
       Fases 8/9/11 — certificado de produção configurado, sem homologação).
       (2026-09-13, root `CLAUDE.md`, ANÁLISE: MÓDULO CONTÁBIL E FISCAL)
-- [ ] **Reforma Tributária (IBS/CBS/Imposto Seletivo) — motor tributário
-      desatualizado, já é exigência legal VENCIDA, não mais risco futuro** —
+- [ ] 🔴 **CRÍTICO — Reforma Tributária (IBS/CBS/Imposto Seletivo) — motor
+      tributário desatualizado, já é exigência legal VENCIDA, não mais risco
+      futuro** — ver resumo no topo deste arquivo, seção "🔴 CRÍTICO". —
       achado crítico pesquisado em 2026-09-13: Nota Técnica 2025.002 tornou os
       campos de IBS/CBS obrigatórios em produção na NF-e/NFC-e desde
       03/ago/2026 pro Regime Normal (Simples Nacional/MEI entra em
@@ -672,11 +710,11 @@ identificado, não de quando foi resolvido.
       de qualquer campo `Enum` pra `.name()` String, reaproveitável por todo
       relatório futuro com campo enum (`BalanceteItemResponse.tipo`/
       `natureza`, `RazaoItemResponse.tipoPartida`). Frontend deste módulo
-      ainda não integrado — ver requisito confirmado abaixo. **`gestao-compras-
+      fechado em 2026-10-11/12 — ver nota consolidada abaixo. **`gestao-compras-
       service` feito no backend em 2026-10-10** (pedidos de compra por
       período, filtro opcional de fornecedor/situação, validado ao vivo e
       conferido visualmente — sem bug encontrado, mesmo padrão já maduro).
-      Frontend deste módulo também ainda não integrado. O usuário autorizou
+      Frontend deste módulo também fechado em 2026-10-11/12. O usuário autorizou
       seguir direto pro próximo módulo sem pausa pra revisão de layout desta
       vez ("manda ver", 2026-10-10) — a pausa de 2026-09-27 fica registrada
       como prática padrão, mas não é mais bloqueante por padrão: seguir
@@ -686,14 +724,14 @@ identificado, não de quando foi resolvido.
       Compras por Fornecedor —, validado ao vivo e conferido visualmente, com
       o fallback `#id` pra produto/depósito/fornecedor órfão herdado de graça
       do próprio DTO, que já denormaliza nome — único módulo do monorepo que
-      já fazia isso antes desta rodada). Frontend deste módulo também ainda
-      não integrado. **`controle-estoque-service` fechado por completo em
+      já fazia isso antes desta rodada). Frontend deste módulo também fechado
+      em 2026-10-11/12. **`controle-estoque-service` fechado por completo em
       2026-10-11** (saldo de estoque por depósito + ficha de movimentação por
       produto — os 2 relatórios que faltavam além da Curva ABC/piloto —,
       validado ao vivo e conferido visualmente, incl. um segundo achado
       técnico generalizado em `ReportEngine` pra campos `java.time.Instant`,
-      mesma técnica já usada pra `Enum`). Frontend deste módulo também ainda
-      não integrado. **`cadastro-base-service` fechado em 2026-10-11**
+      mesma técnica já usada pra `Enum`). Frontend deste módulo também fechado
+      em 2026-10-11/12. **`cadastro-base-service` fechado em 2026-10-11**
       (listagem cadastral de clientes/fornecedores/produtos, o relatório mais
       simples do lote — validado ao vivo e conferido visualmente; achado real
       corrigido ANTES de validar com volume: a 1ª versão pulava a hidratação
@@ -703,26 +741,41 @@ identificado, não de quando foi resolvido.
       em vez de evitar; corrigido reaproveitando as mesmas hidratações já
       usadas pelo `GET` paginado de cada recurso). Com isso, os 6 módulos
       originalmente escopados (financeiro/contabilidade/compras/BI/estoque/
-      cadastro-base) estão todos fechados. Frontend desses relatórios ainda
-      não integrado em nenhum dos 6 (exceto os 8 relatórios originais de
-      financeiro/estoque/vendas, já cobertos em 2026-10-01). Falta o desenho
-      ainda em aberto pra `gestao-documentos-service`/`os-service`/
-      `crm-service`/`fiscal-service`/`loja-virtual-service`.
-      **Requisito confirmado pelo usuário (2026-09-27): todo relatório
-      precisa ganhar integração com o frontend (`cactus-erp-web`), não só a
-      API** — botão de exportar/baixar PDF/Excel em cada tela relevante,
-      sempre que for possível. Isso não é mais um "fica pra depois do
-      backend" implícito — é parte do escopo de cada relatório entregue daqui
-      pra frente. Atendido para os 8 relatórios existentes em 2026-10-01
-      (componente padrão `shared/ui/ExportarRelatorioButtons`). Cada módulo
-      novo sai com backend + frontend juntos, não backend isolado esperando uma
-      "Entrega" de frontend à parte.
-      **PAUSADO a pedido do usuário (2026-09-27)**: antes de seguir pro
-      próximo módulo, o usuário quer validar por conta própria os layouts
-      dos relatórios já gerados. Desde 2026-10-01 dá pra baixar todos pelos
-      botões PDF/Excel das próprias telas. Não continuar o rollout pro
-      próximo módulo sem essa validação de layout confirmada.
-      (2026-09-27, root `CLAUDE.md`)
+      cadastro-base) estão todos fechados.
+      **Os 5 módulos restantes (desenho em aberto) fechados em 2026-10-11**:
+      `gestao-documentos-service` (documentos por pasta/tipo), `os-service`
+      (ordens de serviço por período — achado real: `OsAbertura` tem 3
+      coleções irmãs, mesmo padrão "hidratar por lado" já usado em
+      `OsAberturaService`), `crm-service` (funil de oportunidades — relatório
+      plano, diferente da visão Kanban já existente, que tem
+      `List<OportunidadeResponse>` aninhada; situação default `ABERTA`),
+      `fiscal-service` (notas emitidas por período — **o mais arquiteturalmente
+      distinto do lote**: unifica NF-e/NFC-e/NFS-e/CT-e, 4 tipos sem shape
+      comum, numa grade só via `SELECT new` com constructor expression JPQL
+      por repositório, validado ao vivo com um documento real de cada tipo
+      flipado via SQL pra `AUTORIZADA` — funcionou de primeira, nenhum bug),
+      `loja-virtual-service` (pedidos por período — achado real: `PedidoResponse`
+      não expunha `dataCriacao`, diferente de quase todo outro DTO do
+      monorepo, corrigido adicionando o campo ao record). Todos os 5
+      validados ao vivo com dado real, PDFs conferidos visualmente, RBAC
+      positivo/negativo confirmado. **Com isso, os 11 módulos de negócio do
+      monorepo têm export PDF/Excel no backend — escopo original da Fase 17
+      fechado por completo.** **Frontend dos 15 relatórios restantes fechado
+      em 2026-10-11/12** (a pedido do usuário, "Não deixe lacunas, implemente
+      tudo"): botões reaproveitando filtro já existente da tela em
+      Clientes/Fornecedores/Produtos (cadastro)/Saldos (estoque)/Documentos
+      (GED, ganhou 3 selects novos só pro relatório)/Oportunidades (CRM, ganhou
+      1 select novo); páginas novas sem view equivalente — Ficha de
+      Movimentação (estoque), Pedidos de Compra por Período (compras), OS por
+      Período, Notas por Período (fiscal, unifica NF-e/NFC-e/NFS-e/CT-e numa
+      grade só); os 3 indicadores do BI e Pedidos da Loja Virtual também
+      ganharam os botões. **Requisito confirmado pelo usuário (2026-09-27):
+      todo relatório precisa ganhar integração com o frontend
+      (`cactus-erp-web`), não só a API** — atendido por completo, nenhum dos
+      23 relatórios do monorepo (8 originais + 15 desta rodada) ficou sem
+      botão de exportar na tela. Validado sem navegador (indisponível nesta
+      sessão) via contrato de API real contra o backend local — ver
+      `cactus-erp-web/CLAUDE.md`, Entrega 22.
 - [ ] **PDF/Excel dos relatórios mostram `#id` em vez de nome** (vendedor,
       cliente, produto, fornecedor). A tela resolve os nomes via lookup
       cross-serviço; o arquivo exportado não, porque cada serviço só guarda a

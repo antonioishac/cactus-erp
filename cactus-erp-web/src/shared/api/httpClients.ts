@@ -82,3 +82,12 @@ export const crmApi = createApiClient(env.crmApiUrl)
 
 /** financeiro-service — Contas a Receber/Pagar, Caixa e Bancos, Tesouraria, Conciliação, EDI Bancário. */
 export const financeiroApi = createApiClient(env.financeiroApiUrl)
+
+/** contabilidade-service — Plano de Contas, Centro de Custo, Lançamento Contábil, Balancete/Razão, SPED Contábil. */
+export const contabilidadeApi = createApiClient(env.contabilidadeApiUrl)
+
+/** loja-virtual-service — admin da plataforma: Lojas, Categorias/Atributos, Produtos/Variantes, Pedidos. */
+export const lojaApi = createApiClient(env.lojaApiUrl)
+
+/** sincronizacao-service — camada anticorrupção ERP↔PDV: lotes/registros de sincronização, reprocessamento. */
+export const sincronizacaoApi = createApiClient(env.sincronizacaoApiUrl)

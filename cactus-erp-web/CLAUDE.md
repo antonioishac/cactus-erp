@@ -2539,3 +2539,183 @@ R$ 411,82; comissões R$ 21,09). Zero erro de console, fora o 404 já conhecido 
 `#999999` dos dados de teste (tratado, a tela mostra `#id`). Achado do meu script, não do produto:
 o nome acessível do botão é "file-pdf PDF", porque o Ant Design inclui o `aria-label` do ícone,
 então o seletor precisa casar por regex, não por nome exato.
+
+## Entrega 22 — Contabilidade (módulo novo) + Loja Virtual (admin, módulo novo) + exportação nos
+15 relatórios restantes (2026-10-11/12)
+
+Pedido do usuário: "Não deixe lacunas, implemente tudo, nosso ERP precisa ser completo" — depois de
+fechar a Fase 17 no backend (15 relatórios), dois gaps reais foram achados antes de codar:
+`contabilidade-service` e `loja-virtual-service` (admin) nunca tinham ganhado NENHUMA tela, apesar
+de ambos existirem no backend desde 2026-09-13/04. Confirmado com o usuário via `AskUserQuestion`
+("Botões + CRUD completo de contabilidade e loja-virtual") antes de codar os dois módulos novos
+inteiros, não só os botões de exportação pendentes.
+
+### Contabilidade — módulo novo (`features/contabilidade/`)
+
+`PlanoContasListPage`+modal (hierarquia via `contaPaiId`, mesmo padrão de `PastaModal` do GED —
+Select filtrado a só contas sintéticas como pai, excluindo a própria conta em edição),
+`CentrosCustoListPage`+modal (catálogo flat), `LancamentosListPage`(filtro por período)+
+`LancamentoFormPage`(`Form.List` de partidas, mesmo padrão de itens de `RequisicaoFormPage`,
+Select de conta restrito a analíticas)+`LancamentoDetailPage`(partidas read-only + ação Estornar
+via `MotivoAcaoModal`, cópia local do mesmo componente genérico já usado em `features/financeiro`),
+`BalancetePage`/`RazaoPage` (filtro de período, com botões de exportar). `LancamentoContabil` não
+tem `PUT` (imutável após lançado, só `POST .../estornar`) — mesmo padrão de Requisição/Pedido/
+Venda/Orçamento/NF-e/CT-e/OS, confirmado lendo os 5 controllers e DTOs reais antes de escrever
+`types.ts`.
+
+### Loja Virtual — admin da plataforma (`features/loja-virtual/`)
+
+Backend mapeado por completo via agente de exploração antes de codar (6 entidades, RBAC admin-only
+`LOJA_CONSULTAR`/`LOJA_GERENCIAR` — nenhum papel abaixo de GERENTE tem acesso, por ser administração
+da PLATAFORMA, não trabalho comercial do dia a dia). `LojasListPage`+modal (ações dedicadas
+Cancelar/Reativar Assinatura, nunca via `PUT` genérico), `CategoriasListPage`(hierarquia por loja)+
+modal, `AtributosCategoriaListPage`+modal (`Form.List` de opções inline SÓ na criação de atributo
+`LISTA` — o `PUT` do backend não altera opções, documentado assim no próprio Javadoc do
+`AtributoCategoriaController` — edição posterior de opção é ação dedicada via `GerenciarOpcoesModal`,
+que usa os endpoints `POST`/`DELETE .../opcoes`), `ProdutosListPage`+`ProdutoLojaFormPage` (Variantes
+como seção só em modo edição, mesmo critério de sub-recurso de `Empresa`/`VendedorFormPage`),
+`VarianteModal` (um campo por atributo `geraVariacao=true` da categoria do produto na criação —
+Select de opções pra atributo `LISTA`, Input pra `TEXTO`/`NUMERO` — campo `valoresAtributos`
+some na edição, é imutável depois de criada), `PedidosListPage`+`PedidoDetailPage` (máquina de
+estados completa via botões contextuais + `CancelarPedidoModal`). `SeletorLoja.tsx` (novo,
+`shared`-local ao módulo) é o único Select "trocar de tenant" do app — diferente de todo outro
+módulo (escopado pela empresa ativa da sessão), aqui o escopo é por `lojaId` escolhido na própria
+tela, porque este módulo administra lojas de CLIENTES diferentes, não a empresa do usuário logado.
+
+### Export PDF/Excel nos 15 relatórios restantes da Fase 17
+
+Botões adicionados reaproveitando o filtro já existente da tela, sem filtro novo, em:
+`ClientesListPage`/`FornecedoresListPage`/`ProdutosListPage` (cadastro), `SaldosListPage`
+(estoque), `DocumentosListPage` (GED, ganhou 3 selects novos — pasta/tipo/situação — só pro
+relatório, já que a tela não tinha esses filtros antes), `OportunidadesListPage` (CRM, ganhou 1
+select de situação só pro relatório). Páginas novas, uma por módulo sem view equivalente:
+`FichaMovimentacaoPage` (estoque), `RelatorioPedidosCompraPage` (compras), `RelatorioOsPeriodoPage`
+(OS), `NotasPeriodoPage` (fiscal, unifica NF-e/NFC-e/NFS-e/CT-e numa grade só — único relatório do
+lote cujo DTO (`NotaFiscalPeriodoItem`) não é nenhuma entidade existente, é a projeção JPQL
+`SELECT new` que o próprio backend expõe). Os 3 indicadores do BI (Valor de Estoque/Curva
+ABC/Compras por Fornecedor) e o relatório de Pedidos da Loja Virtual também ganharam os botões,
+reaproveitando o padrão de todo o resto.
+
+### Verificação ao vivo (sem navegador disponível nesta sessão — contrato de API via curl, como já
+documentado antes nesta mesma situação)
+
+`npx tsc -b`/`oxlint`/`vitest` (13/13)/`vite build` limpos antes de qualquer teste contra backend
+real. Sem ferramenta de navegador disponível nesta sessão (diferente de quase toda entrega
+anterior) — validação feita via contrato de API real contra os bancos de dados de produção local
+(Docker Desktop religado, `cactus-mysql`/`cactus-rabbitmq` já provisionados com os schemas
+`cactus_contabilidade`/`cactus_loja`), com usuários de teste reais criados via SQL direto
+(`qa.relatorios.teste` ADMIN, `qa.operador.teste` OPERADOR — removidos ao final).
+
+**Contabilidade**: lançamento de venda a vista criado (débito Caixa/crédito Receita de Vendas,
+contas reais seedadas) → partida desbalanceada rejeitada (422) → estornado → Balancete/Razão
+conferidos → SPED ECD conferido. **RBAC confirmado real**: OPERADOR (só `CONTABIL_CONSULTAR`) 200
+em consulta, 403 real em lançar/gerenciar (payload válido, não um 400 de validação mascarando o
+403).
+
+**Loja Virtual**: Loja criada+assinatura cancelada/reativada+subdomínio duplicado rejeitado (409);
+Categoria criada (hierarquia); Atributo criado com opções inline, opção adicionada/removida depois;
+Produto criado/editado; **motor de validação de variante exercitado nos 4 cenários de erro** (SKU
+duplicado 409, atributo obrigatório ausente 422, opção inválida pra LISTA 422, atributo de
+categoria divergente 422) + variante válida criada/editada/excluída, contra o produto seedado real
+("Vestido Floral Midi", Tamanho/Cor) — restaurado ao estado original ao final; os 4 pedidos
+seedados reais exercitados em toda a máquina de estados (em separação→enviado→cancelar-depois-de-
+enviado rejeitado 409→entregue; e cancelar antes do envio aceito). **RBAC confirmado real**:
+OPERADOR sem nenhuma `LOJA_*` — 403 real em toda rota do módulo (é admin-only de verdade, não só
+escondido do menu).
+
+### 2 BUGS REAIS encontrados e corrigidos no backend durante esta validação (nenhum em `mvn compile`)
+
+1. **`contabilidade-service` — Balancete/Razão/SPED ECD não voltavam a zero depois de um estorno**:
+   as 3 queries de agregação (`PartidaContabilRepository.somarDebitoCredito`/
+   `somarDebitoCreditoAntesDe`/`buscarPorContaEPeriodo`, + `LancamentoContabilRepository.
+   buscarLancadosNoPeriodoComPartidas`, usada pelo export SPED) filtravam `situacao = LANCADO`,
+   excluindo o lançamento ORIGINAL (que vira `ESTORNADO`) da soma — mas o lançamento de ESTORNO
+   (que é `LANCADO`) continuava entrando. Resultado: depois de lançar e estornar o mesmo par
+   dentro do período consultado, o saldo ficava com o efeito do estorno sozinho (não-zero), em vez
+   de o par se cancelar. Corrigido removendo o filtro de `situacao` das 4 queries — um lançamento
+   `ESTORNADO` continua sendo um movimento real que aconteceu (o original nunca é apagado, só
+   marcado, ver Javadoc de `LancamentoContabil`), e seu estorno é uma transação NOVA que o cancela,
+   não um "desfazer" que apaga história; incluir os dois sempre faz o par somar exatamente zero
+   quando ambos caem no período, e SPED ECD passou a reportar as DUAS linhas (antes reportava só o
+   estorno). Achado testando o próprio fluxo que a `LancamentoDetailPage` constrói (criar→estornar→
+   consultar relatório no mesmo período) — nunca teria aparecido num teste que só validasse criação
+   e estorno isoladamente, sem depois consultar o relatório do mesmo intervalo.
+2. **`loja-virtual-service` — `AtributoCategoriaService.criar()` quebrava com `Column 'ordem'
+   cannot be null`** sempre que `ordem` não era informado no request (campo opcional, documentado
+   assim) — mesma classe de bug já registrada 3 vezes neste monorepo (`ProdutoImagem.ordem`,
+   `FormaPagamento.tefTipoGp`, `ContabilidadeMapper` com `situacao`): o `mapper.toEntity(request)`
+   sobrescreve o `@Builder.Default = 0` da entidade com o `null` do request. O irmão deste serviço,
+   `CategoriaLojaService.criar()`, já tinha o guard certo (`if (request.ordem() == null)
+   categoria.setOrdem(0)`) — só não tinha sido replicado em `AtributoCategoriaService`. Corrigido
+   com o mesmo guard, no mesmo lugar. Achado testando exatamente o caminho que `AtributoCategoriaModal`
+   usa na criação (campo "Ordem de exibição" deixado em branco, como qualquer usuário real faria na
+   maioria das vezes).
+
+Ambos os bugs eram só no backend (`cactus-erp-sistema`) — nenhuma mudança necessária no código
+deste repositório por causa deles, só a descoberta aconteceu testando o contrato que o frontend
+desta entrega consome. Detalhamento completo dos 2 fixes: ver `CLAUDE.md` raiz.
+
+### Fora de escopo desta entrega, registrado
+
+Clique real em navegador (Playwright não disponível nesta sessão — validação feita por contrato de
+API, mesmo padrão de honestidade já usado antes nesta mesma situação, ex: "Fechamento de 7 itens
+pontuais do backlog"); admin self-service por lojista (login do próprio lojista na própria conta,
+ver "Admin — dois níveis" no `CLAUDE.md` raiz) — este módulo continua sendo só o admin da
+PLATAFORMA (staff Cactus).
+
+## Entrega 23 — Sincronização PDV (módulo novo) + 3 pendências do backlog eram falso alarme
+(2026-10-12)
+
+Pedido do usuário: "mata as pendencias do frontend". Checado o `BACKLOG.md` item a item antes de
+codar — **3 das 4 pendências listadas já estavam implementadas** (descoberto lendo o código real
+antes de assumir o backlog como fonte de verdade): desconciliar item na Conciliação Bancária
+(`ItensImportacaoExpandidos` já tinha o botão), filtro por conta bancária em Aplicações Financeiras
+(`Select` já existia no cabeçalho), e o fluxo "criar usuário + atribuir papel inicial"
+(`UsuarioFormPage` já tinha `papelInicialId`/`empresaInicialId`, chamando `atribuirPapelEmpresa` numa
+chamada avulsa após o `POST`). As 3 entradas do `BACKLOG.md` nunca tinham sido atualizadas depois da
+implementação — mesma classe de achado já registrada antes ("RegistrarMovimentoModal", "CRM:
+resolução de nome"). Corrigido só o `BACKLOG.md`, nenhuma mudança de código necessária nos 3.
+
+### `sincronizacao-service` — módulo novo (`features/sincronizacao/`)
+
+A única pendência real: o serviço (porta 8087, camada anticorrupção ERP↔PDV — outbox/RabbitMQ/DLQ/
+auditoria da Fase 6) nunca tinha ganhado tela, só operável via Swagger. Backend mapeado por completo
+via agente de exploração antes de codar — achado de arquitetura: o endpoint de provisionamento de
+client-por-loja (`/api/v1/sincronizacao/clientes-loja`) **vive no `seguranca-service`, não no
+sincronizacao-service**, apesar do path sugerir o contrário — confirmado por grep antes de assumir.
+
+- **`RegistrosSincronizacaoListPage`** — auditoria do canal PDV→ERP (filtro status/loja, paginado),
+  botão "Reprocessar" só em registros `ERRO` (`SINCRONIZACAO_GERENCIAR`) — outros status mostram o
+  botão desabilitado com tooltip, nunca escondido (mesmo critério de outras telas do app).
+- **`LotesSincronizacaoListPage`** — resumo aceito/rejeitado por lote (um `POST /sync/lotes` do PDV
+  pode conter N registros, cada um aceito ou rejeitado independentemente).
+- **`ClientesLojaListPage`** — provisiona o client OAuth2 Client Credentials "um por loja"
+  (`SEGURANCA_GERENCIAR`, chama o `segurancaApi`, não o `sincronizacaoApi` novo). `clientSecret` só
+  aparece na resposta de criação (nunca mais recuperável) — `Alert` de aviso explícito com botão
+  "Copiar secret", fica na tela até o usuário dispensar.
+- Novo item de menu "Sincronização PDV", 3 filhos. `sincronizacaoApi` novo em `httpClients.ts`
+  (porta 8087) — quarto client de API do app que não é escopado pela empresa ativa da sessão (como
+  Loja Virtual), e o único módulo cujas 3 telas batem em **2 origens HTTP diferentes**
+  (`sincronizacaoApi` + `segurancaApi`), decisão deliberada por ser a divisão real do backend.
+
+### Verificação ao vivo (sem navegador disponível nesta sessão — contrato de API via curl)
+
+`npx tsc -b`/`oxlint`/`vitest` (13/13)/`vite build` limpos. Backend religado (Docker Desktop e
+`cactus-mysql`/`cactus-rabbitmq` já estavam de pé desta vez — só `seguranca-service`+
+`sincronizacao-service` precisaram subir), usuários de teste (`qa.sync.admin` ADMIN, `qa.sync.operador`
+OPERADOR) criados via SQL direto e removidos ao final. Validado contra dado real pré-existente da
+Fase 6 (6 registros, 7 lotes, incl. 1 registro genuinamente em `ERRO`): filtro por status/loja
+conferido, reprocessar o registro `ERRO` real (virou `RECEBIDO`) → reprocessar um `PROCESSADO`
+rejeitado (409, `SINCRONIZACAO_REGISTRO_NAO_ESTA_EM_ERRO`); clientes-loja — listagem com os 2 clients
+reais pré-existentes, criação de um novo (empresa sem client ainda) devolvendo o secret, segunda
+tentativa pra empresa já provisionada rejeitada (409). **RBAC confirmado real** com usuário OPERADOR
+(`SINCRONIZACAO_CONSULTAR`+`SEGURANCA_CONSULTAR`, sem `SINCRONIZACAO_GERENCIAR`/`SEGURANCA_GERENCIAR`):
+200 em listar registros, 403 real em reprocessar e em toda rota de clientes-loja (a tela de Clientes
+de Loja exige uma authority mais alta que a de simples consulta do módulo).
+
+### Fora de escopo, registrado
+
+`POST /sync/lotes` (ingestão de lote — canal máquina-a-máquina do PDV, nunca uma tela de admin);
+telas de pull ERP→PDV (`/sync/produtos`, `/sync/clientes`, etc. — também máquina-a-máquina, sem
+UI de admin fazendo sentido); exclusão de client de loja (API não tem `DELETE`, mesmo critério de
+sempre — sem destino, fica como dado real).

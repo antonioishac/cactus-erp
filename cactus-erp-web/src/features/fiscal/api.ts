@@ -1,4 +1,5 @@
 import { cadastroBaseApi, fiscalApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   ClienteResumo,
@@ -9,6 +10,7 @@ import type {
   ListaServicoMunicipalResponse,
   NotaFiscalEletronicaResponse,
   NotaFiscalServicoResponse,
+  SituacaoNotaFiscal,
   TransportadoraResumo,
 } from './types'
 
@@ -124,4 +126,39 @@ export async function buscarClienteResumo(id: number): Promise<ClienteResumo> {
 export async function buscarTransportadoraResumo(id: number): Promise<TransportadoraResumo> {
   const { data } = await cadastroBaseApi.get<TransportadoraResumo>(`/api/v1/transportadoras/${id}`)
   return data
+}
+
+// --- Relatório: Notas Emitidas por Período (unificado NF-e/NFC-e/NFS-e/CT-e) ---
+
+export interface NotaFiscalPeriodoItem {
+  tipoDocumento: 'NFE' | 'NFCE' | 'NFSE' | 'CTE'
+  numero: string
+  serie?: string
+  dataEmissao?: string
+  situacao: SituacaoNotaFiscal
+  valorTotal: number
+}
+
+export async function buscarNotasPorPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  empresaId: number | undefined,
+): Promise<NotaFiscalPeriodoItem[]> {
+  const { data } = await fiscalApi.get<NotaFiscalPeriodoItem[]>('/api/v1/relatorios/notas-periodo', {
+    params: { dataInicio, dataFim, empresaId },
+  })
+  return data
+}
+
+export async function exportarNotasPorPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  empresaId: number | undefined,
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(fiscalApi, `/api/v1/relatorios/notas-periodo/${formato}`, `notas-periodo.${formato}`, {
+    dataInicio,
+    dataFim,
+    empresaId,
+  })
 }

@@ -28,14 +28,24 @@ public interface LancamentoContabilRepository extends JpaRepository<LancamentoCo
             """)
     List<LancamentoContabil> buscarComPartidas(@Param("ids") List<Long> ids);
 
-    /** Usado só pelo export SPED ECD ({@code SpedContabilExportService}) — precisa de TODOS os lançamentos do período numa lista só (não paginado), com as partidas já carregadas. */
+    /**
+     * Usado só pelo export SPED ECD ({@code SpedContabilExportService}) — precisa de TODOS
+     * os lançamentos do período numa lista só (não paginado), com as partidas já carregadas.
+     *
+     * <p>Deliberadamente SEM filtro por {@code situacao}: um lançamento {@code ESTORNADO}
+     * continua sendo um registro real do Livro Diário (o original nunca é apagado, só
+     * marcado — ver Javadoc de {@link LancamentoContabil}), e a legislação exige que TODO
+     * lançamento do período apareça no I200/I250, estorno incluso — excluir só o original
+     * (achado real, corrigido 2026-10-11 junto do mesmo bug em
+     * {@code PartidaContabilRepository}) deixaria o arquivo SPED reportando só a metade de
+     * um par que deveria somar zero.
+     */
     @Query("""
             SELECT DISTINCT l FROM LancamentoContabil l
             LEFT JOIN FETCH l.partidas p
             LEFT JOIN FETCH p.conta
             LEFT JOIN FETCH p.centroCusto
             WHERE l.empresaId = :empresaId
-              AND l.situacao = br.com.cactusdigital.erp.contabilidade.entity.SituacaoLancamentoContabil.LANCADO
               AND l.dataLancamento BETWEEN :dataInicio AND :dataFim
             ORDER BY l.dataLancamento ASC, l.id ASC
             """)

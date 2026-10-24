@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Card, Flex, Input, Select, Table, Typography } from 'antd'
 import { PlusOutlined, ShopOutlined, UserOutlined } from '@ant-design/icons'
 import SituacaoTag from '@shared/ui/SituacaoTag'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
 import { formatarDocumento } from '@shared/domain/pessoaUtils'
+import { exportarClientesCadastro } from './api'
 import { useClientes } from './queries'
 import type { ClienteResponse, ClientesFiltro } from './types'
 
@@ -61,6 +63,7 @@ export default function ClientesListPage() {
             ]}
             onChange={(valor) => atualizarFiltro({ situacao: valor })}
           />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarClientesCadastro(filtro, formato)} />
         </Flex>
 
         <Table<ClienteResponse>

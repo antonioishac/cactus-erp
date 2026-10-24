@@ -1,4 +1,5 @@
 import { cadastroBaseApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type { FornecedorRequest, FornecedorResponse, FornecedoresFiltro } from './types'
 
@@ -34,4 +35,10 @@ export async function atualizarFornecedor(
 ): Promise<FornecedorResponse> {
   const { data } = await cadastroBaseApi.put<FornecedorResponse>(`${BASE_URL}/${id}`, request)
   return data
+}
+
+export async function exportarFornecedoresCadastro(filtro: FornecedoresFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(cadastroBaseApi, `/api/v1/relatorios/fornecedores-cadastro/${formato}`, `fornecedores-cadastro.${formato}`, {
+    ...filtro,
+  })
 }

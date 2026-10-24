@@ -17,6 +17,7 @@ import {
   gerarNotaServicoDeOs,
   listarCtes,
   listarListasServico,
+  buscarNotasPorPeriodo,
   listarNotasFiscais,
   listarNotasServico,
   listarTodasListasServico,
@@ -211,5 +212,15 @@ export function useTransportadoraResumo(id: number | undefined) {
     enabled: id != null,
     staleTime: 5 * 60_000,
     retry: (failureCount, erro) => (erro as unknown as AppError).status !== 404 && failureCount < 1,
+  })
+}
+
+// --- Relatório: Notas Emitidas por Período ---
+
+export function useNotasPorPeriodo(dataInicio: string | undefined, dataFim: string | undefined, empresaId: number | undefined) {
+  return useQuery({
+    queryKey: ['notas-periodo', dataInicio, dataFim, empresaId],
+    queryFn: () => buscarNotasPorPeriodo(dataInicio as string, dataFim as string, empresaId),
+    enabled: !!dataInicio && !!dataFim,
   })
 }

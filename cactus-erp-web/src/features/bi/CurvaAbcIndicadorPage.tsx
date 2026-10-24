@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Card, DatePicker, Flex, Select, Table, Tag, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarCurvaAbc } from './api'
 import { useCurvaAbc, useDepositosAtivos } from './queries'
 import type { ClassificacaoAbc, CurvaAbcFiltro, CurvaAbcIndicadorResponse } from './types'
 
@@ -53,6 +55,7 @@ export default function CurvaAbcIndicadorPage() {
               setPagina(0)
             }}
           />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarCurvaAbc(filtro, formato)} />
         </Flex>
 
         <Table<CurvaAbcIndicadorResponse>

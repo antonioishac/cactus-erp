@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Card, DatePicker, Flex, Table, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarComprasFornecedor } from './api'
 import { useComprasFornecedor } from './queries'
 import type { ComprasFornecedorFiltro, ComprasFornecedorIndicadorResponse } from './types'
 
@@ -33,6 +35,7 @@ export default function ComprasFornecedorPage() {
               setPagina(0)
             }}
           />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarComprasFornecedor(filtro, formato)} />
         </Flex>
 
         <Table<ComprasFornecedorIndicadorResponse>

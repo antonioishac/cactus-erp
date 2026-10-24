@@ -1,5 +1,5 @@
 import { gedApi } from '@shared/api/httpClients'
-import { baixarArquivo } from '@shared/api/download'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   DocumentoRequest,
@@ -119,4 +119,18 @@ export async function baixarVersao(id: number, versaoId: number, nomeSugerido: s
 
 export async function excluirDocumento(id: number): Promise<void> {
   await gedApi.delete(`/api/v1/documentos/${id}`)
+}
+
+// --- Relatório: Documentos por Pasta/Tipo ---
+
+export interface DocumentosCadastroFiltro {
+  pastaId?: number
+  tipoDocumentoId?: number
+  situacao?: 'ATIVO' | 'INATIVO'
+}
+
+export async function exportarDocumentosCadastro(filtro: DocumentosCadastroFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(gedApi, `/api/v1/relatorios/documentos-cadastro/${formato}`, `documentos-cadastro.${formato}`, {
+    ...filtro,
+  })
 }

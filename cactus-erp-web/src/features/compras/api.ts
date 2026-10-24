@@ -1,4 +1,5 @@
 import { cadastroBaseApi, comprasApi, estoqueApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   ColaboradorResumo,
@@ -26,6 +27,7 @@ import type {
   RequisicaoCompraRequest,
   RequisicaoCompraResponse,
   RequisicoesFiltro,
+  SituacaoPedidoCompra,
 } from './types'
 
 // --- Requisição de Compra ---
@@ -257,4 +259,44 @@ export async function listarLotesParaSelecao(produtoId: number | undefined): Pro
     params: { produtoId, size: 50 },
   })
   return data.conteudo
+}
+
+// --- Relatório: Pedidos de Compra por Período ---
+
+export interface PedidoCompraRelatorioItem {
+  pedidoId: number
+  dataPedido: string
+  empresaId: number
+  fornecedorId: number
+  tipo: PedidoCompraRequest['tipo']
+  situacao: SituacaoPedidoCompra
+  quantidadeItens: number
+  valorTotal: number
+}
+
+export async function buscarPedidosCompraPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  fornecedorId: number | undefined,
+  situacao: SituacaoPedidoCompra | undefined,
+): Promise<PedidoCompraRelatorioItem[]> {
+  const { data } = await comprasApi.get<PedidoCompraRelatorioItem[]>('/api/v1/relatorios/pedidos-compra-periodo', {
+    params: { dataInicio, dataFim, fornecedorId, situacao },
+  })
+  return data
+}
+
+export async function exportarPedidosCompraPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  fornecedorId: number | undefined,
+  situacao: SituacaoPedidoCompra | undefined,
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(comprasApi, `/api/v1/relatorios/pedidos-compra-periodo/${formato}`, `pedidos-compra-periodo.${formato}`, {
+    dataInicio,
+    dataFim,
+    fornecedorId,
+    situacao,
+  })
 }

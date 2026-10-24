@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Flex, Input, InputNumber, Table, Tag, Tooltip, Typography } from 'antd'
+import { Button, Card, Flex, Input, InputNumber, Select, Table, Tag, Tooltip, Typography } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useAuth } from '@features/auth/useAuth'
 import { hasAuthority } from '@features/auth/authority'
 import SituacaoTag from '@shared/ui/SituacaoTag'
-import { useDocumentos } from './queries'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarDocumentosCadastro, type DocumentosCadastroFiltro } from './api'
+import { useDocumentos, useTodasPastas, useTodosTiposDocumento } from './queries'
 import type { DocumentoResponse, DocumentosFiltro } from './types'
 
 const { Title } = Typography
@@ -17,8 +19,11 @@ export default function DocumentosListPage() {
   const podeGerenciar = hasAuthority(authorities, 'GED_GERENCIAR')
   const [filtro, setFiltro] = useState<DocumentosFiltro>({})
   const [pagina, setPagina] = useState(0)
+  const [filtroRelatorio, setFiltroRelatorio] = useState<DocumentosCadastroFiltro>({})
 
   const { data, isLoading, isPlaceholderData } = useDocumentos(filtro, pagina, TAMANHO_PAGINA)
+  const { data: pastas } = useTodasPastas()
+  const { data: tipos } = useTodosTiposDocumento()
 
   return (
     <Flex vertical gap={16}>
@@ -52,6 +57,35 @@ export default function DocumentosListPage() {
               setPagina(0)
             }}
           />
+        </Flex>
+
+        <Flex gap={12} wrap="wrap" align="center" style={{ marginBottom: 16 }}>
+          <span>Relatório:</span>
+          <Select
+            allowClear
+            style={{ width: 200 }}
+            placeholder="Todas as pastas"
+            options={pastas?.map((p) => ({ value: p.id, label: p.nome }))}
+            onChange={(v: number | undefined) => setFiltroRelatorio((f) => ({ ...f, pastaId: v }))}
+          />
+          <Select
+            allowClear
+            style={{ width: 200 }}
+            placeholder="Todos os tipos"
+            options={tipos?.map((t) => ({ value: t.id, label: t.nome }))}
+            onChange={(v: number | undefined) => setFiltroRelatorio((f) => ({ ...f, tipoDocumentoId: v }))}
+          />
+          <Select
+            allowClear
+            style={{ width: 160 }}
+            placeholder="Todas as situações"
+            options={[
+              { value: 'ATIVO', label: 'Ativo' },
+              { value: 'INATIVO', label: 'Inativo' },
+            ]}
+            onChange={(v: 'ATIVO' | 'INATIVO' | undefined) => setFiltroRelatorio((f) => ({ ...f, situacao: v }))}
+          />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarDocumentosCadastro(filtroRelatorio, formato)} />
         </Flex>
 
         <Table<DocumentoResponse>

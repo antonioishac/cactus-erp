@@ -1,4 +1,5 @@
 import { cadastroBaseApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type { ClienteRequest, ClienteResponse, ClientesFiltro } from './types'
 
@@ -35,4 +36,10 @@ export async function atualizarCliente(
 ): Promise<ClienteResponse> {
   const { data } = await cadastroBaseApi.put<ClienteResponse>(`${BASE_URL}/${id}`, request)
   return data
+}
+
+export async function exportarClientesCadastro(filtro: ClientesFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(cadastroBaseApi, `/api/v1/relatorios/clientes-cadastro/${formato}`, `clientes-cadastro.${formato}`, {
+    ...filtro,
+  })
 }

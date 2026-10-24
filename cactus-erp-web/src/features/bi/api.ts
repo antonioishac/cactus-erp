@@ -1,4 +1,5 @@
 import { biApi, estoqueApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   ComprasFornecedorFiltro,
@@ -44,6 +45,18 @@ export async function listarComprasFornecedor(
     params: { anoMes: filtro.anoMes, page: pagina, size: tamanho },
   })
   return data
+}
+
+export async function exportarEstoqueValor(filtro: EstoqueValorFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(biApi, `/api/v1/indicadores/estoque-valor/${formato}`, `estoque-valor.${formato}`, { ...filtro })
+}
+
+export async function exportarCurvaAbc(filtro: CurvaAbcFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(biApi, `/api/v1/indicadores/curva-abc/${formato}`, `curva-abc-historico.${formato}`, { ...filtro })
+}
+
+export async function exportarComprasFornecedor(filtro: ComprasFornecedorFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(biApi, `/api/v1/indicadores/compras-fornecedor/${formato}`, `compras-fornecedor.${formato}`, { ...filtro })
 }
 
 // --- ETL ---

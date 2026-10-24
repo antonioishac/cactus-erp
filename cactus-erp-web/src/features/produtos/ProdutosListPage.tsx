@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Card, Flex, Input, Table, Typography } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import SituacaoTag from '@shared/ui/SituacaoTag'
+import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
+import { exportarProdutosCadastro } from './api'
 import { useProdutos } from './queries'
 import type { ProdutoResponse, ProdutosFiltro } from './types'
 
@@ -56,6 +58,7 @@ export default function ProdutosListPage() {
               setPagina(0)
             }}
           />
+          <ExportarRelatorioButtons onExportar={(formato) => exportarProdutosCadastro(filtro, formato)} />
         </Flex>
 
         <Table<ProdutoResponse>

@@ -1,4 +1,5 @@
 import { cadastroBaseApi, osApi } from '@shared/api/httpClients'
+import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   ClienteResumo,
@@ -169,4 +170,33 @@ export async function buscarProdutosParaSelecao(nome: string | undefined): Promi
     params: { nome, size: 20 },
   })
   return data.conteudo
+}
+
+// --- Relatório: Ordens de Serviço por Período ---
+
+export async function buscarOsPorPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  osStatusId: number | undefined,
+  empresaId: number | undefined,
+): Promise<OsAberturaResponse[]> {
+  const { data } = await osApi.get<OsAberturaResponse[]>('/api/v1/relatorios/os-periodo', {
+    params: { dataInicio, dataFim, osStatusId, empresaId },
+  })
+  return data
+}
+
+export async function exportarOsPorPeriodo(
+  dataInicio: string,
+  dataFim: string,
+  osStatusId: number | undefined,
+  empresaId: number | undefined,
+  formato: FormatoRelatorio,
+): Promise<void> {
+  await baixarArquivo(osApi, `/api/v1/relatorios/os-periodo/${formato}`, `os-periodo.${formato}`, {
+    dataInicio,
+    dataFim,
+    osStatusId,
+    empresaId,
+  })
 }
