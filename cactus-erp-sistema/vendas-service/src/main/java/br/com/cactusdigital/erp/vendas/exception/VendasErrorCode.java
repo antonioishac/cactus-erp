@@ -23,7 +23,12 @@ public enum VendasErrorCode implements ErrorCode {
                     + "use o fluxo de devolução (fora de escopo desta fase)", HttpStatus.CONFLICT),
     VENDEDOR_JA_CADASTRADO_PARA_COLABORADOR("Já existe um vendedor cadastrado para este colaborador", HttpStatus.CONFLICT),
     FALHA_INTEGRACAO_ESTOQUE("Falha ao registrar a saída de estoque no controle-estoque-service", HttpStatus.BAD_GATEWAY),
-    FALHA_INTEGRACAO_FINANCEIRO("Falha ao gerar contas a receber no financeiro-service", HttpStatus.BAD_GATEWAY);
+    FALHA_INTEGRACAO_FINANCEIRO("Falha ao gerar contas a receber no financeiro-service", HttpStatus.BAD_GATEWAY),
+    VENDA_PDV_PAGAMENTOS_DIVERGEM_DO_RECEBIDO("A soma dos pagamentos da venda do PDV não bate com o valor recebido", HttpStatus.UNPROCESSABLE_ENTITY),
+    VENDA_PDV_RECEBIDO_MENOS_TROCO_DIVERGE_DO_FINAL("Valor recebido menos troco não bate com o valor final da venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY),
+    VENDA_PDV_ITEM_NAO_ENCONTRADO("O item informado na devolução não existe na venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY),
+    VENDA_PDV_CANCELADA_NAO_ADMITE_DEVOLUCAO("Venda do PDV cancelada não admite devolução", HttpStatus.UNPROCESSABLE_ENTITY),
+    VENDA_PDV_DEVOLUCAO_ACIMA_DO_VENDIDO("A quantidade devolvida excede o que ainda resta do item na venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY);
 
     private final String mensagemPadrao;
     private final HttpStatus httpStatusPadrao;

@@ -42,6 +42,9 @@ public class ConfirmacaoListener {
             repository.findById(registroId).ifPresentOrElse(
                     registro -> {
                         registro.setStatus(StatusRegistroSincronizacao.PROCESSADO);
+                        // Um registro reprocessado com sucesso não pode continuar exibindo o motivo da
+                        // falha anterior como se ainda valesse (o histórico fica nos logs/tentativas).
+                        registro.setMotivoErro(null);
                         repository.save(registro);
                     },
                     () -> log.warn("Confirmação recebida pra registroId={} que não existe mais", registroId));

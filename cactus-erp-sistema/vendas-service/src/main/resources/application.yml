@@ -14,6 +14,16 @@ spring:
     username: ${DB_USER:cactus_vendas_app}
     password: ${DB_PASSWORD:cactus_vendas_local}
 
+  rabbitmq:
+    # Fase 6-B: vendas/devoluções do PDV chegam por aqui (ver config/RabbitConfig).
+    host: ${CACTUS_RABBITMQ_HOST:localhost}
+    port: ${CACTUS_RABBITMQ_PORT:5672}
+    username: ${CACTUS_RABBITMQ_USER:guest}
+    password: ${CACTUS_RABBITMQ_PASSWORD:guest}
+    virtual-host: ${CACTUS_RABBITMQ_VHOST:cactus}
+    listener:
+      simple:
+        default-requeue-rejected: false
   jpa:
     open-in-view: false
     hibernate:
@@ -60,6 +70,10 @@ spring:
             token-uri: ${CACTUS_SEGURANCA_TOKEN_URI:http://localhost:8082/oauth2/token}
 
 cactus:
+  vendas:
+    pdv:
+      # O PDV manda data/hora local da loja; o ERP guarda Instant.
+      fuso-horario: ${CACTUS_FUSO_HORARIO:America/Sao_Paulo}
   clients:
     controle-estoque-service:
       base-url: ${CACTUS_ESTOQUE_BASE_URL:http://localhost:8083}

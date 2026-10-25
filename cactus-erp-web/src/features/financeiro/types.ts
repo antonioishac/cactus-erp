@@ -400,6 +400,7 @@ export type OrigemMovimentoCaixa =
   | 'SUPRIMENTO_PDV'
   | 'ABERTURA_CAIXA_PDV'
   | 'CONFERENCIA_CAIXA_PDV'
+  | 'VENDA_PDV'
 export const ORIGEM_MOVIMENTO_CAIXA_LABEL: Record<OrigemMovimentoCaixa, string> = {
   BAIXA_CONTA_RECEBER: 'Baixa de conta a receber',
   BAIXA_CONTA_PAGAR: 'Baixa de conta a pagar',
@@ -416,6 +417,7 @@ export const ORIGEM_MOVIMENTO_CAIXA_LABEL: Record<OrigemMovimentoCaixa, string> 
   SUPRIMENTO_PDV: 'Suprimento (PDV)',
   ABERTURA_CAIXA_PDV: 'Abertura de caixa (PDV)',
   CONFERENCIA_CAIXA_PDV: 'Conferência de caixa (PDV)',
+  VENDA_PDV: 'Venda em dinheiro (PDV)',
 }
 
 /** Lançamento manual de ajuste (tarifa, IOF, correção) — só `ENTRADA`/`SAIDA` (transferência

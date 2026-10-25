@@ -391,14 +391,24 @@ outros itens deste backlog.
       fiado chegam ao `financeiro-service` (ver `FASE6_SINCRONIZACAO_PDV.md`,
       seção "12. Fase 6-B"). Decisões confirmadas com o usuário: uma conta
       `CAIXA_INTERNO` por terminal e conferência vira ajuste da diferença.
-      **Restam os itens 5, 6 e 7** (venda, total por forma de pagamento e
-      devolução), que dependem de decisões de modelagem em `vendas-service`.
+      **Itens 5, 6 e 7 também feitos (2026-10-24)** — `VendaPdv` própria,
+      pagamento fracionado e devolução (seção 13 do FASE6). Os 7 gaps estão
+      fechados. Pendências novas que sobraram:
+      - [ ] Recebíveis de cartão/PIX das vendas do PDV: hoje só registrados na
+            venda. Exige cadastro de adquirente, taxa e prazo de repasse.
+      - [ ] Relatórios de vendas e BI ainda só leem `VendaCabecalho` (B2B):
+            somar `VendaPdv`.
+      - [ ] Cancelamento de venda do PDV já sincronizada: precisa de um tipo de
+            registro próprio (reenviar o mesmo `idOrigem` é descartado pela
+            deduplicação).
       Pendências pequenas que sobraram:
-      - [ ] Motivo de `ERRO` vindo da DLQ é genérico ("esgotou tentativas"):
+      - [x] ~~Motivo de `ERRO` vindo da DLQ é genérico~~ — feito (2026-10-24): o `DlqListener` lê o header
+            `x-exception-message`. Texto original:
             o motivo real (ex: pagamento de fiado maior que a dívida) fica só no
             log do financeiro. Ler o header `x-exception-message` que o
             `RepublishMessageRecoverer` já grava e gravar no `motivoErro`.
-      - [ ] Erro de negócio determinístico (como o pagamento maior que a
+      - [x] ~~Erro de negócio determinístico passa pelas 5 tentativas~~ — feito (2026-10-24), estoque e
+            financeiro. Texto original: Erro de negócio determinístico (como o pagamento maior que a
             dívida) passa pelas 5 tentativas antes de ir pra DLQ, sem ganho
             nenhum. Não retentar `BusinessException`.
       **Próximo passo sugerido (original)**: atacar os itens 1-2 primeiro (baixo

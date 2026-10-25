@@ -2,6 +2,7 @@ package br.com.cactusdigital.erp.financeiro.service;
 
 import br.com.cactusdigital.erp.common.exception.BusinessException;
 import br.com.cactusdigital.erp.financeiro.dto.BaixaRequest;
+import br.com.cactusdigital.erp.financeiro.dto.VendaPdvDinheiroRequest;
 import br.com.cactusdigital.erp.financeiro.entity.ContaBancaria;
 import br.com.cactusdigital.erp.financeiro.entity.ContaReceber;
 import br.com.cactusdigital.erp.financeiro.entity.OrigemContaReceber;
@@ -34,9 +35,13 @@ import tools.jackson.databind.JsonNode;
  *   <li><b>Uma conta {@code CAIXA_INTERNO} por terminal</b> ({@code PDV_CAIXA}), criada no primeiro
  *   envio daquele terminal ({@link #contaDoTerminal}). Saldo por caixa bate com a conferência do
  *   operador, sem misturar terminais.</li>
- *   <li><b>Conferência vira ajuste da diferença</b>: usa o {@code VALOR_DIVERGENCIA} que o próprio PDV
- *   calculou (contado − esperado). Isso é coerente mesmo sem as vendas do PDV no ERP ainda (item 5 da
- *   Fase 6-B): o ajuste corrige o caixa pela diferença real apurada no balcão.</li>
+ *   <li><b>Conferência vira ajuste da diferença</b>: usa a divergência (contado − esperado) da forma
+ *   <b>DINHEIRO</b>, que o PDV grava em {@code PDV_CONFERENCIA_CAIXA_DETALHE}. <b>Nunca</b> o
+ *   {@code VALOR_DIVERGENCIA} do cabeçalho: ele soma todas as formas (cartão, PIX...), e uma diferença de
+ *   cartão não é sobra/falta de dinheiro na gaveta. Corrigido em 2026-10-24, depois de ler o
+ *   {@code ConferenciaCaixaService} do PDV (a 1ª versão usava o total). O "esperado" do dinheiro no PDV é
+ *   fundo + suprimentos + vendas em dinheiro − sangrias − troco: com {@code VendaPdv} lançando o dinheiro
+ *   líquido das vendas, o saldo do caixa no ERP passa a bater com a gaveta.</li>
  * </ul>
  *
  * <h3>Outras regras, deliberadas</h3>
@@ -95,7 +100,7 @@ public class FinanceiroPdvService {
     }
 
     private void conferencia(Long empresaId, JsonNode mensagem, Long registroId) {
-        BigDecimal divergencia = decimal(mensagem, "valorDivergencia");
+        BigDecimal divergencia = decimal(mensagem, "valorDivergenciaDinheiro");
         if (divergencia.signum() == 0) {
             return;
         }
@@ -163,10 +168,34 @@ public class FinanceiroPdvService {
      * do listener reprocessa e encontra a conta já criada.
      */
     ContaBancaria contaDoTerminal(Long empresaId, JsonNode mensagem) {
-        Long pdvCaixaId = mensagem.get("pdvCaixaId").asLong();
+        return contaDoTerminal(empresaId, mensagem.get("pdvCaixaId").asLong(), texto(mensagem, "pdvCaixaNome"));
+    }
+
+    /**
+     * Dinheiro líquido de uma venda do PDV (dinheiro recebido − troco) entrando no caixa do terminal —
+     * chamado pelo {@code vendas-service} ao registrar a {@code VendaPdv}, de forma síncrona e dentro da
+     * transação dele. Idempotente pela mesma tabela dos demais registros do PDV: se o vendas-service
+     * reprocessar a mensagem (falha no commit dele depois desta chamada), não lança de novo.
+     *
+     * @return {@code false} se já tinha sido lançado antes
+     */
+    @Transactional
+    public boolean registrarDinheiroVenda(VendaPdvDinheiroRequest request) {
+        if (processadoRepository.existsById(request.registroId())) {
+            return false;
+        }
+        if (request.valor().signum() > 0) {
+            Long contaId = contaDoTerminal(request.empresaId(), request.pdvCaixaId(), request.pdvCaixaNome()).getId();
+            movimentoService.registrar(contaId, TipoMovimentoCaixa.ENTRADA, OrigemMovimentoCaixa.VENDA_PDV, request.registroId(),
+                    request.valor(), request.dataVenda(), truncar("Venda PDV em dinheiro (líquido de troco) - " + request.descricao(), 250), null);
+        }
+        processadoRepository.save(new SincronizacaoPdvProcessado(request.registroId(), "VENDA", Instant.now()));
+        return true;
+    }
+
+    private ContaBancaria contaDoTerminal(Long empresaId, Long pdvCaixaId, String nomeTerminal) {
         return contaBancariaRepository.findByEmpresaIdAndPdvCaixaId(empresaId, pdvCaixaId)
                 .orElseGet(() -> {
-                    String nomeTerminal = texto(mensagem, "pdvCaixaNome");
                     return contaBancariaRepository.saveAndFlush(ContaBancaria.builder()
                             .empresaId(empresaId)
                             .tipo(TipoContaBancaria.CAIXA_INTERNO)

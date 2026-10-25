@@ -1,5 +1,9 @@
 package br.com.cactusdigital.erp.estoque.config;
 
+import br.com.cactusdigital.erp.common.exception.BusinessException;
+import br.com.cactusdigital.erp.common.exception.ConflictException;
+import br.com.cactusdigital.erp.common.exception.NotFoundException;
+import java.time.Duration;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -88,10 +92,30 @@ public class RabbitConfig {
     public StatelessRetryOperationsInterceptor estoqueMovimentoRetryInterceptor(RabbitTemplate rabbitTemplate) {
         RepublishMessageRecoverer recoverer = new RepublishMessageRecoverer(rabbitTemplate, DLX, ROUTING_KEY_ESTOQUE_MOVIMENTO_DLQ);
         return RetryInterceptorBuilder.stateless()
-                .maxRetries(5)
-                .backOffOptions(2000, 3.0, 30000)
+                .configureRetryPolicy(politica -> politica
+                        .maxRetries(5)
+                        .delay(Duration.ofSeconds(2))
+                        .multiplier(3.0)
+                        .maxDelay(Duration.ofSeconds(30))
+                        // Erro de regra de negócio é determinístico: repetir dá o mesmo resultado,
+                        // então vai direto pra DLQ (com o motivo no header x-exception-message).
+                        .predicate(erro -> !isErroDeNegocio(erro)))
                 .recoverer(recoverer)
                 .build();
+    }
+
+    /** Procura na cadeia de causas — o container embrulha a exceção do listener em
+     * {@code ListenerExecutionFailedException}, então a original nunca é a de fora. */
+    static boolean isErroDeNegocio(Throwable erro) {
+        for (Throwable atual = erro; atual != null; atual = atual.getCause()) {
+            if (atual instanceof BusinessException || atual instanceof ConflictException || atual instanceof NotFoundException) {
+                return true;
+            }
+            if (atual.getCause() == atual) {
+                break;
+            }
+        }
+        return false;
     }
 
     @Bean

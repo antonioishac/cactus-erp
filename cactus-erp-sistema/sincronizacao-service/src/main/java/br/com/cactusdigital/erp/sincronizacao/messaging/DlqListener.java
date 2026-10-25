@@ -6,6 +6,8 @@ import br.com.cactusdigital.erp.sincronizacao.repository.RegistroSincronizacaoRe
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.nio.charset.StandardCharsets;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +32,18 @@ public class DlqListener {
     private final RegistroSincronizacaoRepository repository;
     private final ObjectMapper objectMapper;
 
-    @RabbitListener(queues = {RabbitConfig.FILA_ESTOQUE_MOVIMENTO_DLQ, RabbitConfig.FILA_FINANCEIRO_PDV_DLQ})
+    @RabbitListener(queues = {RabbitConfig.FILA_ESTOQUE_MOVIMENTO_DLQ, RabbitConfig.FILA_FINANCEIRO_PDV_DLQ, RabbitConfig.FILA_VENDAS_PDV_DLQ})
     @Transactional
-    public void receber(String mensagemJson) {
+    public void receber(Message mensagem) {
+        String mensagemJson = new String(mensagem.getBody(), StandardCharsets.UTF_8);
+        String motivo = motivoErro(mensagem);
         try {
             JsonNode node = objectMapper.readTree(mensagemJson);
             Long registroId = node.get("registroId").asLong();
             repository.findById(registroId).ifPresentOrElse(
                     registro -> {
                         registro.setStatus(StatusRegistroSincronizacao.ERRO);
-                        registro.setMotivoErro("Esgotou tentativas de processamento no consumidor de domínio — ver DLQ do RabbitMQ");
+                        registro.setMotivoErro(motivo);
                         registro.setTentativas(registro.getTentativas() + 1);
                         repository.save(registro);
                     },
@@ -47,5 +51,19 @@ public class DlqListener {
         } catch (Exception ex) {
             log.error("Falha ao processar mensagem da DLQ final de sincronização: {}", mensagemJson, ex);
         }
+    }
+
+    /**
+     * Motivo real da falha, a partir do header {@code x-exception-message} que o
+     * {@code RepublishMessageRecoverer} grava ao mandar pra DLQ. Antes disto o motivo era sempre o
+     * texto genérico abaixo, e o motivo de verdade (ex: pagamento de fiado maior que a dívida) só
+     * existia no log do serviço consumidor.
+     */
+    private String motivoErro(Message mensagem) {
+        Object header = mensagem.getMessageProperties().getHeaders().get("x-exception-message");
+        String motivo = header != null && !header.toString().isBlank()
+                ? "Falha no consumidor de domínio: " + header
+                : "Esgotou tentativas de processamento no consumidor de domínio — ver DLQ do RabbitMQ";
+        return motivo.length() <= 500 ? motivo : motivo.substring(0, 500);
     }
 }

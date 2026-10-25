@@ -56,6 +56,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
+    <dependency>
+      <!-- Fase 6-B (itens 5-7): consome vendas/devoluções do PDV (VendaPdvListener). -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.mysql</groupId>

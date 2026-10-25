@@ -74,6 +74,7 @@ import RelatoriosVendasPage from '@features/vendas/RelatoriosVendasPage'
 import VendaFormPage from '@features/vendas/VendaFormPage'
 import VendaDetailPage from '@features/vendas/VendaDetailPage'
 import ComissoesListPage from '@features/vendas/ComissoesListPage'
+import VendasPdvListPage from '@features/vendas/VendasPdvListPage'
 import NotasFiscaisListPage from '@features/fiscal/NotasFiscaisListPage'
 import NotaFiscalDetailPage from '@features/fiscal/NotaFiscalDetailPage'
 import CtesListPage from '@features/fiscal/CtesListPage'
@@ -397,6 +398,7 @@ const router = createBrowserRouter([
           { path: 'notas-fiscais-tipos', element: <NotasFiscaisTiposPage /> },
           { path: 'relatorios', element: <RelatoriosVendasPage /> },
           { path: 'comissoes', element: <ComissoesListPage /> },
+          { path: 'vendas-pdv', element: <VendasPdvListPage /> },
         ],
       },
       {

@@ -32,5 +32,8 @@ public enum OrigemMovimentoCaixa {
     /** Fundo de troco com que o terminal abre o turno ({@code PDV_MOVIMENTO.VALOR_FUNDO_INICIAL}). */
     ABERTURA_CAIXA_PDV,
     /** Sobra (ENTRADA) ou falta (SAIDA) apurada na conferência de caixa do terminal. */
-    CONFERENCIA_CAIXA_PDV
+    CONFERENCIA_CAIXA_PDV,
+    /** Dinheiro líquido (recebido − troco) de uma venda do PDV — {@code origemId} = {@code RegistroSincronizacao.id}
+     * da venda. Lançado pelo vendas-service via {@code POST /pdv/vendas/dinheiro}. */
+    VENDA_PDV
 }

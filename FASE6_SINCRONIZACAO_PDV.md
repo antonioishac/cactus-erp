@@ -562,7 +562,7 @@ exatamente como desenhado.
 
 ### Decisões confirmadas com o usuário
 1. **Uma conta `CAIXA_INTERNO` por terminal** (`PDV_CAIXA`), não uma por loja. Criada automaticamente no primeiro envio daquele terminal (`conta_bancaria.pdv_caixa_id`, `UNIQUE(empresa_id, pdv_caixa_id)`), com nome "Caixa PDV <nome do terminal>". O saldo de cada caixa bate com a conferência do operador, sem misturar terminais.
-2. **Conferência vira ajuste da diferença**: usa o `VALOR_DIVERGENCIA` que o próprio PDV calcula (contado − esperado). Sobra vira `ENTRADA`, falta vira `SAIDA`, origem `CONFERENCIA_CAIXA_PDV`. Isso fica correto mesmo sem as vendas do PDV no ERP (item 5): o ajuste corrige o caixa pela diferença real apurada no balcão, não por um "esperado" que o ERP ainda não sabe calcular.
+2. **Conferência vira ajuste da diferença**: usa a divergência (contado − esperado) **da forma DINHEIRO**, que o PDV grava em `PDV_CONFERENCIA_CAIXA_DETALHE` (ver correção abaixo). Sobra vira `ENTRADA`, falta vira `SAIDA`, origem `CONFERENCIA_CAIXA_PDV`. Isso fica correto mesmo sem as vendas do PDV no ERP (item 5): o ajuste corrige o caixa pela diferença real apurada no balcão, não por um "esperado" que o ERP ainda não sabe calcular.
 
 ### Contrato de payload (o adaptador do PDV manda ids do ERP, mesmo critério do `ESTOQUE_MOVIMENTO`)
 Um lote por tipo (`LoteSincronizacaoRequest.tipoRegistro` é único). Datas em `yyyy-MM-dd`.
@@ -572,7 +572,7 @@ Um lote por tipo (`LoteSincronizacaoRequest.tipoRegistro` é único). Datas em `
 | `SANGRIA` | `PDV_SANGRIA` | `pdvCaixaId`, `valor`, `dataMovimento` | `pdvCaixaNome`, `observacao` | `SAIDA` / `SANGRIA_PDV` |
 | `SUPRIMENTO` | `PDV_SUPRIMENTO` | `pdvCaixaId`, `valor`, `dataMovimento` | `pdvCaixaNome`, `observacao` | `ENTRADA` / `SUPRIMENTO_PDV` |
 | `ABERTURA_CAIXA` | `PDV_MOVIMENTO` (abertura) | `pdvCaixaId`, `valorFundoInicial`, `dataAbertura` | `pdvCaixaNome` | `ENTRADA` / `ABERTURA_CAIXA_PDV` (fundo zero: só confirma) |
-| `CONFERENCIA_CAIXA` | `PDV_CONFERENCIA_CAIXA` | `pdvCaixaId`, `valorDivergencia` (com sinal), `dataConferencia` | `observacao` | ajuste da diferença (zero: só confirma) |
+| `CONFERENCIA_CAIXA` | `PDV_CONFERENCIA_CAIXA` + `_DETALHE` da forma dinheiro | `pdvCaixaId`, `valorDivergenciaDinheiro` (com sinal), `dataConferencia` | `observacao` | ajuste da diferença (zero: só confirma) |
 | `FIADO_LANCAMENTO` | `CLIENTE_FIADO_LANCAMENTO` | `clienteId`, `tipoLancamento` (C/P), `valor`, `dataLancamento`; `pdvCaixaId` quando P | `observacao` | C: título `FIADO_PDV`; P: baixas |
 
 `origemId` de todo movimento e título gerado = `RegistroSincronizacao.id`, então qualquer lançamento é rastreável até o envio do PDV.
@@ -596,9 +596,70 @@ Um lote por tipo (`LoteSincronizacaoRequest.tipoRegistro` é único). Datas em `
   - Um pagamento de R$ 1.000 contra R$ 30 de dívida esgotou as tentativas e foi pra `ERRO`, com o título intacto.
 - Tudo `PROCESSADO` na auditoria. No navegador: tipos novos com rótulo na tela de auditoria e contas de terminal listadas em Contas Bancárias, sem erro de console. Dados de teste removidos.
 
-### Pendências pequenas (no BACKLOG)
-O `motivoErro` vindo da DLQ é genérico (o motivo real fica só no log do financeiro). E um erro de negócio determinístico passa pelas 5 tentativas antes da DLQ.
+### Pendências pequenas — fechadas no mesmo dia
+- **Erro de negócio não é mais retentado** (consumidores de estoque e financeiro): a política de retry
+  (`configureRetryPolicy`, `predicate`) exclui `BusinessException`/`ConflictException`/`NotFoundException`,
+  procurando na cadeia de causas (o container embrulha a exceção em `ListenerExecutionFailedException`).
+  Repetir uma regra de negócio dá sempre o mesmo resultado; erro técnico continua com as 5 tentativas.
+- **`motivoErro` real**: o `DlqListener` lê o header `x-exception-message` que o `RepublishMessageRecoverer`
+  grava, em vez do texto genérico "esgotou tentativas".
+- Validado ao vivo: um pagamento de fiado maior que a dívida foi pra `ERRO` em 4s com o motivo "Pagamento de
+  fiado de R$ 500 do cliente #1 excede a dívida de fiado em aberto no ERP em R$ 500". Um valor não numérico
+  (erro técnico) continuou retentando e só foi pra `ERRO` depois de ~90s, também com o motivo real. Os
+  acentos estão corretos no banco (conferido por hex).
 
 ### Restam da reavaliação 2.3-bis
 Os itens 5 (venda do PDV), 6 (total por forma de pagamento) e 7 (devolução) dependem de decisões de modelagem em `vendas-service`.
+
+## 13. Fase 6-B — venda, pagamento fracionado e devolução do PDV (2026-10-24) ✅ itens 5-7 da reavaliação 2.3-bis
+
+Com isto, **os 7 gaps de envio PDV→ERP da reavaliação 2.3-bis estão fechados**.
+
+### Bug real corrigido na conferência (seção 12)
+O `VALOR_DIVERGENCIA` do cabeçalho de `PDV_CONFERENCIA_CAIXA` é a divergência **total, somando todas as formas de pagamento** (confirmado lendo o `ConferenciaCaixaService` do PDV). A 1ª versão lançava esse total como ajuste no caixa de DINHEIRO, então uma diferença de cartão virava sobra/falta de dinheiro na gaveta. Corrigido: o contrato passou a exigir `valorDivergenciaDinheiro` (a linha da forma dinheiro em `PDV_CONFERENCIA_CAIXA_DETALHE`). O campo foi renomeado de propósito: um payload no formato antigo é rejeitado na hora com mensagem clara, em vez de lançar o valor errado em silêncio.
+
+### Decisões
+- **Entidade própria `VendaPdv`** no `vendas-service` (decisão do usuário), não `VendaCabecalho`: a venda B2B exige vendedor cadastrado, condição de pagamento e tipo de nota; o balcão tem operador, terminal, pagamento fracionado e NFC-e/SAT já emitida pelo PDV. Agregado: `VendaPdv` → `VendaPdvItem` / `VendaPdvPagamento` (N formas por venda) / `VendaPdvDevolucao`. Só leitura no ERP: `GET /api/v1/vendas-pdv` (período + terminal) e `GET /api/v1/vendas-pdv/{id}`, `VENDAS_CONSULTAR`.
+- **Escopo escolhido por mim, a pedido do usuário ("como os grandes ERPs"), no padrão de ERP de varejo:**
+  - **Estoque: a venda NÃO baixa.** Confirmado no código do PDV: `EstoqueMovimentoService#registrarSaidaPorVenda` grava a saída (S) e `DevolucaoService` grava a reentrada (D), que chegam pelo `ESTOQUE_MOVIMENTO`. O ledger tem uma fonte só; baixar pelos dois caminhos contaria cada item duas vezes.
+  - **Caixa: só o dinheiro líquido** (pagamentos tPag `01` − troco) entra na conta do terminal, via `POST /api/v1/pdv/vendas/dinheiro` no financeiro (idempotente pela mesma tabela `sincronizacao_pdv_processado`, origem `VENDA_PDV`). É exatamente o que o PDV soma como "esperado" de dinheiro na conferência (fundo + suprimentos + vendas em dinheiro − sangrias − troco), então o saldo do terminal no ERP bate com a gaveta.
+  - **Cartão/PIX/outros**: ficam registrados nos pagamentos da venda (NSU, rede, crédito/débito), mas ainda **não viram título a receber da operadora**. Isso exige cadastro de adquirente, taxa e prazo de repasse, que não existe, e gerar prazo e taxa "no chute" seria pior que não gerar (no BACKLOG).
+  - **Fiado (tPag `05`)**: nada na venda, porque a dívida já chega pelo `FIADO_LANCAMENTO` tipo C.
+  - **Devolução**: só registra o fato contra o item (com o gerente autorizador obrigatório do PDV) e limita a quantidade ao que ainda resta do item. Não mexe em caixa: o próprio PDV não decide como o dinheiro volta (sangria, crédito em loja, estorno de cartão); se for em dinheiro, a saída já chega como `SANGRIA`.
+
+### Contrato de payload
+| `tipoRegistro` | Obrigatórios | Opcionais |
+|---|---|---|
+| `VENDA_PDV` | `pdvCaixaId`, `dataHoraVenda` (`yyyy-MM-ddTHH:mm:ss`, hora local da loja), `situacao` (F/C), `valorFinal`, `valorRecebido`, `itens[]` (`numeroItem`, `produtoId`, `quantidade`, `valorUnitario`, `valorTotal`); se F, `pagamentos[]` (`codigoPagamentoNfce` = tPag, `valor`) | `pdvCaixaNome`, `pdvOperadorId`, `clienteId`, `colaboradorId`, `nomeCliente`, `cpfCnpjCliente`, `origemVenda` (B/M/C/D/E), `valorTotalProdutos`, `valorDesconto`, `valorAcrescimo`, `valorTroco`, tributos, `tipoOperacaoFiscal`, `statusFiscal`, `chaveAcessoFiscal`, `protocoloAutorizacao`, `coo`, `ccf`; por item `gtin`, `cfop`, `cst`, alíquota/valores, `cancelado`; por pagamento `formaPagamentoId`, `descricao`, `nsu`, `rede`, `cartaoDebitoCredito`, `estornado` |
+| `DEVOLUCAO_PDV` | `vendaIdOrigem` (o `idOrigem` com que a venda foi enviada), `numeroItem`, `quantidadeDevolvida`, `valorDevolvido`, `pdvGerenteAutorizadorId`, `dataHoraDevolucao` | `motivo`, `pdvOperadorId` |
+
+Fila `vendas.pdv.q` (routing `vendas.pdv`, DLQ `vendas.pdv.q.dlq`). O outbox passou a mandar também o `idOrigem` na mensagem (para a devolução achar a venda). O fuso da loja é configurável: `cactus.vendas.pdv.fuso-horario`, default `America/Sao_Paulo`.
+
+### Consistência e robustez
+- Venda F só é gravada se a soma dos pagamentos não estornados bater com o recebido, e recebido − troco bater com o final (tolerância de 1 centavo). Inconsistente vai pra `ERRO` com o motivo, sem entrar torta no ERP.
+- **Achado no teste ao vivo, corrigido**: devolução que chega antes da sua venda (lotes fora de ordem) é erro técnico, então retenta. Mas com **um consumidor só**, o retry em memória segurava a thread, e a venda ficava presa na fila atrás da devolução que esperava por ela até esgotar as tentativas. Corrigido com **3 consumidores** na fila de vendas. No financeiro, ficou explicitamente **1 consumidor**: lá a ordem importa (um pagamento de fiado não pode passar na frente da compra).
+- **Achado secundário, corrigido**: um registro reprocessado com sucesso continuava exibindo o motivo do erro antigo. O `ConfirmacaoListener` agora limpa o `motivoErro` ao marcar `PROCESSADO`.
+- A chamada ao financeiro roda dentro da transação do vendas e também é idempotente: se ela passar e o commit do vendas falhar, o retry reaplica e o financeiro reconhece o registro. Falha de comunicação vira erro técnico (retentado), não `BusinessException` (que agora vai direto pra DLQ).
+
+### Validação ao vivo (RabbitMQ, MySQL e navegador reais)
+- Abertura do terminal com R$ 100.
+- Venda de R$ 50 paga com R$ 40 em dinheiro + R$ 20 no crédito, troco de R$ 10: o caixa foi para exatamente R$ 130 (dinheiro líquido R$ 30).
+- Venda em PIX e venda em débito não mexeram no caixa. A venda cancelada foi gravada sem dinheiro.
+- Venda inconsistente foi pra `ERRO` com "Pagamentos somam R$ 30, recebido R$ 50".
+- Rejeições estruturais: venda fechada sem pagamento, item sem produto, situação inválida.
+- Devoluções:
+  - 1 unidade aceita;
+  - 2 unidades com só 1 restando, item inexistente e venda cancelada foram pra `ERRO` com o motivo real;
+  - devolução enviada antes da venda entrou 3s depois da venda chegar (pós-correção);
+  - o reprocessamento manual de uma devolução que estava em `ERRO` funcionou.
+- Reentrega direta da venda no broker: não lançou dinheiro de novo.
+- Conferência: o campo antigo foi rejeitado; uma falta de R$ 2 no dinheiro levou o caixa a R$ 128.
+- Nenhum movimento de estoque gerado pelas vendas.
+- ENTREGADOR recebe 403 na consulta.
+- Tela "Vendas do PDV" (menu Vendas) conferida no navegador: lista, linha expandida com itens, pagamento fracionado e devoluções. Dados de teste removidos.
+
+### Fora de escopo, registrado no BACKLOG
+- Recebíveis de cartão/PIX (exige adquirente/taxa/prazo).
+- Somar `VendaPdv` nos relatórios de vendas e no BI (hoje só leem `VendaCabecalho`).
+- Cancelamento de uma venda já sincronizada (o PDV reenviaria o mesmo `idOrigem`, que a deduplicação descartaria — precisa de um tipo de registro de cancelamento próprio).
 

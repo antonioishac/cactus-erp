@@ -39,6 +39,11 @@ public class RabbitConfig {
     public static final String ROUTING_KEY_FINANCEIRO_PDV = "financeiro.pdv";
     public static final String ROUTING_KEY_FINANCEIRO_PDV_DLQ = "financeiro.pdv.dlq";
     public static final String FILA_FINANCEIRO_PDV_DLQ = "financeiro.pdv.q.dlq";
+
+    /** Venda/devolução do PDV (Fase 6-B, itens 5-7) — fila única no vendas-service. */
+    public static final String ROUTING_KEY_VENDAS_PDV = "vendas.pdv";
+    public static final String ROUTING_KEY_VENDAS_PDV_DLQ = "vendas.pdv.dlq";
+    public static final String FILA_VENDAS_PDV_DLQ = "vendas.pdv.q.dlq";
     public static final String FILA_CONFIRMACOES = "sincronizacao.confirmacoes.q";
 
     @Bean
@@ -71,6 +76,16 @@ public class RabbitConfig {
     @Bean
     public Binding financeiroPdvDlqBinding(Queue financeiroPdvDlq, TopicExchange sincronizacaoDlx) {
         return BindingBuilder.bind(financeiroPdvDlq).to(sincronizacaoDlx).with(ROUTING_KEY_FINANCEIRO_PDV_DLQ);
+    }
+
+    @Bean
+    public Queue vendasPdvDlq() {
+        return QueueBuilder.durable(FILA_VENDAS_PDV_DLQ).build();
+    }
+
+    @Bean
+    public Binding vendasPdvDlqBinding(Queue vendasPdvDlq, TopicExchange sincronizacaoDlx) {
+        return BindingBuilder.bind(vendasPdvDlq).to(sincronizacaoDlx).with(ROUTING_KEY_VENDAS_PDV_DLQ);
     }
 
     @Bean

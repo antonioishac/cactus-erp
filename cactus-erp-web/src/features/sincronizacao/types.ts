@@ -7,7 +7,7 @@ export const STATUS_REGISTRO_LABEL: Record<StatusRegistroSincronizacao, string> 
   ERRO: 'Erro (esgotou tentativas)',
 }
 
-/** `ESTOQUE_MOVIMENTO` vai pro estoque; os 5 de caixa/fiado (Fase 6-B) vão pro financeiro. */
+/** `ESTOQUE_MOVIMENTO` vai pro estoque; os 5 de caixa/fiado vão pro financeiro; venda/devolução vão pro vendas (Fase 6-B). */
 export type TipoRegistroSincronizacao =
   | 'ESTOQUE_MOVIMENTO'
   | 'SANGRIA'
@@ -15,6 +15,8 @@ export type TipoRegistroSincronizacao =
   | 'ABERTURA_CAIXA'
   | 'CONFERENCIA_CAIXA'
   | 'FIADO_LANCAMENTO'
+  | 'VENDA_PDV'
+  | 'DEVOLUCAO_PDV'
 export const TIPO_REGISTRO_LABEL: Record<TipoRegistroSincronizacao, string> = {
   ESTOQUE_MOVIMENTO: 'Movimento de estoque',
   SANGRIA: 'Sangria',
@@ -22,6 +24,8 @@ export const TIPO_REGISTRO_LABEL: Record<TipoRegistroSincronizacao, string> = {
   ABERTURA_CAIXA: 'Abertura de caixa',
   CONFERENCIA_CAIXA: 'Conferência de caixa',
   FIADO_LANCAMENTO: 'Fiado',
+  VENDA_PDV: 'Venda',
+  DEVOLUCAO_PDV: 'Devolução',
 }
 
 export interface RegistroSincronizacaoResponse {

@@ -251,6 +251,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         requiredAuthorities: ['VENDAS_CONSULTAR'],
       },
       {
+        key: 'vendas-pdv',
+        label: 'Vendas do PDV',
+        path: '/vendas/vendas-pdv',
+        requiredAuthorities: ['VENDAS_CONSULTAR'],
+      },
+      {
         key: 'vendas-vendedores',
         label: 'Vendedores',
         path: '/vendas/vendedores',

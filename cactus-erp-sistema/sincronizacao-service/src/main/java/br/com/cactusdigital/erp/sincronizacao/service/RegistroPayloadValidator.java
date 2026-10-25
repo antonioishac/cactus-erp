@@ -32,8 +32,13 @@ public class RegistroPayloadValidator {
             case ESTOQUE_MOVIMENTO -> validarEstoqueMovimento(payload);
             case SANGRIA, SUPRIMENTO -> exigirTodos(payload, "pdvCaixaId", "valor", "dataMovimento");
             case ABERTURA_CAIXA -> exigirTodos(payload, "pdvCaixaId", "valorFundoInicial", "dataAbertura");
-            case CONFERENCIA_CAIXA -> exigirTodos(payload, "pdvCaixaId", "valorDivergencia", "dataConferencia");
+            // Só a divergência da forma DINHEIRO (PDV_CONFERENCIA_CAIXA_DETALHE da forma dinheiro), nunca o
+            // VALOR_DIVERGENCIA do cabeçalho, que soma todas as formas (cartão, PIX...) — ver FinanceiroPdvService.
+            case CONFERENCIA_CAIXA -> exigirTodos(payload, "pdvCaixaId", "valorDivergenciaDinheiro", "dataConferencia");
             case FIADO_LANCAMENTO -> validarFiado(payload);
+            case VENDA_PDV -> validarVenda(payload);
+            case DEVOLUCAO_PDV -> exigirTodos(payload, "vendaIdOrigem", "numeroItem", "quantidadeDevolvida",
+                    "valorDevolvido", "pdvGerenteAutorizadorId", "dataHoraDevolucao");
         };
     }
 
@@ -62,6 +67,45 @@ public class RegistroPayloadValidator {
         }
         if ("P".equals(tipo) && (payload.get("pdvCaixaId") == null || payload.get("pdvCaixaId").isNull())) {
             return Optional.of("Pagamento de fiado (tipoLancamento=P) exige pdvCaixaId — o caixa onde o dinheiro foi recebido");
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Forma mínima da venda: cabeçalho, ao menos 1 item com os campos que o consumidor exige, e — se
+     * FECHADA — ao menos 1 pagamento com tPag. A consistência dos valores (pagamentos × recebido × troco)
+     * é regra de negócio, fica no vendas-service.
+     */
+    private Optional<String> validarVenda(JsonNode payload) {
+        Optional<String> ausentes = exigirTodos(payload, "pdvCaixaId", "dataHoraVenda", "situacao", "valorFinal", "valorRecebido", "itens");
+        if (ausentes.isPresent()) {
+            return ausentes;
+        }
+        String situacao = payload.get("situacao").asString();
+        if (!"F".equals(situacao) && !"C".equals(situacao)) {
+            return Optional.of("situacao deve ser F (fechada) ou C (cancelada), recebido: " + situacao);
+        }
+        JsonNode itens = payload.get("itens");
+        if (!itens.isArray() || itens.isEmpty()) {
+            return Optional.of("A venda precisa de ao menos 1 item em 'itens'");
+        }
+        for (JsonNode item : itens) {
+            Optional<String> erroItem = exigirTodos(item, "numeroItem", "produtoId", "quantidade", "valorUnitario", "valorTotal");
+            if (erroItem.isPresent()) {
+                return Optional.of("Item da venda: " + erroItem.get());
+            }
+        }
+        JsonNode pagamentos = payload.get("pagamentos");
+        if ("F".equals(situacao)) {
+            if (pagamentos == null || !pagamentos.isArray() || pagamentos.isEmpty()) {
+                return Optional.of("Venda fechada precisa de ao menos 1 pagamento em 'pagamentos'");
+            }
+            for (JsonNode pagamento : pagamentos) {
+                Optional<String> erroPagamento = exigirTodos(pagamento, "codigoPagamentoNfce", "valor");
+                if (erroPagamento.isPresent()) {
+                    return Optional.of("Pagamento da venda: " + erroPagamento.get());
+                }
+            }
         }
         return Optional.empty();
     }

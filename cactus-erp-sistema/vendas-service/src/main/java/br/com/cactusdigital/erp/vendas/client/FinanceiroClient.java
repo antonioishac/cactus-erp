@@ -30,6 +30,28 @@ public class FinanceiroClient {
 
     private final RestClient financeiroRestClient;
 
+    /**
+     * Lança o dinheiro líquido de uma {@code VendaPdv} no caixa do terminal ({@code POST /pdv/vendas/dinheiro},
+     * idempotente do lado do financeiro). Chamado de DENTRO do consumidor da fila, por isso a falha de
+     * comunicação vira {@link IllegalStateException} e não {@link BusinessException}: o retry da fila só
+     * não retenta erro de negócio, e uma queda momentânea do financeiro precisa ser retentada, não ir direto
+     * pra DLQ. Um 4xx de volta (requisição rejeitada) é determinístico e vira {@link BusinessException}.
+     */
+    public void registrarDinheiroVendaPdv(VendaPdvDinheiroClientRequest request) {
+        try {
+            financeiroRestClient.post()
+                    .uri("/api/v1/pdv/vendas/dinheiro")
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (org.springframework.web.client.HttpClientErrorException ex) {
+            throw new BusinessException(VendasErrorCode.FALHA_INTEGRACAO_FINANCEIRO,
+                    "Financeiro rejeitou o dinheiro da venda do PDV (registro #" + request.registroId() + "): " + ex.getMessage());
+        } catch (RestClientException ex) {
+            throw new IllegalStateException("Falha de comunicação ao lançar o dinheiro da venda do PDV no financeiro-service: " + ex.getMessage(), ex);
+        }
+    }
+
     public void gerarContasReceber(GerarContasReceberClientRequest request) {
         try {
             financeiroRestClient.post()

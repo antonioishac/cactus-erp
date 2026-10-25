@@ -2768,3 +2768,7 @@ Screenshots conferidos. Zero erro de console depois do fix acima. `tsc -b`, `oxl
 
 Sem tela nova: os 5 tipos de registro novos (`SANGRIA`/`SUPRIMENTO`/`ABERTURA_CAIXA`/`CONFERENCIA_CAIXA`/`FIADO_LANCAMENTO`, ver `FASE6_SINCRONIZACAO_PDV.md` seção 12) entraram em `TipoRegistroSincronizacao` com `TIPO_REGISTRO_LABEL`, usado nas colunas "Tipo" de Registros e Lotes da Sincronização PDV. No financeiro, as 4 origens de movimento `*_PDV` e a origem de título `FIADO_PDV` ganharam rótulo, e `ContaBancariaResponse.pdvCaixaId` (só nas contas de terminal criadas automaticamente) entrou no tipo. Conferido no navegador com dado real do teste: a auditoria mostra "Sangria", "Fiado" etc., e as contas "Caixa PDV ..." aparecem com os saldos certos, sem erro de console.
 
+## Vendas do PDV — tela de consulta (2026-10-24)
+
+`features/vendas/VendasPdvListPage.tsx` (rota `/vendas/vendas-pdv`, menu Vendas, `VENDAS_CONSULTAR`), com tipos/API/hook em `vendasPdv.ts` (separados da venda B2B de propósito, mesmo motivo do backend). Lista por período e terminal; a linha expandida mostra itens (com quantidade devolvida), pagamento fracionado (rótulo pelo `tPag` oficial, `TPAG_LABEL`, com NSU/rede) e devoluções (quem autorizou). Só leitura, porque a venda nasce no PDV. Rótulos novos: `VENDA_PDV`/`DEVOLUCAO_PDV` na auditoria de sincronização, origem `VENDA_PDV` nos movimentos de caixa. Conferido no navegador com as vendas do teste ao vivo; o único 404 de console é o produto de teste `#2`, inexistente no cadastro (fallback `#id`, comportamento já conhecido).
+
