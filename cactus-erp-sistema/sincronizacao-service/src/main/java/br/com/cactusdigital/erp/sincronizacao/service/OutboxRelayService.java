@@ -48,6 +48,12 @@ public class OutboxRelayService {
             String routingKey = routingKeyPara(registro.getTipoRegistro());
             ObjectNode mensagem = (ObjectNode) objectMapper.readTree(registro.getPayload());
             mensagem.put("registroId", registro.getId());
+            if (registro.getTipoRegistro().isFinanceiro()) {
+                // Uma fila só pros 5 tipos de caixa/fiado: o consumidor despacha pelo tipo, e
+                // precisa da loja (= empresaId no ERP) pra achar/criar a conta do terminal.
+                mensagem.put("tipoRegistro", registro.getTipoRegistro().name());
+                mensagem.put("lojaId", registro.getLojaId());
+            }
             rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, routingKey, mensagem.toString());
 
             registro.setStatus(StatusRegistroSincronizacao.PUBLICADO);
@@ -63,6 +69,7 @@ public class OutboxRelayService {
     private String routingKeyPara(TipoRegistroSincronizacao tipo) {
         return switch (tipo) {
             case ESTOQUE_MOVIMENTO -> RabbitConfig.ROUTING_KEY_ESTOQUE_MOVIMENTO;
+            case SANGRIA, SUPRIMENTO, ABERTURA_CAIXA, CONFERENCIA_CAIXA, FIADO_LANCAMENTO -> RabbitConfig.ROUTING_KEY_FINANCEIRO_PDV;
         };
     }
 }

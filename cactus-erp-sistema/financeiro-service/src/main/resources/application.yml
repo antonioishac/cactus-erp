@@ -14,6 +14,17 @@ spring:
     username: ${DB_USER:cactus_financeiro_app}
     password: ${DB_PASSWORD:cactus_financeiro_local}
 
+  rabbitmq:
+    # Fase 6-B: caixa/fiado do PDV chegam por aqui (ver config/RabbitConfig). Mesmo broker e
+    # vhost do sincronizacao-service/controle-estoque-service.
+    host: ${CACTUS_RABBITMQ_HOST:localhost}
+    port: ${CACTUS_RABBITMQ_PORT:5672}
+    username: ${CACTUS_RABBITMQ_USER:guest}
+    password: ${CACTUS_RABBITMQ_PASSWORD:guest}
+    virtual-host: ${CACTUS_RABBITMQ_VHOST:cactus}
+    listener:
+      simple:
+        default-requeue-rejected: false
   jpa:
     open-in-view: false
     hibernate:
@@ -44,3 +55,9 @@ springdoc:
 logging:
   level:
     br.com.cactusdigital.erp: INFO
+
+cactus:
+  financeiro:
+    pdv:
+      # O PDV não tem vencimento de fiado: o título nasce vencendo N dias depois da compra.
+      fiado-prazo-vencimento-dias: ${CACTUS_FIADO_PRAZO_DIAS:30}

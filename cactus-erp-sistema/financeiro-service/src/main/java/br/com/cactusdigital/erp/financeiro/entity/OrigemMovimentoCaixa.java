@@ -24,5 +24,13 @@ public enum OrigemMovimentoCaixa {
     /** Gerado a partir de uma linha de extrato bancário sem lançamento interno
      * correspondente (tarifa cobrada pelo banco sem aviso prévio, etc) — {@code origemId}
      * = {@code ExtratoBancarioItem.id}. Ver {@code ConciliacaoBancariaService#gerarAjuste}. */
-    CONCILIACAO
+    CONCILIACAO,
+    /** Fase 6-B (PDV → ERP): {@code origemId} = {@code RegistroSincronizacao.id} no sincronizacao-service
+     * (a chave de idempotência do envio). Sempre na conta {@code CAIXA_INTERNO} do terminal. */
+    SANGRIA_PDV,
+    SUPRIMENTO_PDV,
+    /** Fundo de troco com que o terminal abre o turno ({@code PDV_MOVIMENTO.VALOR_FUNDO_INICIAL}). */
+    ABERTURA_CAIXA_PDV,
+    /** Sobra (ENTRADA) ou falta (SAIDA) apurada na conferência de caixa do terminal. */
+    CONFERENCIA_CAIXA_PDV
 }

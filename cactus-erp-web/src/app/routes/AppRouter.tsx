@@ -78,6 +78,8 @@ import NotasFiscaisListPage from '@features/fiscal/NotasFiscaisListPage'
 import NotaFiscalDetailPage from '@features/fiscal/NotaFiscalDetailPage'
 import CtesListPage from '@features/fiscal/CtesListPage'
 import CteDetailPage from '@features/fiscal/CteDetailPage'
+import MdfesListPage from '@features/fiscal/MdfesListPage'
+import MdfeDetailPage from '@features/fiscal/MdfeDetailPage'
 import NotasServicoListPage from '@features/fiscal/NotasServicoListPage'
 import NotaServicoDetailPage from '@features/fiscal/NotaServicoDetailPage'
 import ListasServicoMunicipalListPage from '@features/fiscal/ListasServicoMunicipalListPage'
@@ -412,6 +414,8 @@ const router = createBrowserRouter([
           { path: 'notas-fiscais/:id', element: <NotaFiscalDetailPage /> },
           { path: 'ctes', element: <CtesListPage /> },
           { path: 'ctes/:id', element: <CteDetailPage /> },
+          { path: 'mdfes', element: <MdfesListPage /> },
+          { path: 'mdfes/:id', element: <MdfeDetailPage /> },
           { path: 'notas-servico', element: <NotasServicoListPage /> },
           { path: 'notas-servico/:id', element: <NotaServicoDetailPage /> },
           { path: 'listas-servico', element: <ListasServicoMunicipalListPage /> },

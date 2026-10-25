@@ -28,6 +28,7 @@ public enum FinanceiroErrorCode implements ErrorCode {
     CONTA_BANCARIA_INATIVA("Conta bancária inativa — não pode receber movimentação", HttpStatus.CONFLICT),
     BANCO_OBRIGATORIO_PARA_TIPO_DE_CONTA("Conta corrente/poupança/aplicação exige um banco — só CAIXA_INTERNO pode ficar sem banco", HttpStatus.UNPROCESSABLE_ENTITY),
     CHEQUE_SITUACAO_INVALIDA_PARA_OPERACAO("Situação atual do cheque não permite esta operação", HttpStatus.CONFLICT),
+    PAGAMENTO_FIADO_MAIOR_QUE_DIVIDA("O pagamento de fiado vindo do PDV é maior que a dívida de fiado em aberto do cliente no ERP", HttpStatus.UNPROCESSABLE_ENTITY),
     VALOR_MOVIMENTO_DEVE_SER_POSITIVO("Valor do movimento de caixa/banco precisa ser maior que zero", HttpStatus.UNPROCESSABLE_ENTITY),
     TIPO_MOVIMENTO_INVALIDO_PARA_LANCAMENTO_MANUAL("Lançamento manual só aceita ENTRADA ou SAIDA — transferência tem endpoint próprio", HttpStatus.UNPROCESSABLE_ENTITY),
 

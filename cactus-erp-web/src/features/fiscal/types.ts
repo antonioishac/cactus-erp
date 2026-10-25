@@ -1,4 +1,4 @@
-export type SituacaoNotaFiscal = 'RASCUNHO' | 'ENVIADA' | 'AUTORIZADA' | 'REJEITADA' | 'ERRO' | 'CANCELADA'
+export type SituacaoNotaFiscal = 'RASCUNHO' | 'ENVIADA' | 'AUTORIZADA' | 'REJEITADA' | 'ERRO' | 'CANCELADA' | 'ENCERRADA'
 export type AmbienteFiscal = 'PRODUCAO' | 'HOMOLOGACAO'
 export type TipoTomadorCte = 'REMETENTE' | 'EXPEDIDOR' | 'RECEBEDOR' | 'DESTINATARIO' | 'OUTROS'
 
@@ -9,6 +9,7 @@ export const SITUACAO_NOTA_FISCAL_LABEL: Record<SituacaoNotaFiscal, string> = {
   REJEITADA: 'Rejeitada',
   ERRO: 'Erro',
   CANCELADA: 'Cancelada',
+  ENCERRADA: 'Encerrada',
 }
 
 export const AMBIENTE_FISCAL_LABEL: Record<AmbienteFiscal, string> = {
@@ -200,4 +201,95 @@ export interface ClienteResumo {
 export interface TransportadoraResumo {
   id: number
   nome: string
+}
+
+// --- MDF-e ---
+
+export interface MdfeDocumentoVinculadoResponse {
+  id: number
+  cteCabecalhoId: number
+  cteSerie?: string
+  cteNumero?: number
+  cteChaveAcesso?: string
+  municipioDescargaCodigoIbge?: number
+  municipioDescargaNome?: string
+}
+
+export interface MdfeCabecalhoResponse {
+  id: number
+  empresaId: number
+  modelo: string
+  modal: string
+  serie?: string
+  numero?: number
+  chaveAcesso?: string
+  protocoloAutorizacao?: string
+  dataEmissao?: string
+  ambiente?: AmbienteFiscal
+  uf: string
+  rntrc?: string
+  veiculoPlaca?: string
+  veiculoUf?: string
+  veiculoRenavam?: string
+  veiculoTaraKg?: number
+  veiculoCapacidadeKg?: number
+  condutorNome?: string
+  condutorCpf?: string
+  municipioCarregamentoCodigoIbge?: number
+  municipioCarregamentoNome?: string
+  dataInicioViagem?: string
+  valorTotalCarga?: number
+  pesoBrutoTotal?: number
+  unidadeMedidaCarga: string
+  situacao: SituacaoNotaFiscal
+  mensagemSefaz?: string
+  dataEncerramento?: string
+  municipioEncerramentoCodigoIbge?: number
+  protocoloEncerramento?: string
+  dataCancelamento?: string
+  justificativaCancelamento?: string
+  protocoloCancelamento?: string
+  documentos: MdfeDocumentoVinculadoResponse[]
+}
+
+export interface CteDisponivelMdfe {
+  id: number
+  serie?: string
+  numero?: number
+  vendaId: number
+  valorTotalCarga?: number
+  pesoBruto?: number
+}
+
+export interface GerarMdfeRequest {
+  empresaId: number
+  cteIds: number[]
+  veiculoPlaca: string
+  veiculoUf?: string
+  veiculoRenavam?: string
+  veiculoTaraKg: number
+  veiculoCapacidadeKg?: number
+  condutorNome: string
+  condutorCpf: string
+  rntrc?: string
+  dataInicioViagem?: string
+}
+
+export interface EncerrarMdfeRequest {
+  dataEncerramento?: string
+  municipioCodigoIbge?: number
+}
+
+export interface CancelarMdfeRequest {
+  justificativa: string
+}
+
+export const COR_SITUACAO_MDFE: Record<SituacaoNotaFiscal, string> = {
+  RASCUNHO: 'default',
+  ENVIADA: 'processing',
+  AUTORIZADA: 'success',
+  REJEITADA: 'error',
+  ERRO: 'error',
+  CANCELADA: 'default',
+  ENCERRADA: 'blue',
 }

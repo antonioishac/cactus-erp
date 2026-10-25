@@ -32,7 +32,17 @@ public enum FiscalErrorCode implements ErrorCode {
     PEDIDO_JA_TEM_NOTA_CONSUMIDOR("Este pedido já tem uma NFC-e gerada", HttpStatus.CONFLICT),
     PEDIDO_SITUACAO_INVALIDA_PARA_NOTA_CONSUMIDOR("O pedido precisa estar PAGO para gerar NFC-e", HttpStatus.UNPROCESSABLE_ENTITY),
     LOJA_SEM_EMPRESA_VINCULADA("Esta loja não tem empresaId vinculado — configure antes de emitir NFC-e", HttpStatus.UNPROCESSABLE_ENTITY),
-    ITEM_SEM_TRIBUTACAO_CONFIGURADA("Um ou mais itens do pedido não têm NCM/CSOSN configurado na variante — não é possível gerar NFC-e", HttpStatus.UNPROCESSABLE_ENTITY);
+    ITEM_SEM_TRIBUTACAO_CONFIGURADA("Um ou mais itens do pedido não têm NCM/CSOSN configurado na variante — não é possível gerar NFC-e", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_CTE_NAO_AUTORIZADO("Todo CT-e vinculado ao MDF-e precisa estar AUTORIZADA", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_CTE_DE_OUTRA_EMPRESA("Todo CT-e vinculado ao MDF-e precisa ser da mesma empresa emitente do manifesto", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_CTE_JA_VINCULADO("Um ou mais CT-e já estão vinculados a outro MDF-e", HttpStatus.CONFLICT),
+    MDFE_CTE_DUPLICADO_NA_REQUISICAO("O mesmo CT-e foi informado mais de uma vez", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_VIAGEM_INTERESTADUAL_NAO_SUPORTADA("Só viagem intra-UF é suportada nesta fase — o destinatário de todo CT-e precisa estar na mesma UF do emitente", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_EVENTO_SITUACAO_INVALIDA("Encerramento e cancelamento só são possíveis num MDF-e AUTORIZADA", HttpStatus.CONFLICT),
+    MDFE_PRAZO_CANCELAMENTO_EXPIRADO("O MDF-e só pode ser cancelado em até 24 horas após a autorização — passado isso, encerre-o", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_DATA_ENCERRAMENTO_INVALIDA("A data de encerramento não pode ser anterior ao início da viagem nem futura", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_EMITENTE_SEM_ENDERECO("A empresa emitente não tem UF e código IBGE de município cadastrados — necessários para UF da viagem e município de carregamento", HttpStatus.UNPROCESSABLE_ENTITY),
+    MDFE_DESTINATARIO_SEM_ENDERECO("O destinatário de um CT-e vinculado não tem endereço com código IBGE de município — necessário para o município de descarga", HttpStatus.UNPROCESSABLE_ENTITY);
 
     private final String mensagemPadrao;
     private final HttpStatus httpStatusPadrao;

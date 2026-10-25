@@ -2719,3 +2719,52 @@ de Loja exige uma authority mais alta que a de simples consulta do módulo).
 telas de pull ERP→PDV (`/sync/produtos`, `/sync/clientes`, etc. — também máquina-a-máquina, sem
 UI de admin fazendo sentido); exclusão de client de loja (API não tem `DELETE`, mesmo critério de
 sempre — sem destino, fica como dado real).
+
+## Entrega 24 — MDF-e (2026-10-24)
+
+Telas do MDF-e (backend da Fase 16 + sub-fase de Encerramento/Cancelamento, ver `CLAUDE.md`
+raiz), dentro de `features/fiscal/`: `MdfesListPage` (`/fiscal/mdfes`, item novo no menu Fiscal),
+`MdfeDetailPage` (`/fiscal/mdfes/:id`) e 3 modais (`GerarMdfeModal`, `EncerrarMdfeModal`,
+`CancelarMdfeModal`). `SituacaoNotaFiscal` ganhou `ENCERRADA` (só MDF-e usa).
+
+- **Diferente de NF-e/CT-e, MDF-e nasce na própria lista** ("Novo MDF-e"), não a partir de uma
+  Venda: agrupa CT-e já autorizados. O seletor só oferece CT-e `AUTORIZADA` da empresa ativa que
+  não estão em outro MDF-e não cancelado. Esse filtro é feito no cliente, a partir de 2 consultas
+  de página grande (`useCtesParaMdfe`/`useCtesJaManifestados`, 200 registros). O backend revalida
+  tudo (409/422), então o filtro é só para não oferecer opção fadada ao erro. **Atualizado na mesma
+  data**: o filtro saiu do cliente. O seletor agora usa `GET /mdfes/ctes-disponiveis?empresaId=`
+  (`useCtesDisponiveisParaMdfe`), sem o limite de 200 registros que as 2 consultas antigas tinham.
+- **Ações no detalhe**: Emitir (`FISCAL_EMITIR`, RASCUNHO/ERRO), Encerrar (`FISCAL_EMITIR`, só
+  AUTORIZADA; data limitada no `DatePicker` entre o início da viagem e hoje) e Cancelar
+  (`FISCAL_GERENCIAR`, só AUTORIZADA e dentro de 24h da emissão). Cada botão desabilitado mostra
+  um tooltip com o motivo exato. Um MDF-e autorizado mostra o alerta "Viagem em aberto", lembrando
+  que o encerramento é obrigatório.
+
+### Bug real, app inteiro: toda submissão inválida gerava "unhandled rejection"
+
+Achado no teste em navegador: o `form.validateFields()` do Ant Design rejeita a promise quando
+algum campo é inválido, e **77 arquivos** do app usam `validateFields().then(...)` sem `.catch`.
+Toda tentativa de salvar um formulário inválido gerava um `pageerror: Object` no console. O usuário
+não via nada errado, porque a mensagem do campo aparecia normalmente, mas o console ficava sujo e
+erros reais ficavam escondidos no meio. Corrigido num ponto só, em `main.tsx`: um listener de
+`unhandledrejection` que ignora apenas rejeições com `errorFields` (o formato da validação do Ant
+Design). Qualquer outra rejeição continua aparecendo. Confirmado: submissão vazia mostra o erro do
+campo e não gera mais nenhum `pageerror`.
+
+### Verificação ao vivo (navegador real, Playwright, login pelo fluxo OAuth2/PKCE de verdade)
+
+O fiscal-service rodou apontado para um ACBr Monitor **falso** (script local na porta 3535, ver
+`CLAUDE.md` raiz), então nada foi para o ACBr real nem para a SEFAZ. Fluxo testado: seletor com os
+4 CT-e autorizados → submissão vazia e CPF inválido barrados no formulário → MDF-e com 2 CT-e
+gerado (RASCUNHO, Encerrar desabilitado) → Emitir (AUTORIZADA, alerta de viagem em aberto) →
+Encerrar (ENCERRADA, Encerrar e Cancelar desabilitados) → o seletor deixa de oferecer os 2 CT-e
+usados → segundo MDF-e → Emitir → justificativa curta barrada → Cancelar (CANCELADA) → os CT-e
+voltam a aparecer no seletor. A lista mostra os 2 com situação e valor de carga certos. OPERADOR
+(só `FISCAL_CONSULTAR`) vê o menu, mas Novo, Emitir, Encerrar e Cancelar ficam desabilitados.
+Screenshots conferidos. Zero erro de console depois do fix acima. `tsc -b`, `oxlint`, `vitest`
+(13/13) e `vite build` limpos. Dados e usuários de teste revertidos.
+
+## Fase 6-B no frontend — rótulos de caixa/fiado do PDV (2026-10-24)
+
+Sem tela nova: os 5 tipos de registro novos (`SANGRIA`/`SUPRIMENTO`/`ABERTURA_CAIXA`/`CONFERENCIA_CAIXA`/`FIADO_LANCAMENTO`, ver `FASE6_SINCRONIZACAO_PDV.md` seção 12) entraram em `TipoRegistroSincronizacao` com `TIPO_REGISTRO_LABEL`, usado nas colunas "Tipo" de Registros e Lotes da Sincronização PDV. No financeiro, as 4 origens de movimento `*_PDV` e a origem de título `FIADO_PDV` ganharam rótulo, e `ContaBancariaResponse.pdvCaixaId` (só nas contas de terminal criadas automaticamente) entrou no tipo. Conferido no navegador com dado real do teste: a auditoria mostra "Sangria", "Fiado" etc., e as contas "Caixa PDV ..." aparecem com os saldos certos, sem erro de console.
+

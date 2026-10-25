@@ -15,12 +15,13 @@ export const SITUACAO_TITULO_LABEL: Record<SituacaoTitulo, string> = {
 
 /** `VENDA` — gerada automaticamente pelo vendas-service (1 por parcela). `PEDIDO_LOJA`/`MANUAL`
  * (avulso ou parcelado via `gerarParcelado`). `RENEGOCIACAO` — nascido de `renegociar()`. */
-export type OrigemContaReceber = 'VENDA' | 'PEDIDO_LOJA' | 'MANUAL' | 'RENEGOCIACAO'
+export type OrigemContaReceber = 'VENDA' | 'PEDIDO_LOJA' | 'MANUAL' | 'RENEGOCIACAO' | 'FIADO_PDV'
 export const ORIGEM_CONTA_RECEBER_LABEL: Record<OrigemContaReceber, string> = {
   VENDA: 'Venda',
   PEDIDO_LOJA: 'Pedido (Loja Virtual)',
   MANUAL: 'Manual',
   RENEGOCIACAO: 'Renegociação',
+  FIADO_PDV: 'Fiado (PDV)',
 }
 
 /** `COMPRA` — gerada automaticamente pelo gestao-compras-service quando um PedidoCompra vira
@@ -368,6 +369,8 @@ export interface ContaBancariaResponse extends ContaBancariaRequest {
   id: number
   proximoNossoNumero?: number
   saldoAtual: number
+  /** Só nas contas criadas automaticamente pra um terminal do PDV (Fase 6-B). */
+  pdvCaixaId?: number | null
   ativo: boolean
 }
 
@@ -393,6 +396,10 @@ export type OrigemMovimentoCaixa =
   | 'CHEQUE_DEVOLVIDO'
   | 'AJUSTE'
   | 'CONCILIACAO'
+  | 'SANGRIA_PDV'
+  | 'SUPRIMENTO_PDV'
+  | 'ABERTURA_CAIXA_PDV'
+  | 'CONFERENCIA_CAIXA_PDV'
 export const ORIGEM_MOVIMENTO_CAIXA_LABEL: Record<OrigemMovimentoCaixa, string> = {
   BAIXA_CONTA_RECEBER: 'Baixa de conta a receber',
   BAIXA_CONTA_PAGAR: 'Baixa de conta a pagar',
@@ -405,6 +412,10 @@ export const ORIGEM_MOVIMENTO_CAIXA_LABEL: Record<OrigemMovimentoCaixa, string> 
   CHEQUE_DEVOLVIDO: 'Cheque devolvido',
   AJUSTE: 'Ajuste manual',
   CONCILIACAO: 'Conciliação bancária',
+  SANGRIA_PDV: 'Sangria (PDV)',
+  SUPRIMENTO_PDV: 'Suprimento (PDV)',
+  ABERTURA_CAIXA_PDV: 'Abertura de caixa (PDV)',
+  CONFERENCIA_CAIXA_PDV: 'Conferência de caixa (PDV)',
 }
 
 /** Lançamento manual de ajuste (tarifa, IOF, correção) — só `ENTRADA`/`SAIDA` (transferência

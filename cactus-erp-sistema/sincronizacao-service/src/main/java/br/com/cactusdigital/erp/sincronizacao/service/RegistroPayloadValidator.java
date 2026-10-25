@@ -30,6 +30,10 @@ public class RegistroPayloadValidator {
     public Optional<String> validar(TipoRegistroSincronizacao tipoRegistro, JsonNode payload) {
         return switch (tipoRegistro) {
             case ESTOQUE_MOVIMENTO -> validarEstoqueMovimento(payload);
+            case SANGRIA, SUPRIMENTO -> exigirTodos(payload, "pdvCaixaId", "valor", "dataMovimento");
+            case ABERTURA_CAIXA -> exigirTodos(payload, "pdvCaixaId", "valorFundoInicial", "dataAbertura");
+            case CONFERENCIA_CAIXA -> exigirTodos(payload, "pdvCaixaId", "valorDivergencia", "dataConferencia");
+            case FIADO_LANCAMENTO -> validarFiado(payload);
         };
     }
 
@@ -44,6 +48,32 @@ public class RegistroPayloadValidator {
             return Optional.of("Campo(s) obrigatório(s) ausente(s) no payload: " + String.join(", ", ausentes));
         }
         return Optional.empty();
+    }
+
+    /** {@code tipoLancamento} só C/P; pagamento exige o caixa onde o dinheiro entrou (é nele que a baixa cai). */
+    private Optional<String> validarFiado(JsonNode payload) {
+        Optional<String> ausentes = exigirTodos(payload, "clienteId", "tipoLancamento", "valor", "dataLancamento");
+        if (ausentes.isPresent()) {
+            return ausentes;
+        }
+        String tipo = payload.get("tipoLancamento").asString();
+        if (!"C".equals(tipo) && !"P".equals(tipo)) {
+            return Optional.of("tipoLancamento deve ser C (compra a prazo) ou P (pagamento), recebido: " + tipo);
+        }
+        if ("P".equals(tipo) && (payload.get("pdvCaixaId") == null || payload.get("pdvCaixaId").isNull())) {
+            return Optional.of("Pagamento de fiado (tipoLancamento=P) exige pdvCaixaId — o caixa onde o dinheiro foi recebido");
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> exigirTodos(JsonNode payload, String... campos) {
+        List<String> ausentes = new ArrayList<>();
+        for (String campo : campos) {
+            exigir(payload, campo, ausentes);
+        }
+        return ausentes.isEmpty()
+                ? Optional.empty()
+                : Optional.of("Campo(s) obrigatório(s) ausente(s) no payload: " + String.join(", ", ausentes));
     }
 
     private void exigir(JsonNode payload, String campo, List<String> ausentes) {

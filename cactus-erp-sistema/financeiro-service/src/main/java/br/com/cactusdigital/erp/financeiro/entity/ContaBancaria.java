@@ -101,6 +101,12 @@ public class ContaBancaria extends BaseEntity {
     @Column(name = "saldo_atual", nullable = false, precision = 18, scale = 6)
     private BigDecimal saldoAtual;
 
+    /** Fase 6-B: preenchido só na conta {@code CAIXA_INTERNO} criada automaticamente pra um terminal
+     * do PDV ({@code PDV_CAIXA.ID}, id local da loja) — uma conta por terminal, decisão confirmada com
+     * o usuário em 2026-10-24. Único por empresa ({@code uk_conta_bancaria_pdv_caixa}). */
+    @Column(name = "pdv_caixa_id")
+    private Long pdvCaixaId;
+
     @Builder.Default
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;

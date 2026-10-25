@@ -557,3 +557,48 @@ existia — fechado com a infraestrutura completa de client "um por loja"
 sincronizacao-service). Fora esses dois, nenhum bug de execução encontrado — outbox,
 retry, DLQ, idempotência, RBAC e resiliência a queda de broker/consumidor funcionaram
 exatamente como desenhado.
+
+## 12. Fase 6-B — caixa e fiado do PDV no financeiro (2026-10-24) ✅ itens 1-4 da reavaliação 2.3-bis
+
+### Decisões confirmadas com o usuário
+1. **Uma conta `CAIXA_INTERNO` por terminal** (`PDV_CAIXA`), não uma por loja. Criada automaticamente no primeiro envio daquele terminal (`conta_bancaria.pdv_caixa_id`, `UNIQUE(empresa_id, pdv_caixa_id)`), com nome "Caixa PDV <nome do terminal>". O saldo de cada caixa bate com a conferência do operador, sem misturar terminais.
+2. **Conferência vira ajuste da diferença**: usa o `VALOR_DIVERGENCIA` que o próprio PDV calcula (contado − esperado). Sobra vira `ENTRADA`, falta vira `SAIDA`, origem `CONFERENCIA_CAIXA_PDV`. Isso fica correto mesmo sem as vendas do PDV no ERP (item 5): o ajuste corrige o caixa pela diferença real apurada no balcão, não por um "esperado" que o ERP ainda não sabe calcular.
+
+### Contrato de payload (o adaptador do PDV manda ids do ERP, mesmo critério do `ESTOQUE_MOVIMENTO`)
+Um lote por tipo (`LoteSincronizacaoRequest.tipoRegistro` é único). Datas em `yyyy-MM-dd`.
+
+| `tipoRegistro` | Origem no PDV | Campos obrigatórios | Opcionais | Efeito no financeiro |
+|---|---|---|---|---|
+| `SANGRIA` | `PDV_SANGRIA` | `pdvCaixaId`, `valor`, `dataMovimento` | `pdvCaixaNome`, `observacao` | `SAIDA` / `SANGRIA_PDV` |
+| `SUPRIMENTO` | `PDV_SUPRIMENTO` | `pdvCaixaId`, `valor`, `dataMovimento` | `pdvCaixaNome`, `observacao` | `ENTRADA` / `SUPRIMENTO_PDV` |
+| `ABERTURA_CAIXA` | `PDV_MOVIMENTO` (abertura) | `pdvCaixaId`, `valorFundoInicial`, `dataAbertura` | `pdvCaixaNome` | `ENTRADA` / `ABERTURA_CAIXA_PDV` (fundo zero: só confirma) |
+| `CONFERENCIA_CAIXA` | `PDV_CONFERENCIA_CAIXA` | `pdvCaixaId`, `valorDivergencia` (com sinal), `dataConferencia` | `observacao` | ajuste da diferença (zero: só confirma) |
+| `FIADO_LANCAMENTO` | `CLIENTE_FIADO_LANCAMENTO` | `clienteId`, `tipoLancamento` (C/P), `valor`, `dataLancamento`; `pdvCaixaId` quando P | `observacao` | C: título `FIADO_PDV`; P: baixas |
+
+`origemId` de todo movimento e título gerado = `RegistroSincronizacao.id`, então qualquer lançamento é rastreável até o envio do PDV.
+
+### Regras deliberadas
+- **Fechamento de caixa** não movimenta dinheiro além da conferência: fica só na auditoria, sem tipo de registro próprio.
+- **Fiado C**: título com vencimento em data do lançamento + `cactus.financeiro.pdv.fiado-prazo-vencimento-dias` (default 30), porque o PDV não tem vencimento de fiado.
+- **Fiado P**: abate os títulos `FIADO_PDV` em aberto do cliente do mais antigo pro mais novo, uma baixa por título (via `ContaReceberService#registrarBaixa`, o mesmo caminho da API), na conta do terminal onde o dinheiro entrou. Pagamento maior que a dívida em aberto no ERP (ex: fiado anterior à sincronização) faz a transação inteira falhar e o registro ir pra `ERRO`. Nada é aplicado pela metade, e o excedente nunca vira entrada "solta" de caixa.
+- **Idempotência no consumidor**: `sincronizacao_pdv_processado(registro_id)`, inserida na mesma transação do lançamento. Reentrega do RabbitMQ (que entrega "pelo menos uma vez") só reconfirma. Isso complementa a deduplicação por `idOrigem` que já existia na ingestão.
+- **Topologia**: fila única `financeiro.pdv.q` (routing key `financeiro.pdv`), despachada pelo `tipoRegistro` que o outbox passou a incluir na mensagem junto com `lojaId` (= `empresaId`). Mesmo retry (5 tentativas com backoff) e DLQ (`financeiro.pdv.q.dlq`) do consumidor de estoque. O `DlqListener` do sincronizacao-service passou a ouvir as duas DLQs. Confirmação em `confirmacao.financeiro.pdv`, já coberta pelo binding `confirmacao.#`.
+
+### Validação ao vivo (RabbitMQ e MySQL reais)
+- Abertura nos terminais 901 (R$ 100) e 902 (R$ 80) criou 2 contas separadas.
+- No 901: suprimento de R$ 50, sangria de R$ 30 e conferência com falta de R$ 5.
+- Fiado: compras de R$ 40 e R$ 60, e um pagamento de R$ 70 no 901, que quitou o título de R$ 40 e deixou o de R$ 60 com R$ 30 em aberto.
+- Resultado: o caixa 901 fechou em exatamente R$ 185 e o 902 em R$ 80. A conferência sem divergência foi confirmada sem gerar movimento.
+- **Rejeições estruturais síncronas, com mensagem clara**: sangria sem valor, fiado P sem `pdvCaixaId`, `tipoLancamento` inválido.
+- **Robustez**:
+  - O reenvio do mesmo `idOrigem` não duplicou nada.
+  - Uma reentrega publicada direto no broker foi só reconfirmada: continua 1 sangria, saldo intacto.
+  - Um pagamento de R$ 1.000 contra R$ 30 de dívida esgotou as tentativas e foi pra `ERRO`, com o título intacto.
+- Tudo `PROCESSADO` na auditoria. No navegador: tipos novos com rótulo na tela de auditoria e contas de terminal listadas em Contas Bancárias, sem erro de console. Dados de teste removidos.
+
+### Pendências pequenas (no BACKLOG)
+O `motivoErro` vindo da DLQ é genérico (o motivo real fica só no log do financeiro). E um erro de negócio determinístico passa pelas 5 tentativas antes da DLQ.
+
+### Restam da reavaliação 2.3-bis
+Os itens 5 (venda do PDV), 6 (total por forma de pagamento) e 7 (devolução) dependem de decisões de modelagem em `vendas-service`.
+

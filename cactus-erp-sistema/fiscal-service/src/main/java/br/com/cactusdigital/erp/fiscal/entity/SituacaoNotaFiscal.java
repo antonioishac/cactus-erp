@@ -13,5 +13,7 @@ public enum SituacaoNotaFiscal {
     AUTORIZADA,
     REJEITADA,
     ERRO,
-    CANCELADA
+    CANCELADA,
+    /** Só MDF-e: viagem concluída, evento de Encerramento (110112) registrado na SEFAZ. Terminal. */
+    ENCERRADA
 }

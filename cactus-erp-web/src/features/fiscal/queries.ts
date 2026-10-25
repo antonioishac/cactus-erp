@@ -21,7 +21,15 @@ import {
   listarNotasFiscais,
   listarNotasServico,
   listarTodasListasServico,
+  buscarMdfe,
+  cancelarMdfe,
+  emitirMdfe,
+  encerrarMdfe,
+  gerarMdfe,
+  listarCtesDisponiveisParaMdfe,
+  listarMdfes,
 } from './api'
+import type { CancelarMdfeRequest, EncerrarMdfeRequest, GerarMdfeRequest, MdfeCabecalhoResponse } from './types'
 import type { GerarCteDeVendaRequest, GerarNotaServicoRequest, ListaServicoMunicipalRequest } from './types'
 
 const QUERY_KEY_NOTAS_FISCAIS = ['fiscal-notas-fiscais'] as const
@@ -223,4 +231,68 @@ export function useNotasPorPeriodo(dataInicio: string | undefined, dataFim: stri
     queryFn: () => buscarNotasPorPeriodo(dataInicio as string, dataFim as string, empresaId),
     enabled: !!dataInicio && !!dataFim,
   })
+}
+
+// --- MDF-e ---
+
+const QUERY_KEY_MDFES = ['fiscal-mdfes'] as const
+const queryKeyMdfe = (id: number) => ['fiscal-mdfes', id] as const
+
+export function useMdfes(pagina: number, tamanho = 10) {
+  return useQuery({
+    queryKey: [...QUERY_KEY_MDFES, pagina, tamanho],
+    queryFn: () => listarMdfes(pagina, tamanho),
+    placeholderData: (dadosAnteriores) => dadosAnteriores,
+  })
+}
+
+export function useMdfe(id: number | undefined) {
+  return useQuery({
+    queryKey: queryKeyMdfe(id ?? -1),
+    queryFn: () => buscarMdfe(id as number),
+    enabled: id !== undefined && !Number.isNaN(id),
+  })
+}
+
+/** CT-e que o backend aceitaria num MDF-e novo (autorizados, da empresa, fora de MDF-e não cancelado). */
+export function useCtesDisponiveisParaMdfe(empresaId: number | null | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: [...QUERY_KEY_MDFES, 'ctes-disponiveis', empresaId],
+    queryFn: () => listarCtesDisponiveisParaMdfe(empresaId as number),
+    enabled: enabled && empresaId != null,
+  })
+}
+
+export function useGerarMdfe() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: GerarMdfeRequest) => gerarMdfe(request),
+    onSuccess: (criado) => {
+      queryClient.setQueryData(queryKeyMdfe(criado.id), criado)
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY_MDFES })
+    },
+  })
+}
+
+function useAcaoMdfe<T>(id: number, acao: (request: T) => Promise<MdfeCabecalhoResponse>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: acao,
+    onSuccess: (atualizado) => {
+      queryClient.setQueryData(queryKeyMdfe(id), atualizado)
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY_MDFES })
+    },
+  })
+}
+
+export function useEmitirMdfe(id: number) {
+  return useAcaoMdfe<void>(id, () => emitirMdfe(id))
+}
+
+export function useEncerrarMdfe(id: number) {
+  return useAcaoMdfe<EncerrarMdfeRequest>(id, (request) => encerrarMdfe(id, request))
+}
+
+export function useCancelarMdfe(id: number) {
+  return useAcaoMdfe<CancelarMdfeRequest>(id, (request) => cancelarMdfe(id, request))
 }

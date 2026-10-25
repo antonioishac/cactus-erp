@@ -386,7 +386,22 @@ outros itens deste backlog.
          #cancelar` só permite cancelar em `RASCUNHO`; devolução pós-venda
          confirmada continua "fora de escopo" desde a Fase 7, sem nenhum
          destino no ERP.
-      **Próximo passo sugerido**: atacar os itens 1-2 primeiro (baixo
+      **Atualização (2026-10-24): itens 1, 2, 3 e 4 feitos**, validados ao
+      vivo. Sangria, suprimento, abertura de caixa, conferência de caixa e
+      fiado chegam ao `financeiro-service` (ver `FASE6_SINCRONIZACAO_PDV.md`,
+      seção "12. Fase 6-B"). Decisões confirmadas com o usuário: uma conta
+      `CAIXA_INTERNO` por terminal e conferência vira ajuste da diferença.
+      **Restam os itens 5, 6 e 7** (venda, total por forma de pagamento e
+      devolução), que dependem de decisões de modelagem em `vendas-service`.
+      Pendências pequenas que sobraram:
+      - [ ] Motivo de `ERRO` vindo da DLQ é genérico ("esgotou tentativas"):
+            o motivo real (ex: pagamento de fiado maior que a dívida) fica só no
+            log do financeiro. Ler o header `x-exception-message` que o
+            `RepublishMessageRecoverer` já grava e gravar no `motivoErro`.
+      - [ ] Erro de negócio determinístico (como o pagamento maior que a
+            dívida) passa pelas 5 tentativas antes de ir pra DLQ, sem ganho
+            nenhum. Não retentar `BusinessException`.
+      **Próximo passo sugerido (original)**: atacar os itens 1-2 primeiro (baixo
       esforço, alto valor — fecham 3 dos 7 gaps originais), depois voltar
       pro usuário com as decisões de modelagem pendentes (itens 3-4) antes
       de encarar os dois mais difíceis (5-7). (2026-09-27, `FASE6_SINCRONIZACAO_PDV.md`)
@@ -409,15 +424,23 @@ outros itens deste backlog.
       não capturados em `NotaFiscalEletronicaItem` — auditoria de campo contra
       o layout oficial completo da EFD ainda não feita, só o recorte prático
       usado nesta fase.
-- [ ] **Fase 16 — MDF-e (extensão do `fiscal-service`)** — ainda não iniciada.
-      `MdfeCabecalho`+`MdfeDocumentoVinculado`, agrupando N `CteCabecalho` já
-      emitidos numa viagem. Comando ACBr de alta confiança já confirmado por
-      pesquisa (`MDFE.CriarEnviarMDFe(cIniMDFe,[nLote],...)`, tiro único,
-      mesma família de `NFE.CriarEnviarNFe`/`CTE.CriarEnviarCTe`) — layout
-      campo-a-campo do `MDFe.INI` ainda não levantado. Nunca será invocado
-      contra o ACBr Monitor real nesta sessão (mesma decisão de segurança das
-      Fases 8/9/11 — certificado de produção configurado, sem homologação).
-      (2026-09-13, root `CLAUDE.md`, ANÁLISE: MÓDULO CONTÁBIL E FISCAL)
+- [x] ~~**Fase 16 — MDF-e (extensão do `fiscal-service`)**~~ — **backend feito
+      (2026-10-24)**, ver root `CLAUDE.md`. Pendências que sobraram:
+      - [x] ~~Encerramento e cancelamento~~ — feito (2026-10-24), ver root
+            `CLAUDE.md`. Sobrou: encerramento automático (job) de MDF-e
+            esquecido aberto, e um alerta de "MDF-e autorizado há mais de X
+            dias sem encerrar".
+      - [ ] Viagem interestadual (percurso por UF), reboque, múltiplos
+            condutores, seguro de carga, `tpRod`/`tpCar` configuráveis (hoje
+            fixos 06/02).
+      - [ ] Emissão real via ACBr nunca exercitada (mesmo bloqueio de
+            certificado das Fases 8/9/11); layout `MDFe.INI` não conferido
+            contra um INI de referência nem contra ACBr real.
+      - [x] ~~Frontend (`cactus-erp-web`): telas de MDF-e~~ — feito (Entrega
+            24, 2026-10-24).
+      - [x] ~~Endpoint de "CT-e disponíveis para manifesto"~~ — feito
+            (2026-10-24): `GET /mdfes/ctes-disponiveis?empresaId=`, o seletor
+            deixou de filtrar no cliente.
 - [ ] 🔴 **CRÍTICO — Reforma Tributária (IBS/CBS/Imposto Seletivo) — motor
       tributário desatualizado, já é exigência legal VENCIDA, não mais risco
       futuro** — ver resumo no topo deste arquivo, seção "🔴 CRÍTICO". —

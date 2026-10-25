@@ -57,6 +57,14 @@ public interface FiscalMapper {
 
     NotaFiscalConsumidorItemResponse toResponse(NotaFiscalConsumidorItem item);
 
+    br.com.cactusdigital.erp.fiscal.dto.MdfeCabecalhoResponse toResponse(br.com.cactusdigital.erp.fiscal.entity.MdfeCabecalho mdfe);
+
+    @Mapping(target = "cteCabecalhoId", source = "cteCabecalho.id")
+    @Mapping(target = "cteSerie", source = "cteCabecalho.serie")
+    @Mapping(target = "cteNumero", source = "cteCabecalho.numero")
+    @Mapping(target = "cteChaveAcesso", source = "cteCabecalho.chaveAcesso")
+    br.com.cactusdigital.erp.fiscal.dto.MdfeDocumentoVinculadoResponse toResponse(br.com.cactusdigital.erp.fiscal.entity.MdfeDocumentoVinculado documento);
+
     SagaExecucaoResponse toResponse(SagaExecucao sagaExecucao);
 
     SagaExecucaoPassoResponse toResponse(SagaExecucaoPasso passo);

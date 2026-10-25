@@ -139,6 +139,26 @@ public class MdfeCabecalho extends BaseEntity {
     @Column(name = "mensagem_sefaz", length = 500)
     private String mensagemSefaz;
 
+    // --- Evento de Encerramento (110112) ---
+    @Column(name = "data_encerramento")
+    private LocalDate dataEncerramento;
+
+    @Column(name = "municipio_encerramento_codigo_ibge")
+    private Integer municipioEncerramentoCodigoIbge;
+
+    @Column(name = "protocolo_encerramento", length = 30)
+    private String protocoloEncerramento;
+
+    // --- Evento de Cancelamento (110111) ---
+    @Column(name = "data_cancelamento")
+    private Instant dataCancelamento;
+
+    @Column(name = "justificativa_cancelamento", length = 255)
+    private String justificativaCancelamento;
+
+    @Column(name = "protocolo_cancelamento", length = 30)
+    private String protocoloCancelamento;
+
     @Builder.Default
     @OneToMany(mappedBy = "mdfeCabecalho", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MdfeDocumentoVinculado> documentos = new ArrayList<>();

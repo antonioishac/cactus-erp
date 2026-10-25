@@ -34,6 +34,11 @@ public class RabbitConfig {
     public static final String ROUTING_KEY_CONFIRMACAO_WILDCARD = "confirmacao.#";
 
     public static final String FILA_ESTOQUE_MOVIMENTO_DLQ = "estoque.movimento.q.dlq";
+
+    /** Caixa/fiado do PDV (Fase 6-B) — uma fila só no financeiro-service, despachada lá pelo {@code tipoRegistro}. */
+    public static final String ROUTING_KEY_FINANCEIRO_PDV = "financeiro.pdv";
+    public static final String ROUTING_KEY_FINANCEIRO_PDV_DLQ = "financeiro.pdv.dlq";
+    public static final String FILA_FINANCEIRO_PDV_DLQ = "financeiro.pdv.q.dlq";
     public static final String FILA_CONFIRMACOES = "sincronizacao.confirmacoes.q";
 
     @Bean
@@ -56,6 +61,16 @@ public class RabbitConfig {
     @Bean
     public Binding estoqueMovimentoDlqBinding(Queue estoqueMovimentoDlq, TopicExchange sincronizacaoDlx) {
         return BindingBuilder.bind(estoqueMovimentoDlq).to(sincronizacaoDlx).with(ROUTING_KEY_ESTOQUE_MOVIMENTO_DLQ);
+    }
+
+    @Bean
+    public Queue financeiroPdvDlq() {
+        return QueueBuilder.durable(FILA_FINANCEIRO_PDV_DLQ).build();
+    }
+
+    @Bean
+    public Binding financeiroPdvDlqBinding(Queue financeiroPdvDlq, TopicExchange sincronizacaoDlx) {
+        return BindingBuilder.bind(financeiroPdvDlq).to(sincronizacaoDlx).with(ROUTING_KEY_FINANCEIRO_PDV_DLQ);
     }
 
     @Bean

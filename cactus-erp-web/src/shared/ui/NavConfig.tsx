@@ -374,6 +374,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         requiredAuthorities: ['FISCAL_CONSULTAR'],
       },
       {
+        key: 'fiscal-mdfes',
+        label: 'MDF-e',
+        path: '/fiscal/mdfes',
+        requiredAuthorities: ['FISCAL_CONSULTAR'],
+      },
+      {
         key: 'fiscal-notas-servico',
         label: 'Notas de Serviço (NFS-e)',
         path: '/fiscal/notas-servico',

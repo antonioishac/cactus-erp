@@ -3,7 +3,12 @@ import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   ClienteResumo,
+  CancelarMdfeRequest,
   CteCabecalhoResponse,
+  CteDisponivelMdfe,
+  EncerrarMdfeRequest,
+  GerarMdfeRequest,
+  MdfeCabecalhoResponse,
   GerarCteDeVendaRequest,
   GerarNotaServicoRequest,
   ListaServicoMunicipalRequest,
@@ -161,4 +166,43 @@ export async function exportarNotasPorPeriodo(
     dataFim,
     empresaId,
   })
+}
+
+// --- MDF-e ---
+
+export async function listarMdfes(pagina: number, tamanho = 10): Promise<PageResponse<MdfeCabecalhoResponse>> {
+  const { data } = await fiscalApi.get<PageResponse<MdfeCabecalhoResponse>>('/api/v1/mdfes', {
+    params: { page: pagina, size: tamanho, sort: 'id,desc' },
+  })
+  return data
+}
+
+export async function listarCtesDisponiveisParaMdfe(empresaId: number): Promise<CteDisponivelMdfe[]> {
+  const { data } = await fiscalApi.get<CteDisponivelMdfe[]>('/api/v1/mdfes/ctes-disponiveis', { params: { empresaId } })
+  return data
+}
+
+export async function buscarMdfe(id: number): Promise<MdfeCabecalhoResponse> {
+  const { data } = await fiscalApi.get<MdfeCabecalhoResponse>(`/api/v1/mdfes/${id}`)
+  return data
+}
+
+export async function gerarMdfe(request: GerarMdfeRequest): Promise<MdfeCabecalhoResponse> {
+  const { data } = await fiscalApi.post<MdfeCabecalhoResponse>('/api/v1/mdfes', request)
+  return data
+}
+
+export async function emitirMdfe(id: number): Promise<MdfeCabecalhoResponse> {
+  const { data } = await fiscalApi.post<MdfeCabecalhoResponse>(`/api/v1/mdfes/${id}/emitir`)
+  return data
+}
+
+export async function encerrarMdfe(id: number, request: EncerrarMdfeRequest): Promise<MdfeCabecalhoResponse> {
+  const { data } = await fiscalApi.post<MdfeCabecalhoResponse>(`/api/v1/mdfes/${id}/encerrar`, request)
+  return data
+}
+
+export async function cancelarMdfe(id: number, request: CancelarMdfeRequest): Promise<MdfeCabecalhoResponse> {
+  const { data } = await fiscalApi.post<MdfeCabecalhoResponse>(`/api/v1/mdfes/${id}/cancelar`, request)
+  return data
 }

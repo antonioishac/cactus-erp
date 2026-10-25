@@ -1,0 +1,198 @@
+package br.com.cactusdigital.erp.financeiro.service;
+
+import br.com.cactusdigital.erp.common.exception.BusinessException;
+import br.com.cactusdigital.erp.financeiro.dto.BaixaRequest;
+import br.com.cactusdigital.erp.financeiro.entity.ContaBancaria;
+import br.com.cactusdigital.erp.financeiro.entity.ContaReceber;
+import br.com.cactusdigital.erp.financeiro.entity.OrigemContaReceber;
+import br.com.cactusdigital.erp.financeiro.entity.OrigemMovimentoCaixa;
+import br.com.cactusdigital.erp.financeiro.entity.SincronizacaoPdvProcessado;
+import br.com.cactusdigital.erp.financeiro.entity.TipoContaBancaria;
+import br.com.cactusdigital.erp.financeiro.entity.TipoMovimentoCaixa;
+import br.com.cactusdigital.erp.financeiro.exception.FinanceiroErrorCode;
+import br.com.cactusdigital.erp.financeiro.repository.ContaBancariaRepository;
+import br.com.cactusdigital.erp.financeiro.repository.ContaReceberRepository;
+import br.com.cactusdigital.erp.financeiro.repository.SincronizacaoPdvProcessadoRepository;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+
+/**
+ * Aplica no financeiro os registros de caixa/fiado que o PDV empurra (Fase 6-B), um por mensagem
+ * publicada pelo {@code sincronizacao-service}. Não tem regra de negócio própria de dinheiro: todo
+ * lançamento passa por {@link MovimentoCaixaBancoService#registrar} e {@link ContaReceberService},
+ * os mesmos caminhos da API REST (ledger append-only, lock pessimista no saldo).
+ *
+ * <h3>Decisões (confirmadas com o usuário em 2026-10-24)</h3>
+ * <ul>
+ *   <li><b>Uma conta {@code CAIXA_INTERNO} por terminal</b> ({@code PDV_CAIXA}), criada no primeiro
+ *   envio daquele terminal ({@link #contaDoTerminal}). Saldo por caixa bate com a conferência do
+ *   operador, sem misturar terminais.</li>
+ *   <li><b>Conferência vira ajuste da diferença</b>: usa o {@code VALOR_DIVERGENCIA} que o próprio PDV
+ *   calculou (contado − esperado). Isso é coerente mesmo sem as vendas do PDV no ERP ainda (item 5 da
+ *   Fase 6-B): o ajuste corrige o caixa pela diferença real apurada no balcão.</li>
+ * </ul>
+ *
+ * <h3>Outras regras, deliberadas</h3>
+ * <ul>
+ *   <li>Fechamento de caixa não movimenta dinheiro além da conferência — fica só na auditoria do
+ *   sincronizacao-service, sem tipo de registro próprio.</li>
+ *   <li>Abertura com fundo zero e conferência sem divergência não geram movimento (o ledger não aceita
+ *   valor zero); só são confirmadas.</li>
+ *   <li>Fiado C vira um título {@code FIADO_PDV} com vencimento em {@code data do lançamento +
+ *   cactus.financeiro.pdv.fiado-prazo-vencimento-dias} (default 30): o PDV não tem vencimento de fiado.</li>
+ *   <li>Fiado P abate os títulos {@code FIADO_PDV} em aberto do cliente do mais antigo pro mais novo,
+ *   com uma baixa em cada um, na conta do terminal onde o dinheiro entrou. Se o pagamento for maior que
+ *   a dívida em aberto no ERP (ex: fiado anterior à sincronização), a transação inteira falha e o
+ *   registro vai pra revisão manual ({@code ERRO} no sincronizacao-service) — nada é aplicado pela
+ *   metade, e o excedente nunca vira entrada "solta" de caixa.</li>
+ * </ul>
+ */
+@Service
+@RequiredArgsConstructor
+public class FinanceiroPdvService {
+
+    private final SincronizacaoPdvProcessadoRepository processadoRepository;
+    private final ContaBancariaRepository contaBancariaRepository;
+    private final ContaReceberRepository contaReceberRepository;
+    private final MovimentoCaixaBancoService movimentoService;
+    private final ContaReceberService contaReceberService;
+
+    @Value("${cactus.financeiro.pdv.fiado-prazo-vencimento-dias:30}")
+    private int fiadoPrazoVencimentoDias;
+
+    /** @return {@code false} se o registro já tinha sido aplicado antes (reentrega) — nada foi feito de novo. */
+    @Transactional
+    public boolean processar(JsonNode mensagem) {
+        Long registroId = mensagem.get("registroId").asLong();
+        String tipo = mensagem.get("tipoRegistro").asString();
+        if (processadoRepository.existsById(registroId)) {
+            return false;
+        }
+        Long empresaId = mensagem.get("lojaId").asLong();
+
+        switch (tipo) {
+            case "SANGRIA" -> movimentar(empresaId, mensagem, TipoMovimentoCaixa.SAIDA, OrigemMovimentoCaixa.SANGRIA_PDV,
+                    decimal(mensagem, "valor"), data(mensagem, "dataMovimento"), "Sangria PDV", registroId);
+            case "SUPRIMENTO" -> movimentar(empresaId, mensagem, TipoMovimentoCaixa.ENTRADA, OrigemMovimentoCaixa.SUPRIMENTO_PDV,
+                    decimal(mensagem, "valor"), data(mensagem, "dataMovimento"), "Suprimento PDV", registroId);
+            case "ABERTURA_CAIXA" -> movimentar(empresaId, mensagem, TipoMovimentoCaixa.ENTRADA, OrigemMovimentoCaixa.ABERTURA_CAIXA_PDV,
+                    decimal(mensagem, "valorFundoInicial"), data(mensagem, "dataAbertura"), "Fundo de troco - abertura do caixa PDV", registroId);
+            case "CONFERENCIA_CAIXA" -> conferencia(empresaId, mensagem, registroId);
+            case "FIADO_LANCAMENTO" -> fiado(empresaId, mensagem, registroId);
+            default -> throw new IllegalArgumentException("tipoRegistro sem destino no financeiro-service: " + tipo);
+        }
+
+        // Mesma transação do lançamento: ou os dois ficam, ou nenhum (ver V8__sincronizacao_pdv.sql).
+        processadoRepository.save(new SincronizacaoPdvProcessado(registroId, tipo, Instant.now()));
+        return true;
+    }
+
+    private void conferencia(Long empresaId, JsonNode mensagem, Long registroId) {
+        BigDecimal divergencia = decimal(mensagem, "valorDivergencia");
+        if (divergencia.signum() == 0) {
+            return;
+        }
+        TipoMovimentoCaixa tipo = divergencia.signum() > 0 ? TipoMovimentoCaixa.ENTRADA : TipoMovimentoCaixa.SAIDA;
+        String historico = (divergencia.signum() > 0 ? "Sobra" : "Falta") + " na conferência do caixa PDV";
+        movimentar(empresaId, mensagem, tipo, OrigemMovimentoCaixa.CONFERENCIA_CAIXA_PDV,
+                divergencia.abs(), data(mensagem, "dataConferencia"), historico, registroId);
+    }
+
+    private void fiado(Long empresaId, JsonNode mensagem, Long registroId) {
+        Long clienteId = mensagem.get("clienteId").asLong();
+        BigDecimal valor = decimal(mensagem, "valor");
+        LocalDate dataLancamento = data(mensagem, "dataLancamento");
+        String observacao = texto(mensagem, "observacao");
+
+        if ("C".equals(mensagem.get("tipoLancamento").asString())) {
+            contaReceberRepository.save(ContaReceber.builder()
+                    .empresaId(empresaId)
+                    .clienteId(clienteId)
+                    .origemTipo(OrigemContaReceber.FIADO_PDV)
+                    .origemId(registroId)
+                    .numeroDocumento("Fiado PDV #" + registroId)
+                    .descricao(observacao != null ? truncar(observacao, 250) : "Compra a prazo no fiado do PDV")
+                    .dataEmissao(dataLancamento)
+                    .dataVencimento(dataLancamento.plusDays(fiadoPrazoVencimentoDias))
+                    .valorOriginal(valor)
+                    .valorSaldo(valor)
+                    .build());
+            return;
+        }
+
+        Long contaTerminalId = contaDoTerminal(empresaId, mensagem).getId();
+        List<ContaReceber> emAberto = contaReceberRepository.buscarFiadoEmAberto(empresaId, clienteId);
+        BigDecimal restante = valor;
+        for (ContaReceber titulo : emAberto) {
+            if (restante.signum() == 0) {
+                break;
+            }
+            BigDecimal parcela = restante.min(titulo.getValorSaldo());
+            contaReceberService.registrarBaixa(titulo.getId(), new BaixaRequest(
+                    dataLancamento, parcela, null, null, contaTerminalId, null, null,
+                    "Pagamento de fiado no PDV (registro #" + registroId + ")", null));
+            restante = restante.subtract(parcela);
+        }
+        if (restante.signum() > 0) {
+            throw new BusinessException(FinanceiroErrorCode.PAGAMENTO_FIADO_MAIOR_QUE_DIVIDA,
+                    "Pagamento de fiado de R$ " + valor.toPlainString() + " do cliente #" + clienteId
+                            + " excede a dívida de fiado em aberto no ERP em R$ " + restante.toPlainString());
+        }
+    }
+
+    private void movimentar(Long empresaId, JsonNode mensagem, TipoMovimentoCaixa tipo, OrigemMovimentoCaixa origem,
+            BigDecimal valor, LocalDate dataMovimento, String historico, Long registroId) {
+        if (valor.signum() == 0) {
+            return;
+        }
+        String observacao = texto(mensagem, "observacao");
+        movimentoService.registrar(contaDoTerminal(empresaId, mensagem).getId(), tipo, origem, registroId,
+                valor, dataMovimento, observacao != null ? truncar(historico + " - " + observacao, 250) : historico, null);
+    }
+
+    /**
+     * Conta {@code CAIXA_INTERNO} do terminal, criada na primeira vez. Dois envios simultâneos do
+     * mesmo terminal novo colidem no {@code uk_conta_bancaria_pdv_caixa}; o perdedor falha, e o retry
+     * do listener reprocessa e encontra a conta já criada.
+     */
+    ContaBancaria contaDoTerminal(Long empresaId, JsonNode mensagem) {
+        Long pdvCaixaId = mensagem.get("pdvCaixaId").asLong();
+        return contaBancariaRepository.findByEmpresaIdAndPdvCaixaId(empresaId, pdvCaixaId)
+                .orElseGet(() -> {
+                    String nomeTerminal = texto(mensagem, "pdvCaixaNome");
+                    return contaBancariaRepository.saveAndFlush(ContaBancaria.builder()
+                            .empresaId(empresaId)
+                            .tipo(TipoContaBancaria.CAIXA_INTERNO)
+                            .nome(truncar("Caixa PDV " + (nomeTerminal != null ? nomeTerminal : "#" + pdvCaixaId), 100))
+                            .pdvCaixaId(pdvCaixaId)
+                            .dataSaldoInicial(LocalDate.now())
+                            .saldoInicial(BigDecimal.ZERO)
+                            .saldoAtual(BigDecimal.ZERO)
+                            .build());
+                });
+    }
+
+    private BigDecimal decimal(JsonNode mensagem, String campo) {
+        return new BigDecimal(mensagem.get(campo).asString());
+    }
+
+    private LocalDate data(JsonNode mensagem, String campo) {
+        return LocalDate.parse(mensagem.get(campo).asString());
+    }
+
+    private String texto(JsonNode mensagem, String campo) {
+        JsonNode valor = mensagem.get(campo);
+        return valor == null || valor.isNull() || valor.asString().isBlank() ? null : valor.asString();
+    }
+
+    private String truncar(String texto, int max) {
+        return texto.length() <= max ? texto : texto.substring(0, max);
+    }
+}

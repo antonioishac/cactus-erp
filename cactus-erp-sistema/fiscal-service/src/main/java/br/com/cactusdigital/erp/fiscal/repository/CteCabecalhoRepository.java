@@ -17,6 +17,21 @@ public interface CteCabecalhoRepository extends JpaRepository<CteCabecalho, Long
     @Query("SELECT DISTINCT c FROM CteCabecalho c LEFT JOIN FETCH c.componentes WHERE c.id IN :ids")
     List<CteCabecalho> buscarComComponentes(@Param("ids") List<Long> ids);
 
+    /** CT-e disponíveis pra um MDF-e novo — mesma regra de {@code MdfeCabecalhoRepository#buscarCteIdsJaVinculados}, invertida. */
+    @Query("""
+            SELECT new br.com.cactusdigital.erp.fiscal.dto.CteDisponivelMdfeResponse(
+                c.id, c.serie, c.numero, c.vendaId, c.valorTotalCarga, c.pesoBruto)
+            FROM CteCabecalho c
+            WHERE c.empresaId = :empresaId
+              AND c.situacao = br.com.cactusdigital.erp.fiscal.entity.SituacaoNotaFiscal.AUTORIZADA
+              AND NOT EXISTS (
+                  SELECT 1 FROM MdfeDocumentoVinculado d
+                  WHERE d.cteCabecalho = c
+                    AND d.mdfeCabecalho.situacao <> br.com.cactusdigital.erp.fiscal.entity.SituacaoNotaFiscal.CANCELADA)
+            ORDER BY c.serie ASC, c.numero ASC
+            """)
+    List<br.com.cactusdigital.erp.fiscal.dto.CteDisponivelMdfeResponse> buscarDisponiveisParaMdfe(@Param("empresaId") Long empresaId);
+
     /** Usado pelo export SPED Fiscal — Bloco D (EFD ICMS/IPI), só CT-e {@code AUTORIZADA}. */
     @Query("""
             SELECT DISTINCT c FROM CteCabecalho c

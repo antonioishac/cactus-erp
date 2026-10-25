@@ -7,5 +7,8 @@ public enum OrigemContaReceber {
     VENDA,
     PEDIDO_LOJA,
     MANUAL,
-    RENEGOCIACAO
+    RENEGOCIACAO,
+    /** Compra a prazo no fiado do PDV ({@code CLIENTE_FIADO_LANCAMENTO} tipo C) — {@code origemId} =
+     * {@code RegistroSincronizacao.id} no sincronizacao-service. */
+    FIADO_PDV
 }

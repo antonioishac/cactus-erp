@@ -26,6 +26,18 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Long
             Long empresaId, LocalDate dataInicio, LocalDate dataFim, List<SituacaoTitulo> situacoes);
 
     /** {@code LEFT JOIN FETCH} pra evitar N+1 na coleção {@code baixas} — ver {@code PaginatedFetchSupport}. */
+    /** Títulos de fiado ainda em aberto de um cliente, do mais antigo pro mais novo — ordem em que um
+     * pagamento de fiado do PDV é abatido (ver {@code FinanceiroPdvService}). */
+    @Query("""
+            SELECT c FROM ContaReceber c
+            WHERE c.empresaId = :empresaId AND c.clienteId = :clienteId
+              AND c.origemTipo = br.com.cactusdigital.erp.financeiro.entity.OrigemContaReceber.FIADO_PDV
+              AND c.situacao IN (br.com.cactusdigital.erp.financeiro.entity.SituacaoTitulo.ABERTA,
+                                 br.com.cactusdigital.erp.financeiro.entity.SituacaoTitulo.PARCIAL)
+            ORDER BY c.dataVencimento ASC, c.id ASC
+            """)
+    List<ContaReceber> buscarFiadoEmAberto(@Param("empresaId") Long empresaId, @Param("clienteId") Long clienteId);
+
     @Query("SELECT DISTINCT c FROM ContaReceber c LEFT JOIN FETCH c.baixas WHERE c.id IN :ids")
     List<ContaReceber> buscarComBaixas(@Param("ids") List<Long> ids);
 }

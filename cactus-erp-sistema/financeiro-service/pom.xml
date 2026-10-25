@@ -58,6 +58,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
+    <dependency>
+      <!-- Fase 6-B: consome caixa/fiado do PDV publicados pelo sincronizacao-service
+           (FinanceiroPdvListener) — mesmo starter do controle-estoque-service. -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.mysql</groupId>

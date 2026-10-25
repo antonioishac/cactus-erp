@@ -7,8 +7,22 @@ export const STATUS_REGISTRO_LABEL: Record<StatusRegistroSincronizacao, string> 
   ERRO: 'Erro (esgotou tentativas)',
 }
 
-/** Único valor hoje — só `ESTOQUE_MOVIMENTO` tem serviço de destino real no ERP. */
-export type TipoRegistroSincronizacao = 'ESTOQUE_MOVIMENTO'
+/** `ESTOQUE_MOVIMENTO` vai pro estoque; os 5 de caixa/fiado (Fase 6-B) vão pro financeiro. */
+export type TipoRegistroSincronizacao =
+  | 'ESTOQUE_MOVIMENTO'
+  | 'SANGRIA'
+  | 'SUPRIMENTO'
+  | 'ABERTURA_CAIXA'
+  | 'CONFERENCIA_CAIXA'
+  | 'FIADO_LANCAMENTO'
+export const TIPO_REGISTRO_LABEL: Record<TipoRegistroSincronizacao, string> = {
+  ESTOQUE_MOVIMENTO: 'Movimento de estoque',
+  SANGRIA: 'Sangria',
+  SUPRIMENTO: 'Suprimento',
+  ABERTURA_CAIXA: 'Abertura de caixa',
+  CONFERENCIA_CAIXA: 'Conferência de caixa',
+  FIADO_LANCAMENTO: 'Fiado',
+}
 
 export interface RegistroSincronizacaoResponse {
   id: number

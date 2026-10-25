@@ -23,5 +23,7 @@ public record ContaBancariaResponse(
         LocalDate dataSaldoInicial,
         BigDecimal saldoInicial,
         BigDecimal saldoAtual,
+        /** Só nas contas de terminal do PDV, criadas automaticamente (Fase 6-B). */
+        Long pdvCaixaId,
         boolean ativo) {
 }

@@ -30,7 +30,7 @@ public class DlqListener {
     private final RegistroSincronizacaoRepository repository;
     private final ObjectMapper objectMapper;
 
-    @RabbitListener(queues = RabbitConfig.FILA_ESTOQUE_MOVIMENTO_DLQ)
+    @RabbitListener(queues = {RabbitConfig.FILA_ESTOQUE_MOVIMENTO_DLQ, RabbitConfig.FILA_FINANCEIRO_PDV_DLQ})
     @Transactional
     public void receber(String mensagemJson) {
         try {

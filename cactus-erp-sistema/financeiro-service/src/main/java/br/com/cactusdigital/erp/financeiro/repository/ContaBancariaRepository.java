@@ -17,6 +17,8 @@ public interface ContaBancariaRepository extends JpaRepository<ContaBancaria, Lo
 
     List<ContaBancaria> findByEmpresaIdAndAtivoTrue(Long empresaId);
 
+    Optional<ContaBancaria> findByEmpresaIdAndPdvCaixaId(Long empresaId, Long pdvCaixaId);
+
     /** Lock pessimista pra serializar concorrência sobre {@code saldoAtual} — dinheiro,
      * não é aceitável um lost-update entre duas baixas simultâneas na mesma conta. Usado
      * só dentro de {@code MovimentoCaixaBancoService#registrar}. */

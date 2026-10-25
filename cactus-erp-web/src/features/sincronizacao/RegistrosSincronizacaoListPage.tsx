@@ -4,8 +4,8 @@ import dayjs from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
 import { hasAuthority } from '@features/auth/authority'
 import { useRegistrosSincronizacao, useReprocessarRegistro } from './queries'
-import { STATUS_REGISTRO_LABEL } from './types'
-import type { RegistroSincronizacaoResponse, RegistrosFiltro, StatusRegistroSincronizacao } from './types'
+import { STATUS_REGISTRO_LABEL, TIPO_REGISTRO_LABEL } from './types'
+import type { RegistroSincronizacaoResponse, RegistrosFiltro, StatusRegistroSincronizacao, TipoRegistroSincronizacao } from './types'
 
 const { Title } = Typography
 const TAMANHO_PAGINA = 10
@@ -81,7 +81,7 @@ export default function RegistrosSincronizacaoListPage() {
             { title: 'Data', dataIndex: 'dataCriacao', render: (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm') },
             { title: 'Loja', dataIndex: 'lojaId', render: (v: number) => `#${v}` },
             { title: 'Dispositivo', dataIndex: 'dispositivoId' },
-            { title: 'Tipo', dataIndex: 'tipoRegistro' },
+            { title: 'Tipo', dataIndex: 'tipoRegistro', render: (v: TipoRegistroSincronizacao) => TIPO_REGISTRO_LABEL[v] ?? v },
             { title: 'Id origem', dataIndex: 'idOrigem' },
             {
               title: 'Status',
