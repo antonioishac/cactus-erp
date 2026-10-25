@@ -396,8 +396,11 @@ outros itens deste backlog.
       fechados. Pendências novas que sobraram:
       - [ ] Recebíveis de cartão/PIX das vendas do PDV: hoje só registrados na
             venda. Exige cadastro de adquirente, taxa e prazo de repasse.
-      - [ ] Relatórios de vendas e BI ainda só leem `VendaCabecalho` (B2B):
-            somar `VendaPdv`.
+      - [x] ~~Relatórios de vendas somarem `VendaPdv`~~ — feito (2026-10-25):
+            "Vendas por período" e "Produtos mais vendidos" passam a juntar B2B +
+            PDV, com filtro de canal (ver `FASE6_SINCRONIZACAO_PDV.md`, seção 14).
+      - [ ] BI: o `business-intelligence-service` não tem nenhum KPI de venda
+            (faturamento, ticket médio). Agora existe fonte real (B2B + PDV).
       - [ ] Cancelamento de venda do PDV já sincronizada: precisa de um tipo de
             registro próprio (reenviar o mesmo `idOrigem` é descartado pela
             deduplicação).

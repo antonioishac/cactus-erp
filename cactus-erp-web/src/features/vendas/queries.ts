@@ -62,6 +62,7 @@ import {
   buscarProdutosMaisVendidos,
   buscarVendasPorPeriodo,
 } from './api'
+import type { CanalVenda } from './types'
 import type {
   VendasPeriodoFiltro,
   ComissaoObjetivoRequest,
@@ -623,10 +624,10 @@ export function useVendasPorPeriodo(filtro: VendasPeriodoFiltro, enabled: boolea
   })
 }
 
-export function useProdutosMaisVendidos(dataInicio: string, dataFim: string, enabled: boolean) {
+export function useProdutosMaisVendidos(dataInicio: string, dataFim: string, enabled: boolean, canal?: CanalVenda) {
   return useQuery({
-    queryKey: ['relatorio-produtos-mais-vendidos', dataInicio, dataFim],
-    queryFn: () => buscarProdutosMaisVendidos(dataInicio, dataFim),
+    queryKey: ['relatorio-produtos-mais-vendidos', dataInicio, dataFim, canal],
+    queryFn: () => buscarProdutosMaisVendidos(dataInicio, dataFim, canal),
     enabled,
   })
 }

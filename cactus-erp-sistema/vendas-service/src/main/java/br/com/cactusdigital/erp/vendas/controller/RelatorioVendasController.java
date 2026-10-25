@@ -3,6 +3,7 @@ package br.com.cactusdigital.erp.vendas.controller;
 import br.com.cactusdigital.erp.common.report.ReportEngine;
 import br.com.cactusdigital.erp.common.report.ReportFormat;
 import br.com.cactusdigital.erp.common.report.ReportHttpSupport;
+import br.com.cactusdigital.erp.vendas.dto.CanalVenda;
 import br.com.cactusdigital.erp.vendas.dto.ComissaoVendedorPeriodoResponse;
 import br.com.cactusdigital.erp.vendas.dto.ProdutoMaisVendidoResponse;
 import br.com.cactusdigital.erp.vendas.dto.VendaPeriodoItemResponse;
@@ -51,8 +52,9 @@ public class RelatorioVendasController {
     @PreAuthorize("hasAuthority('VENDAS_CONSULTAR')")
     public List<VendaPeriodoItemResponse> vendasPorPeriodo(
             @RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
-            @RequestParam(required = false) Long vendedorId, @RequestParam(required = false) Long clienteId) {
-        return service.vendasPorPeriodo(dataInicio, dataFim, vendedorId, clienteId);
+            @RequestParam(required = false) Long vendedorId, @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) CanalVenda canal) {
+        return service.vendasPorPeriodo(dataInicio, dataFim, vendedorId, clienteId, canal);
     }
 
     @Operation(summary = "Exportar vendas por período em PDF")
@@ -61,8 +63,9 @@ public class RelatorioVendasController {
     @PreAuthorize("hasAuthority('VENDAS_CONSULTAR')")
     public ResponseEntity<byte[]> vendasPorPeriodoPdf(
             @RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
-            @RequestParam(required = false) Long vendedorId, @RequestParam(required = false) Long clienteId) {
-        return exportarVendasPeriodo(dataInicio, dataFim, vendedorId, clienteId, ReportFormat.PDF);
+            @RequestParam(required = false) Long vendedorId, @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) CanalVenda canal) {
+        return exportarVendasPeriodo(dataInicio, dataFim, vendedorId, clienteId, canal, ReportFormat.PDF);
     }
 
     @Operation(summary = "Exportar vendas por período em Excel")
@@ -71,15 +74,18 @@ public class RelatorioVendasController {
     @PreAuthorize("hasAuthority('VENDAS_CONSULTAR')")
     public ResponseEntity<byte[]> vendasPorPeriodoXlsx(
             @RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
-            @RequestParam(required = false) Long vendedorId, @RequestParam(required = false) Long clienteId) {
-        return exportarVendasPeriodo(dataInicio, dataFim, vendedorId, clienteId, ReportFormat.XLSX);
+            @RequestParam(required = false) Long vendedorId, @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) CanalVenda canal) {
+        return exportarVendasPeriodo(dataInicio, dataFim, vendedorId, clienteId, canal, ReportFormat.XLSX);
     }
 
-    private ResponseEntity<byte[]> exportarVendasPeriodo(LocalDate dataInicio, LocalDate dataFim, Long vendedorId, Long clienteId, ReportFormat formato) {
-        List<VendaPeriodoItemResponse> dados = service.vendasPorPeriodo(dataInicio, dataFim, vendedorId, clienteId);
+    private ResponseEntity<byte[]> exportarVendasPeriodo(LocalDate dataInicio, LocalDate dataFim, Long vendedorId, Long clienteId,
+            CanalVenda canal, ReportFormat formato) {
+        List<VendaPeriodoItemResponse> dados = service.vendasPorPeriodo(dataInicio, dataFim, vendedorId, clienteId, canal);
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("P_PERIODO", periodo(dataInicio, dataFim));
-        parametros.put("P_FILTRO", "Vendedor: " + filtroOuTodos(vendedorId) + "   |   Cliente: " + filtroOuTodos(clienteId));
+        parametros.put("P_FILTRO", "Canal: " + (canal != null ? canal.name() : "Todos") + "   |   Vendedor: " + filtroOuTodos(vendedorId)
+                + "   |   Cliente: " + filtroOuTodos(clienteId));
         parametros.put("P_DATA_GERACAO", dataGeracao());
         byte[] conteudo = reportEngine.gerar(getClass().getClassLoader(), "reports/vendas-periodo.jrxml", dados, parametros, formato);
         return ReportHttpSupport.download(conteudo, formato, "vendas-periodo");
@@ -91,28 +97,31 @@ public class RelatorioVendasController {
     @ApiResponse(responseCode = "200", description = "Produtos do período, ordenados por quantidade vendida")
     @GetMapping("/produtos-mais-vendidos")
     @PreAuthorize("hasAuthority('VENDAS_CONSULTAR')")
-    public List<ProdutoMaisVendidoResponse> produtosMaisVendidos(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim) {
-        return service.produtosMaisVendidos(dataInicio, dataFim);
+    public List<ProdutoMaisVendidoResponse> produtosMaisVendidos(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
+            @RequestParam(required = false) CanalVenda canal) {
+        return service.produtosMaisVendidos(dataInicio, dataFim, canal);
     }
 
     @Operation(summary = "Exportar produtos mais vendidos em PDF")
     @ApiResponse(responseCode = "200", description = "Arquivo PDF gerado")
     @GetMapping(value = "/produtos-mais-vendidos/pdf", produces = "application/pdf")
     @PreAuthorize("hasAuthority('VENDAS_CONSULTAR')")
-    public ResponseEntity<byte[]> produtosMaisVendidosPdf(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim) {
-        return exportarProdutosMaisVendidos(dataInicio, dataFim, ReportFormat.PDF);
+    public ResponseEntity<byte[]> produtosMaisVendidosPdf(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
+            @RequestParam(required = false) CanalVenda canal) {
+        return exportarProdutosMaisVendidos(dataInicio, dataFim, canal, ReportFormat.PDF);
     }
 
     @Operation(summary = "Exportar produtos mais vendidos em Excel")
     @ApiResponse(responseCode = "200", description = "Arquivo XLSX gerado")
     @GetMapping(value = "/produtos-mais-vendidos/xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     @PreAuthorize("hasAuthority('VENDAS_CONSULTAR')")
-    public ResponseEntity<byte[]> produtosMaisVendidosXlsx(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim) {
-        return exportarProdutosMaisVendidos(dataInicio, dataFim, ReportFormat.XLSX);
+    public ResponseEntity<byte[]> produtosMaisVendidosXlsx(@RequestParam LocalDate dataInicio, @RequestParam LocalDate dataFim,
+            @RequestParam(required = false) CanalVenda canal) {
+        return exportarProdutosMaisVendidos(dataInicio, dataFim, canal, ReportFormat.XLSX);
     }
 
-    private ResponseEntity<byte[]> exportarProdutosMaisVendidos(LocalDate dataInicio, LocalDate dataFim, ReportFormat formato) {
-        List<ProdutoMaisVendidoResponse> dados = service.produtosMaisVendidos(dataInicio, dataFim);
+    private ResponseEntity<byte[]> exportarProdutosMaisVendidos(LocalDate dataInicio, LocalDate dataFim, CanalVenda canal, ReportFormat formato) {
+        List<ProdutoMaisVendidoResponse> dados = service.produtosMaisVendidos(dataInicio, dataFim, canal);
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("P_PERIODO", periodo(dataInicio, dataFim));
         parametros.put("P_DATA_GERACAO", dataGeracao());

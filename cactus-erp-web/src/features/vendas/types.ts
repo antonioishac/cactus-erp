@@ -374,13 +374,19 @@ export interface FormaPagamentoResumo {
 // --- Relatórios (vendas-service, RelatorioVendasController) — calculados sob demanda ---
 
 /** Só vendas CONFIRMADA no período. */
+/** De onde veio a venda: `B2B` = venda do ERP (`VendaCabecalho`); `PDV` = venda de balcão (`VendaPdv`). */
+export type CanalVenda = 'B2B' | 'PDV'
+export const CANAL_VENDA_LABEL: Record<CanalVenda, string> = { B2B: 'B2B', PDV: 'PDV (balcão)' }
+
+/** No PDV: `vendaId` é o id da `VendaPdv` (numeração própria), `vendedorId` é sempre nulo e `valorTotal` já vem líquido de devolução. */
 export interface VendaPeriodoItemResponse {
   vendaId: number
   dataVenda: string
   empresaId: number
-  vendedorId: number
-  clienteId: number
+  vendedorId: number | null
+  clienteId: number | null
   valorTotal: number
+  canal: CanalVenda
 }
 
 export interface VendasPeriodoFiltro {
@@ -388,6 +394,8 @@ export interface VendasPeriodoFiltro {
   dataFim: string
   vendedorId?: number
   clienteId?: number
+  /** Vazio = B2B + PDV. Filtrar por vendedor exclui o PDV (balcão não tem vendedor). */
+  canal?: CanalVenda
 }
 
 /** Agregado de `VendaItem` por produto, ordenado por quantidade vendida decrescente. */

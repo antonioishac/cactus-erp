@@ -663,3 +663,19 @@ Fila `vendas.pdv.q` (routing `vendas.pdv`, DLQ `vendas.pdv.q.dlq`). O outbox pas
 - Somar `VendaPdv` nos relatórios de vendas e no BI (hoje só leem `VendaCabecalho`).
 - Cancelamento de uma venda já sincronizada (o PDV reenviaria o mesmo `idOrigem`, que a deduplicação descartaria — precisa de um tipo de registro de cancelamento próprio).
 
+## 14. Vendas do PDV nos relatórios de vendas (2026-10-25) ✅
+
+Sem isto, o faturamento de uma loja com PDV saía subestimado: os relatórios do `vendas-service` só liam `VendaCabecalho` (B2B).
+
+- **"Vendas por período"** junta B2B (`CONFIRMADA`) + PDV (`FECHADA`). Cada linha ganhou `canal` (`B2B`/`PDV`) e o relatório aceita `?canal=` (vazio = os dois, inválido = 400). A venda do PDV entra pelo **valor final menos o já devolvido** (a devolução desfaz a venda daquele item), com o dia LOCAL da loja (mesmo fuso de `VendaPdvService`). Filtrar por vendedor exclui o PDV, porque balcão tem operador, não vendedor.
+- **"Produtos mais vendidos"** soma os dois canais (`?canal=` também). No PDV, itens cancelados não entram e quantidade/valor são **líquidos de devolução** (o valor devolvido de cada item é abatido dele). Produto com saldo zero depois das devoluções some da lista.
+- **PDF/Excel**: coluna "Canal" nova; vendedor/cliente nulos saem "—" (antes sairiam `#null`); id da venda do PDV sai "PDV #n", porque `VendaPdv` tem numeração própria e colidia visualmente com a venda B2B de mesmo número (achado na conferência visual do PDF).
+- **Frontend** (`RelatoriosVendasPage`): filtro de canal nas duas abas, coluna Canal com tag, "Consumidor" quando não há cliente, e clique numa venda do PDV abre "Vendas do PDV" (ela não tem tela de detalhe própria).
+- **Validado ao vivo** com 2 vendas do PDV inseridas (uma fechada de R$ 50 com devolução de R$ 20, uma cancelada):
+  - o B2B continuou exatamente em R$ 411,82 (o valor já validado antes, sem regressão);
+  - o PDV entrou com R$ 30, e o total dos dois canais deu R$ 441,82;
+  - a cancelada ficou de fora, e o filtro por vendedor excluiu o PDV;
+  - nos produtos, o canal PDV mostrou 1 un./R$ 20 do item devolvido.
+- PDF renderizado e conferido. No navegador, as duas abas e o download do PDF funcionaram. Dados de teste removidos.
+- **Ainda não**: comissões (não se aplicam ao PDV) e KPIs de venda no BI (ver BACKLOG).
+

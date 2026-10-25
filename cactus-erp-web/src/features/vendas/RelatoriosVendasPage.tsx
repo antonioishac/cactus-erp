@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Flex, Input, Select, Table, Tabs, Typography } from 'antd'
+import { Card, Flex, Input, Select, Table, Tabs, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import AsyncSelect from '@shared/ui/AsyncSelect'
 import ExportarRelatorioButtons from '@shared/ui/ExportarRelatorioButtons'
@@ -14,7 +14,8 @@ import {
   useVendasPorPeriodo,
   useVendedores,
 } from './queries'
-import type { ComissaoVendedorPeriodoResponse, ProdutoMaisVendidoResponse, VendaPeriodoItemResponse, VendedorResponse } from './types'
+import { CANAL_VENDA_LABEL } from './types'
+import type { CanalVenda, ComissaoVendedorPeriodoResponse, ProdutoMaisVendidoResponse, VendaPeriodoItemResponse, VendedorResponse } from './types'
 
 const { Title, Text } = Typography
 
@@ -22,7 +23,10 @@ const moeda = (v: number) => `R$ ${v.toFixed(2)}`
 
 /** `vendedorId` é o id do `Vendedor` (vendas-service), não do colaborador — resolve o
  * nome pelo colaborador vinculado, mesmo critério de `ComissoesListPage`. */
-function VendedorCell({ vendedorId, vendedores }: { vendedorId: number; vendedores: VendedorResponse[] | undefined }) {
+function VendedorCell({ vendedorId, vendedores }: { vendedorId: number | null; vendedores: VendedorResponse[] | undefined }) {
+  if (vendedorId == null) {
+    return <>—</>
+  }
   const vendedor = vendedores?.find((v) => v.id === vendedorId)
   return vendedor ? <ColaboradorResumoCell colaboradorId={vendedor.colaboradorId} /> : <>#{vendedorId}</>
 }
@@ -30,7 +34,8 @@ function VendedorCell({ vendedorId, vendedores }: { vendedorId: number; vendedor
 /**
  * Os 3 relatórios do vendas-service (`RelatorioVendasController`), numa tela só com o
  * período compartilhado entre as abas. Cada aba consulta o JSON pra exibir e exporta
- * PDF/Excel com exatamente os mesmos filtros. Só vendas CONFIRMADA entram nos números.
+ * PDF/Excel com exatamente os mesmos filtros. Entram vendas B2B CONFIRMADA e vendas do PDV FECHADA
+ * (estas líquidas de devolução); o filtro de canal separa os dois.
  */
 export default function RelatoriosVendasPage() {
   const hoje = dayjs()
@@ -94,13 +99,15 @@ function VendasPorPeriodoAba({ dataInicio, dataFim, habilitado, vendedores }: Ab
   const [termoCliente, setTermoCliente] = useState<string | undefined>(undefined)
   const { data: clientes, isLoading: carregandoClientes } = useBuscaClientesParaSelecao(termoCliente)
 
-  const filtro = { dataInicio, dataFim, vendedorId, clienteId }
+  const [canal, setCanal] = useState<CanalVenda | undefined>(undefined)
+  const filtro = { dataInicio, dataFim, vendedorId, clienteId, canal }
   const { data, isLoading } = useVendasPorPeriodo(filtro, habilitado)
   const vendas = data ?? []
 
   return (
     <Flex vertical gap={12}>
       <Flex gap={12} align="center" wrap="wrap">
+        <SeletorCanal value={canal} onChange={setCanal} />
         <Select
           allowClear
           placeholder="Todos os vendedores"
@@ -128,27 +135,41 @@ function VendasPorPeriodoAba({ dataInicio, dataFim, habilitado, vendedores }: Ab
         />
       </Flex>
       <Table<VendaPeriodoItemResponse>
-        rowKey="vendaId"
+        rowKey={(v) => `${v.canal}-${v.vendaId}`}
         size="small"
         loading={isLoading && habilitado}
         dataSource={vendas}
         pagination={false}
         locale={{ emptyText: 'Nenhuma venda confirmada no período' }}
-        onRow={(v) => ({ style: { cursor: 'pointer' }, onClick: () => navigate(`/vendas/vendas/${v.vendaId}`) })}
+        onRow={(v) => ({
+          style: { cursor: 'pointer' },
+          // Venda do PDV não tem tela de detalhe própria: abre a consulta de Vendas do PDV.
+          onClick: () => navigate(v.canal === 'PDV' ? '/vendas/vendas-pdv' : `/vendas/vendas/${v.vendaId}`),
+        })}
         columns={[
-          { title: 'Venda', dataIndex: 'vendaId', width: 90, render: (v: number) => `#${v}` },
+          { title: 'Venda', key: 'venda', width: 100, render: (_, v) => (v.canal === 'PDV' ? `PDV #${v.vendaId}` : `#${v.vendaId}`) },
           { title: 'Data', dataIndex: 'dataVenda', width: 120, render: (v: string) => dayjs(v).format('DD/MM/YYYY') },
           { title: 'Vendedor', key: 'vendedor', render: (_, v) => <VendedorCell vendedorId={v.vendedorId} vendedores={vendedores} /> },
-          { title: 'Cliente', key: 'cliente', render: (_, v) => <ClienteResumoCell clienteId={v.clienteId} /> },
+          {
+            title: 'Cliente',
+            key: 'cliente',
+            render: (_, v) => (v.clienteId != null ? <ClienteResumoCell clienteId={v.clienteId} /> : 'Consumidor'),
+          },
+          {
+            title: 'Canal',
+            dataIndex: 'canal',
+            width: 120,
+            render: (c: CanalVenda) => <Tag color={c === 'PDV' ? 'blue' : 'default'}>{CANAL_VENDA_LABEL[c]}</Tag>,
+          },
           { title: 'Valor total', dataIndex: 'valorTotal', align: 'right', render: moeda },
         ]}
         summary={() =>
           vendas.length > 0 && (
             <Table.Summary.Row>
-              <Table.Summary.Cell index={0} colSpan={4}>
+              <Table.Summary.Cell index={0} colSpan={5}>
                 <Text strong>Total ({vendas.length} venda(s))</Text>
               </Table.Summary.Cell>
-              <Table.Summary.Cell index={4} align="right">
+              <Table.Summary.Cell index={5} align="right">
                 <Text strong>{moeda(vendas.reduce((soma, v) => soma + v.valorTotal, 0))}</Text>
               </Table.Summary.Cell>
             </Table.Summary.Row>
@@ -160,15 +181,20 @@ function VendasPorPeriodoAba({ dataInicio, dataFim, habilitado, vendedores }: Ab
 }
 
 function ProdutosMaisVendidosAba({ dataInicio, dataFim, habilitado }: AbaProps) {
-  const { data, isLoading } = useProdutosMaisVendidos(dataInicio, dataFim, habilitado)
+  const [canal, setCanal] = useState<CanalVenda | undefined>(undefined)
+  const { data, isLoading } = useProdutosMaisVendidos(dataInicio, dataFim, habilitado, canal)
 
   return (
     <Flex vertical gap={12}>
-      <Flex justify="flex-end">
+      <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
+        <Flex gap={12} align="center">
+          <SeletorCanal value={canal} onChange={setCanal} />
+          <Text type="secondary">No PDV, a quantidade e o valor já descontam as devoluções.</Text>
+        </Flex>
         <ExportarRelatorioButtons
           disabled={!habilitado}
           motivoDesabilitado="Informe o período"
-          onExportar={(formato) => exportarProdutosMaisVendidos(dataInicio, dataFim, formato)}
+          onExportar={(formato) => exportarProdutosMaisVendidos(dataInicio, dataFim, formato, canal)}
         />
       </Flex>
       <Table<ProdutoMaisVendidoResponse>
@@ -234,3 +260,18 @@ function ComissoesPorVendedorAba({ dataInicio, dataFim, habilitado, vendedores }
     </Flex>
   )
 }
+
+/** Vazio = B2B + PDV. */
+function SeletorCanal({ value, onChange }: { value: CanalVenda | undefined; onChange: (v: CanalVenda | undefined) => void }) {
+  return (
+    <Select<CanalVenda>
+      allowClear
+      placeholder="Todos os canais"
+      style={{ width: 180 }}
+      value={value}
+      onChange={(v) => onChange(v ?? undefined)}
+      options={(Object.keys(CANAL_VENDA_LABEL) as CanalVenda[]).map((c) => ({ value: c, label: CANAL_VENDA_LABEL[c] }))}
+    />
+  )
+}
+

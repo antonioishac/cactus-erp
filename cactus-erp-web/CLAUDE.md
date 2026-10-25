@@ -2772,3 +2772,7 @@ Sem tela nova: os 5 tipos de registro novos (`SANGRIA`/`SUPRIMENTO`/`ABERTURA_CA
 
 `features/vendas/VendasPdvListPage.tsx` (rota `/vendas/vendas-pdv`, menu Vendas, `VENDAS_CONSULTAR`), com tipos/API/hook em `vendasPdv.ts` (separados da venda B2B de propósito, mesmo motivo do backend). Lista por período e terminal; a linha expandida mostra itens (com quantidade devolvida), pagamento fracionado (rótulo pelo `tPag` oficial, `TPAG_LABEL`, com NSU/rede) e devoluções (quem autorizou). Só leitura, porque a venda nasce no PDV. Rótulos novos: `VENDA_PDV`/`DEVOLUCAO_PDV` na auditoria de sincronização, origem `VENDA_PDV` nos movimentos de caixa. Conferido no navegador com as vendas do teste ao vivo; o único 404 de console é o produto de teste `#2`, inexistente no cadastro (fallback `#id`, comportamento já conhecido).
 
+## Relatórios de vendas com canal B2B + PDV (2026-10-25)
+
+`RelatoriosVendasPage`: "Vendas por Período" e "Produtos Mais Vendidos" ganharam o filtro de canal (`SeletorCanal`; vazio = os dois). A tabela de vendas ganhou a coluna Canal, `rowKey` composto `canal-vendaId` (os ids de `VendaPdv` e `VendaCabecalho` colidem), "PDV #n" no número, "—"/"Consumidor" quando não há vendedor ou cliente, e clique numa venda do PDV leva a "Vendas do PDV". `VendaPeriodoItemResponse.vendedorId`/`clienteId` passaram a `number | null`. Conferido no navegador contra o backend real (detalhe em `FASE6_SINCRONIZACAO_PDV.md`, seção 14).
+

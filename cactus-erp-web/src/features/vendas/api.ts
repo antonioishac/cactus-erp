@@ -3,6 +3,7 @@ import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type { AppError } from '@shared/api/problemDetail'
 import type {
+  CanalVenda,
   ComissaoVendedorPeriodoResponse,
   ProdutoMaisVendidoResponse,
   VendaPeriodoItemResponse,
@@ -432,17 +433,23 @@ export async function exportarVendasPorPeriodo(filtro: VendasPeriodoFiltro, form
   await baixarArquivo(vendasApi, `/api/v1/relatorios/vendas-periodo/${formato}`, `vendas-periodo.${formato}`, { ...filtro })
 }
 
-export async function buscarProdutosMaisVendidos(dataInicio: string, dataFim: string): Promise<ProdutoMaisVendidoResponse[]> {
+export async function buscarProdutosMaisVendidos(dataInicio: string, dataFim: string, canal?: CanalVenda): Promise<ProdutoMaisVendidoResponse[]> {
   const { data } = await vendasApi.get<ProdutoMaisVendidoResponse[]>('/api/v1/relatorios/produtos-mais-vendidos', {
-    params: { dataInicio, dataFim },
+    params: { dataInicio, dataFim, canal },
   })
   return data
 }
 
-export async function exportarProdutosMaisVendidos(dataInicio: string, dataFim: string, formato: FormatoRelatorio): Promise<void> {
+export async function exportarProdutosMaisVendidos(
+  dataInicio: string,
+  dataFim: string,
+  formato: FormatoRelatorio,
+  canal?: CanalVenda,
+): Promise<void> {
   await baixarArquivo(vendasApi, `/api/v1/relatorios/produtos-mais-vendidos/${formato}`, `produtos-mais-vendidos.${formato}`, {
     dataInicio,
     dataFim,
+    canal,
   })
 }
 

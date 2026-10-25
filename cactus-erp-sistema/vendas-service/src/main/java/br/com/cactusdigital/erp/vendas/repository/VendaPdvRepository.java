@@ -30,6 +30,14 @@ public interface VendaPdvRepository extends JpaRepository<VendaPdv, Long> {
     Page<VendaPdv> buscarPorPeriodo(@Param("empresaId") Long empresaId, @Param("inicio") Instant inicio,
             @Param("fim") Instant fim, @Param("pdvCaixaId") Long pdvCaixaId, Pageable pageable);
 
+    /** Ids das vendas {@code FECHADA} no intervalo, de todas as empresas — mesmo escopo dos relatórios B2B. */
+    @Query("""
+            SELECT v.id FROM VendaPdv v
+            WHERE v.situacao = br.com.cactusdigital.erp.vendas.entity.SituacaoVendaPdv.FECHADA
+              AND v.dataHoraVenda >= :inicio AND v.dataHoraVenda < :fim
+            """)
+    List<Long> buscarIdsFechadasNoPeriodo(@Param("inicio") Instant inicio, @Param("fim") Instant fim);
+
     @Query("SELECT DISTINCT v FROM VendaPdv v LEFT JOIN FETCH v.itens WHERE v.id IN :ids")
     List<VendaPdv> hidratarItens(@Param("ids") List<Long> ids);
 
