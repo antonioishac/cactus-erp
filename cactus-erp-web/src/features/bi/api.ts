@@ -10,6 +10,8 @@ import type {
   EstoqueValorFiltro,
   EstoqueValorIndicadorResponse,
   EtlExecucaoRequest,
+  FaturamentoFiltro,
+  FaturamentoIndicadorResponse,
 } from './types'
 
 // --- Indicadores (só leitura, snapshots do ETL) ---
@@ -57,6 +59,15 @@ export async function exportarCurvaAbc(filtro: CurvaAbcFiltro, formato: FormatoR
 
 export async function exportarComprasFornecedor(filtro: ComprasFornecedorFiltro, formato: FormatoRelatorio): Promise<void> {
   await baixarArquivo(biApi, `/api/v1/indicadores/compras-fornecedor/${formato}`, `compras-fornecedor.${formato}`, { ...filtro })
+}
+
+export async function buscarFaturamento(filtro: FaturamentoFiltro): Promise<FaturamentoIndicadorResponse> {
+  const { data } = await biApi.get<FaturamentoIndicadorResponse>('/api/v1/indicadores/faturamento', { params: filtro })
+  return data
+}
+
+export async function exportarFaturamento(filtro: FaturamentoFiltro, formato: FormatoRelatorio): Promise<void> {
+  await baixarArquivo(biApi, `/api/v1/indicadores/faturamento/${formato}`, `faturamento.${formato}`, { ...filtro })
 }
 
 // --- ETL ---

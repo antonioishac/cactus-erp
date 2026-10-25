@@ -61,6 +61,21 @@ public class EmissaoFiscalService {
     /** Extrai "ChDFe=..." (aceita espaços e quebra por fim de linha). */
     private static final Pattern PADRAO_CHAVE_ACESSO =
             Pattern.compile("(?im)^\\s*ChDFe\\s*=\\s*(.+?)\\s*$");
+    /** Extrai "CStat=..." (status da SEFAZ). */
+    private static final Pattern PADRAO_CSTAT =
+            Pattern.compile("(?im)^\\s*CStat\\s*=\\s*(\\d+)\\s*$");
+    /** Extrai "XMotivo=...". */
+    private static final Pattern PADRAO_XMOTIVO =
+            Pattern.compile("(?im)^\\s*XMotivo\\s*=\\s*(.+?)\\s*$");
+    /**
+     * CStat de cancelamento aceito: 135 (evento registrado e vinculado),
+     * 155 (cancelamento homologado fora de prazo) e 101 (cancelamento
+     * homologado, código do exemplo da documentação do ACBr). O ACBr responde
+     * {@code OK:} quando a comunicação funcionou, não quando a SEFAZ aceitou
+     * — por isso o CStat é conferido explicitamente.
+     */
+    private static final java.util.Set<String> CSTAT_CANCELAMENTO_ACEITO = java.util.Set.of("135", "155", "101");
+
     /** Extrai "NProt=...". */
     private static final Pattern PADRAO_PROTOCOLO =
             Pattern.compile("(?im)^\\s*NProt\\s*=\\s*(.+?)\\s*$");
@@ -148,6 +163,54 @@ public class EmissaoFiscalService {
                                 + "Venda concluída; emissão fiscal precisa ser reprocessada manualmente.");
             }
         }
+    }
+
+    /**
+     * Cancela na SEFAZ a NFC-e de um cupom já autorizado. Diferente de
+     * {@link #emitir}, <b>lança exceção</b> em qualquer falha: sem a
+     * confirmação da SEFAZ a venda não pode ser cancelada localmente
+     * (ficaria cancelada no PDV e válida no fisco).
+     *
+     * @return protocolo do evento de cancelamento
+     */
+    public String cancelarNfce(PdvCaixa caixa, PdvVendaCabecalho cupom, String justificativa) {
+        PdvConfiguracao config = caixa == null ? null
+                : configuracaoRepository.findFirstByCaixaId(caixa.getId()).orElse(null);
+        if (config == null || isBlank(config.getAcbrMonitorEndereco()) || config.getAcbrMonitorPorta() == null) {
+            throw new IllegalStateException("ACBr Monitor não configurado neste caixa — não é possível cancelar a NFC-e.");
+        }
+        LojaConfiguracao loja = lojaConfiguracaoRepository.buscarConfiguracao()
+                .orElseThrow(() -> new IllegalStateException("Configuração da loja (CNPJ do emitente) não encontrada."));
+        if (isBlank(loja.getCnpj())) {
+            throw new IllegalStateException("CNPJ do emitente não configurado na loja — a SEFAZ exige no cancelamento da NFC-e.");
+        }
+        String comando = comandoBuilder.construirComandoCancelamentoNfce(
+                cupom.getChaveAcessoFiscal(), justificativa, loja.getCnpj());
+
+        String resposta;
+        try {
+            resposta = acbrClient.enviarComando(config.getAcbrMonitorEndereco(), config.getAcbrMonitorPorta(), comando);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Falha de comunicação com o ACBr Monitor: " + ex.getMessage(), ex);
+        }
+        return interpretarRespostaCancelamento(resposta);
+    }
+
+    /** Package-private e estático para teste unitário direto ({@code EmissaoFiscalServiceTest}). */
+    static String interpretarRespostaCancelamento(String resposta) {
+        if (resposta == null || resposta.isBlank()) {
+            throw new IllegalStateException("ACBr Monitor não respondeu ao cancelamento.");
+        }
+        if (resposta.trim().toUpperCase(Locale.ROOT).startsWith("ERRO")) {
+            throw new IllegalStateException("ACBr Monitor recusou o cancelamento: " + resposta.trim());
+        }
+        String cStat = extrair(PADRAO_CSTAT, resposta, 3);
+        if (cStat == null || !CSTAT_CANCELAMENTO_ACEITO.contains(cStat)) {
+            String motivo = extrair(PADRAO_XMOTIVO, resposta, 255);
+            throw new IllegalStateException("SEFAZ não homologou o cancelamento (CStat=" + cStat + "): "
+                    + (motivo != null ? motivo : resposta.trim()));
+        }
+        return extrairProtocoloAutorizacao(resposta);
     }
 
     /**

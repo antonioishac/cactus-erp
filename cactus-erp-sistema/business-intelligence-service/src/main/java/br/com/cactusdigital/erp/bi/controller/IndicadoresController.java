@@ -4,7 +4,9 @@ import br.com.cactusdigital.erp.common.rest.PageResponse;
 import br.com.cactusdigital.erp.common.report.ReportEngine;
 import br.com.cactusdigital.erp.common.report.ReportFormat;
 import br.com.cactusdigital.erp.common.report.ReportHttpSupport;
+import br.com.cactusdigital.erp.bi.dto.CanalVenda;
 import br.com.cactusdigital.erp.bi.dto.ComprasFornecedorIndicadorResponse;
+import br.com.cactusdigital.erp.bi.dto.FaturamentoIndicadorResponse;
 import br.com.cactusdigital.erp.bi.dto.CurvaAbcIndicadorResponse;
 import br.com.cactusdigital.erp.bi.dto.EstoqueValorIndicadorResponse;
 import br.com.cactusdigital.erp.bi.service.IndicadoresService;
@@ -157,6 +159,61 @@ public class IndicadoresController {
         parametros.put("P_DATA_GERACAO", dataGeracao());
         byte[] conteudo = reportEngine.gerar(getClass().getClassLoader(), "reports/compras-fornecedor.jrxml", dados, parametros, formato);
         return ReportHttpSupport.download(conteudo, formato, "compras-fornecedor");
+    }
+
+    // ----------------------------------------------------------------------- Faturamento
+
+    @Operation(summary = "Faturamento e ticket médio", description = "Série diária por empresa × canal (B2B + PDV) e totais do período. "
+            + "Ticket médio = valor líquido / quantidade de vendas. Default: mês atual até hoje. Canal vazio = os dois")
+    @ApiResponse(responseCode = "200", description = "Totais e série diária")
+    @GetMapping("/faturamento")
+    @PreAuthorize("hasAuthority('BI_CONSULTAR')")
+    public FaturamentoIndicadorResponse faturamento(
+            @RequestParam(required = false) LocalDate dataInicio, @RequestParam(required = false) LocalDate dataFim,
+            @RequestParam(required = false) Long empresaId, @RequestParam(required = false) CanalVenda canal) {
+        return service.faturamento(inicioOuPadrao(dataInicio), fimOuPadrao(dataFim), empresaId, canal);
+    }
+
+    @Operation(summary = "Exportar faturamento em PDF")
+    @ApiResponse(responseCode = "200", description = "Arquivo PDF gerado")
+    @GetMapping(value = "/faturamento/pdf", produces = "application/pdf")
+    @PreAuthorize("hasAuthority('BI_CONSULTAR')")
+    public ResponseEntity<byte[]> faturamentoPdf(
+            @RequestParam(required = false) LocalDate dataInicio, @RequestParam(required = false) LocalDate dataFim,
+            @RequestParam(required = false) Long empresaId, @RequestParam(required = false) CanalVenda canal) {
+        return exportarFaturamento(dataInicio, dataFim, empresaId, canal, ReportFormat.PDF);
+    }
+
+    @Operation(summary = "Exportar faturamento em Excel")
+    @ApiResponse(responseCode = "200", description = "Arquivo XLSX gerado")
+    @GetMapping(value = "/faturamento/xlsx", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @PreAuthorize("hasAuthority('BI_CONSULTAR')")
+    public ResponseEntity<byte[]> faturamentoXlsx(
+            @RequestParam(required = false) LocalDate dataInicio, @RequestParam(required = false) LocalDate dataFim,
+            @RequestParam(required = false) Long empresaId, @RequestParam(required = false) CanalVenda canal) {
+        return exportarFaturamento(dataInicio, dataFim, empresaId, canal, ReportFormat.XLSX);
+    }
+
+    private ResponseEntity<byte[]> exportarFaturamento(LocalDate dataInicio, LocalDate dataFim, Long empresaId, CanalVenda canal, ReportFormat formato) {
+        LocalDate inicio = inicioOuPadrao(dataInicio);
+        LocalDate fim = fimOuPadrao(dataFim);
+        FaturamentoIndicadorResponse resultado = service.faturamento(inicio, fim, empresaId, canal);
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("P_FILTRO", "Período: " + inicio.format(FORMATO_DATA_REFERENCIA) + " a " + fim.format(FORMATO_DATA_REFERENCIA)
+                + " | Empresa: " + (empresaId != null ? "#" + empresaId : "Todas")
+                + " | Canal: " + (canal != null ? canal.name() : "Todos"));
+        parametros.put("P_DATA_GERACAO", dataGeracao());
+        parametros.put("P_TICKET_MEDIO", resultado.ticketMedio());
+        byte[] conteudo = reportEngine.gerar(getClass().getClassLoader(), "reports/faturamento.jrxml", resultado.dias(), parametros, formato);
+        return ReportHttpSupport.download(conteudo, formato, "faturamento");
+    }
+
+    private LocalDate inicioOuPadrao(LocalDate dataInicio) {
+        return dataInicio != null ? dataInicio : LocalDate.now().withDayOfMonth(1);
+    }
+
+    private LocalDate fimOuPadrao(LocalDate dataFim) {
+        return dataFim != null ? dataFim : LocalDate.now();
     }
 
     // -------------------------------------------------------------------------- helpers

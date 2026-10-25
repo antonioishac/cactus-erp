@@ -195,6 +195,29 @@ public class PdvVendaCabecalho {
     private Integer idGarcom;
 
 
+    // ====== Cancelamento de venda já FECHADA (CancelamentoVendaService) ========
+    // Nulos para cupom aberto que foi abortado (cancelarCupom) — ali não há
+    // documento fiscal nem autorização a registrar.
+    @Column(name = "DATA_CANCELAMENTO")
+    private LocalDate dataCancelamento;
+
+    @Column(name = "HORA_CANCELAMENTO", length = 8)
+    private String horaCancelamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_OPERADOR_CANCELAMENTO")
+    private PdvOperador operadorCancelamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_GERENTE_CANCELAMENTO")
+    private PdvOperador gerenteCancelamento;
+
+    @Column(name = "JUSTIFICATIVA_CANCELAMENTO", length = 255)
+    private String justificativaCancelamento;
+
+    @Column(name = "PROTOCOLO_CANCELAMENTO", length = 30)
+    private String protocoloCancelamento;
+
     // ====== Construtores =====================================================
     public PdvVendaCabecalho() {}
 
@@ -211,6 +234,24 @@ public class PdvVendaCabecalho {
     }
 
     // ====== Getters / Setters ===============================================
+    public LocalDate getDataCancelamento() { return dataCancelamento; }
+    public void setDataCancelamento(LocalDate dataCancelamento) { this.dataCancelamento = dataCancelamento; }
+
+    public String getHoraCancelamento() { return horaCancelamento; }
+    public void setHoraCancelamento(String horaCancelamento) { this.horaCancelamento = horaCancelamento; }
+
+    public PdvOperador getOperadorCancelamento() { return operadorCancelamento; }
+    public void setOperadorCancelamento(PdvOperador operadorCancelamento) { this.operadorCancelamento = operadorCancelamento; }
+
+    public PdvOperador getGerenteCancelamento() { return gerenteCancelamento; }
+    public void setGerenteCancelamento(PdvOperador gerenteCancelamento) { this.gerenteCancelamento = gerenteCancelamento; }
+
+    public String getJustificativaCancelamento() { return justificativaCancelamento; }
+    public void setJustificativaCancelamento(String justificativaCancelamento) { this.justificativaCancelamento = justificativaCancelamento; }
+
+    public String getProtocoloCancelamento() { return protocoloCancelamento; }
+    public void setProtocoloCancelamento(String protocoloCancelamento) { this.protocoloCancelamento = protocoloCancelamento; }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

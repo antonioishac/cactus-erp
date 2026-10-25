@@ -59,6 +59,7 @@ import EstoqueValorPage from '@features/bi/EstoqueValorPage'
 import CurvaAbcIndicadorPage from '@features/bi/CurvaAbcIndicadorPage'
 import ComprasFornecedorPage from '@features/bi/ComprasFornecedorPage'
 import EtlExecucaoPage from '@features/bi/EtlExecucaoPage'
+import FaturamentoPage from '@features/bi/FaturamentoPage'
 import VendedoresListPage from '@features/vendas/VendedoresListPage'
 import VendedorFormPage from '@features/vendas/VendedorFormPage'
 import ComissaoPerfisListPage from '@features/vendas/ComissaoPerfisListPage'
@@ -364,6 +365,7 @@ const router = createBrowserRouter([
           { path: 'estoque-valor', element: <EstoqueValorPage /> },
           { path: 'curva-abc', element: <CurvaAbcIndicadorPage /> },
           { path: 'compras-fornecedor', element: <ComprasFornecedorPage /> },
+          { path: 'faturamento', element: <FaturamentoPage /> },
           { path: 'etl', element: <EtlExecucaoPage /> },
         ],
       },

@@ -37,4 +37,17 @@ public class PdvFinanceiroController {
     public VendaPdvDinheiroResponse registrarDinheiroVenda(@Valid @RequestBody VendaPdvDinheiroRequest request) {
         return new VendaPdvDinheiroResponse(service.registrarDinheiroVenda(request));
     }
+
+    @Operation(summary = "Estornar o dinheiro de uma venda do PDV cancelada depois de fechada",
+            description = "Chamado pelo vendas-service ao registrar o cancelamento. SAÍDA do valor na conta do terminal (dataVenda = data do cancelamento). "
+                    + "Idempotente pelo registroId do cancelamento (aplicado=false na repetição)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Processado (aplicado=true) ou já processado antes (aplicado=false)"),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @PostMapping("/vendas/dinheiro/estorno")
+    @PreAuthorize("hasAuthority('FINANCEIRO_LANCAR')")
+    public VendaPdvDinheiroResponse estornarDinheiroVenda(@Valid @RequestBody VendaPdvDinheiroRequest request) {
+        return new VendaPdvDinheiroResponse(service.estornarDinheiroVenda(request));
+    }
 }

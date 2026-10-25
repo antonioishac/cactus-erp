@@ -116,6 +116,20 @@ export default function VendasPdvListPage() {
 function DetalheVenda({ venda }: { venda: VendaPdv }) {
   return (
     <Flex vertical gap={12}>
+      {venda.dataHoraCancelamento && (
+        <Alert
+          type="warning"
+          showIcon
+          title={`Cancelada depois de fechada em ${dayjs(venda.dataHoraCancelamento).format('DD/MM/YYYY HH:mm')}`}
+          description={
+            <>
+              {venda.justificativaCancelamento} · autorizado pelo gerente #{venda.pdvGerenteCancelamentoId}
+              {venda.protocoloCancelamento && ` · protocolo SEFAZ ${venda.protocoloCancelamento}`}. O dinheiro desta
+              venda foi estornado do caixa do terminal.
+            </>
+          }
+        />
+      )}
       <Descriptions size="small" column={4}>
         <Descriptions.Item label="Id no PDV">{venda.idOrigem}</Descriptions.Item>
         <Descriptions.Item label="Total produtos">{reais(venda.valorTotalProdutos)}</Descriptions.Item>

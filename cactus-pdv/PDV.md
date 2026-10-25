@@ -682,7 +682,7 @@ CREATE TABLE `PDV_VENDA_CABECALHO` (
   `CUPOM_CANCELADO` char(1) DEFAULT NULL COMMENT 'S=SIM | N=NAO',
   `HASH_REGISTRO` varchar(64) DEFAULT NULL COMMENT 'Hash SHA-256 (64 chars hex) calculado pelo VendaService antes de persistir. Usado para auditoria fiscal PAF-NFC-e.',
   `TIPO_OPERACAO` char(3) DEFAULT NULL COMMENT 'NFC = NFC-e\nSAT = SAT\nMFE = MFE\nREC = RECIBO',
-  `STATUS_FISCAL` char(1) DEFAULT NULL COMMENT 'P=Pendente reprocessamento | E=Emitido | N=Nao configurado (sem ACBr). Adicionado na fase 6 (EmissaoFiscalService) — NULL para vendas anteriores a essa feature.',
+  `STATUS_FISCAL` char(1) DEFAULT NULL COMMENT 'P=Pendente reprocessamento | E=Emitido | N=Nao configurado (sem ACBr) | C=Venda cancelada antes da emissão pendente. Adicionado na fase 6 (EmissaoFiscalService) — NULL para vendas anteriores a essa feature.',
   `CHAVE_ACESSO_FISCAL` varchar(44) DEFAULT NULL COMMENT 'Chave de acesso do documento fiscal (NFC-e/SAT/MFE), quando disponivel. Ainda nao preenchida pelo EmissaoFiscalService — parsing da resposta do ACBr pendente de validacao.',
   `PROTOCOLO_AUTORIZACAO` varchar(30) DEFAULT NULL COMMENT 'Protocolo de autorizacao retornado pela SEFAZ/ACBr. Mesma ressalva de CHAVE_ACESSO_FISCAL.',
   `MENSAGEM_FISCAL` varchar(500) DEFAULT NULL COMMENT 'Ultima mensagem/erro retornado pela tentativa de emissao fiscal — usado para diagnostico e reprocessamento.',
@@ -691,6 +691,12 @@ CREATE TABLE `PDV_VENDA_CABECALHO` (
   `ID_GARCOM` int unsigned DEFAULT NULL COMMENT 'Reservado para tabela GARCOM (futuro)',
   `ID_GERADO_DISPOSITIVO` int DEFAULT NULL,
   `ID_DISPOSITIVO` varchar(100) DEFAULT NULL,
+  `DATA_CANCELAMENTO` date DEFAULT NULL COMMENT 'Cancelamento de venda JÁ FECHADA (CancelamentoVendaService). Nulo para cupom aberto abortado',
+  `HORA_CANCELAMENTO` varchar(8) DEFAULT NULL,
+  `ID_OPERADOR_CANCELAMENTO` int unsigned DEFAULT NULL,
+  `ID_GERENTE_CANCELAMENTO` int unsigned DEFAULT NULL COMMENT 'Gerente/supervisor que autorizou — sempre obrigatório no cancelamento de venda fechada',
+  `JUSTIFICATIVA_CANCELAMENTO` varchar(255) DEFAULT NULL COMMENT '15 a 255 caracteres (regra do evento de cancelamento da NFC-e)',
+  `PROTOCOLO_CANCELAMENTO` varchar(30) DEFAULT NULL COMMENT 'Protocolo do evento de cancelamento da NFC-e na SEFAZ; nulo se não havia documento autorizado',
   PRIMARY KEY (`ID`),
   KEY `FK_PDV_VENDA_CABECALHO_CLIENTE` (`ID_CLIENTE`),
   KEY `FK_PDV_VENDA_CABECALHO_COLABORADOR` (`ID_COLABORADOR`),
@@ -700,8 +706,21 @@ CREATE TABLE `PDV_VENDA_CABECALHO` (
   CONSTRAINT `FK_PDV_VENDA_CABECALHO_CLIENTE` FOREIGN KEY (`ID_CLIENTE`) REFERENCES `CLIENTE` (`ID`),
   CONSTRAINT `FK_PDV_VENDA_CABECALHO_COLABORADOR` FOREIGN KEY (`ID_COLABORADOR`) REFERENCES `COLABORADOR` (`ID`),
   CONSTRAINT `FK_PDV_VENDA_CABECALHO_MOVIMENTO` FOREIGN KEY (`ID_PDV_MOVIMENTO`) REFERENCES `PDV_MOVIMENTO` (`ID`),
-  CONSTRAINT `FK_PDV_VENDA_CONTA_ABERTA` FOREIGN KEY (`ID_CONTA_ABERTA`) REFERENCES `CONTA_ABERTA` (`ID`)
+  CONSTRAINT `FK_PDV_VENDA_CONTA_ABERTA` FOREIGN KEY (`ID_CONTA_ABERTA`) REFERENCES `CONTA_ABERTA` (`ID`),
+  CONSTRAINT `FK_PDV_VENDA_OPERADOR_CANCELAMENTO` FOREIGN KEY (`ID_OPERADOR_CANCELAMENTO`) REFERENCES `PDV_OPERADOR` (`ID`),
+  CONSTRAINT `FK_PDV_VENDA_GERENTE_CANCELAMENTO` FOREIGN KEY (`ID_GERENTE_CANCELAMENTO`) REFERENCES `PDV_OPERADOR` (`ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
+
+-- Alteração aplicada em 2026-10-25 (cancelamento de venda finalizada) num banco já existente:
+-- ALTER TABLE `PDV_VENDA_CABECALHO`
+--   ADD COLUMN `DATA_CANCELAMENTO` date DEFAULT NULL,
+--   ADD COLUMN `HORA_CANCELAMENTO` varchar(8) DEFAULT NULL,
+--   ADD COLUMN `ID_OPERADOR_CANCELAMENTO` int unsigned DEFAULT NULL,
+--   ADD COLUMN `ID_GERENTE_CANCELAMENTO` int unsigned DEFAULT NULL,
+--   ADD COLUMN `JUSTIFICATIVA_CANCELAMENTO` varchar(255) DEFAULT NULL,
+--   ADD COLUMN `PROTOCOLO_CANCELAMENTO` varchar(30) DEFAULT NULL,
+--   ADD CONSTRAINT `FK_PDV_VENDA_OPERADOR_CANCELAMENTO` FOREIGN KEY (`ID_OPERADOR_CANCELAMENTO`) REFERENCES `PDV_OPERADOR` (`ID`),
+--   ADD CONSTRAINT `FK_PDV_VENDA_GERENTE_CANCELAMENTO` FOREIGN KEY (`ID_GERENTE_CANCELAMENTO`) REFERENCES `PDV_OPERADOR` (`ID`);
 
 
 -- cactus_pdv.PDV_VENDA_DETALHE definição

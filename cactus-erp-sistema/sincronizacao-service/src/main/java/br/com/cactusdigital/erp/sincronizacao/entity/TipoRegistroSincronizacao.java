@@ -21,7 +21,10 @@ public enum TipoRegistroSincronizacao {
     /** {@code PDV_VENDA_CABECALHO} + itens + {@code PDV_TOTAL_TIPO_PAGAMENTO} (pagamento fracionado) — vendas-service. */
     VENDA_PDV,
     /** {@code PDV_DEVOLUCAO} — devolução pós-venda de um item, vendas-service. */
-    DEVOLUCAO_PDV;
+    DEVOLUCAO_PDV,
+    /** Cancelamento de uma venda do PDV JÁ FECHADA (e já enviada), com NFC-e cancelada quando havia — vendas-service.
+     * Tipo próprio porque reenviar a venda com o mesmo {@code idOrigem} seria descartado pela deduplicação. */
+    CANCELAMENTO_VENDA_PDV;
 
     /** Os tipos cujo destino é o {@code financeiro-service} (mesma fila, despachados lá pelo tipo). */
     public boolean isFinanceiro() {
@@ -30,6 +33,6 @@ public enum TipoRegistroSincronizacao {
 
     /** Os tipos cujo destino é o {@code vendas-service} (mesma fila, despachados lá pelo tipo). */
     public boolean isVendas() {
-        return this == VENDA_PDV || this == DEVOLUCAO_PDV;
+        return this == VENDA_PDV || this == DEVOLUCAO_PDV || this == CANCELAMENTO_VENDA_PDV;
     }
 }

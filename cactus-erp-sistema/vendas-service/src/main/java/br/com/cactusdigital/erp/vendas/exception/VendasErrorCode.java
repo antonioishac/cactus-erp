@@ -28,7 +28,8 @@ public enum VendasErrorCode implements ErrorCode {
     VENDA_PDV_RECEBIDO_MENOS_TROCO_DIVERGE_DO_FINAL("Valor recebido menos troco não bate com o valor final da venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY),
     VENDA_PDV_ITEM_NAO_ENCONTRADO("O item informado na devolução não existe na venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY),
     VENDA_PDV_CANCELADA_NAO_ADMITE_DEVOLUCAO("Venda do PDV cancelada não admite devolução", HttpStatus.UNPROCESSABLE_ENTITY),
-    VENDA_PDV_DEVOLUCAO_ACIMA_DO_VENDIDO("A quantidade devolvida excede o que ainda resta do item na venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY);
+    VENDA_PDV_DEVOLUCAO_ACIMA_DO_VENDIDO("A quantidade devolvida excede o que ainda resta do item na venda do PDV", HttpStatus.UNPROCESSABLE_ENTITY),
+    VENDA_PDV_JA_CANCELADA("A venda do PDV já está cancelada", HttpStatus.CONFLICT);
 
     private final String mensagemPadrao;
     private final HttpStatus httpStatusPadrao;

@@ -101,6 +101,12 @@ export interface VendaPdv {
   valorRecebido: number
   valorTroco: number
   valorDinheiroLiquido: number
+  /** Só quando a venda chegou fechada e foi cancelada depois (CANCELAMENTO_VENDA_PDV). */
+  dataHoraCancelamento: string | null
+  pdvOperadorCancelamentoId: number | null
+  pdvGerenteCancelamentoId: number | null
+  justificativaCancelamento: string | null
+  protocoloCancelamento: string | null
   itens: VendaPdvItem[]
   pagamentos: VendaPdvPagamento[]
   devolucoes: VendaPdvDevolucao[]

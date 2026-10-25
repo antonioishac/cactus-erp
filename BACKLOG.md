@@ -399,11 +399,21 @@ outros itens deste backlog.
       - [x] ~~Relatórios de vendas somarem `VendaPdv`~~ — feito (2026-10-25):
             "Vendas por período" e "Produtos mais vendidos" passam a juntar B2B +
             PDV, com filtro de canal (ver `FASE6_SINCRONIZACAO_PDV.md`, seção 14).
-      - [ ] BI: o `business-intelligence-service` não tem nenhum KPI de venda
-            (faturamento, ticket médio). Agora existe fonte real (B2B + PDV).
-      - [ ] Cancelamento de venda do PDV já sincronizada: precisa de um tipo de
-            registro próprio (reenviar o mesmo `idOrigem` é descartado pela
-            deduplicação).
+      - [x] ~~KPIs de venda no BI~~ — feito (2026-10-25): faturamento diário e
+            ticket médio por empresa × canal (B2B + PDV), tela BI > Faturamento.
+      - [ ] BI de vendas: faturamento por vendedor/produto/forma de pagamento e
+            comparativo com período anterior ainda não existem no BI.
+      - [x] ~~Cancelamento de venda do PDV já sincronizada~~ — feito (2026-10-25):
+            cancelamento de venda finalizada no PDV (com evento de cancelamento da
+            NFC-e) + tipo `CANCELAMENTO_VENDA_PDV` no ERP (ver
+            `FASE6_SINCRONIZACAO_PDV.md`, seção 15).
+      - [ ] PDV não tem cliente de envio para o ERP (nenhum tipo de registro sai
+            sozinho do PDV hoje; o ERP foi validado recebendo lotes direto na API).
+            Pré-requisito para a sincronização funcionar de ponta a ponta.
+      - [ ] Cancelamento de SAT/MF-e no PDV (só NFC-e implementado; SAT/MF-e
+            autorizado é recusado com mensagem, caminho é a devolução).
+      - [ ] Cancelamento da NFC-e nunca exercitado contra ACBr/SEFAZ real (mesmo
+            bloqueio de certificado de produção da emissão).
       Pendências pequenas que sobraram:
       - [x] ~~Motivo de `ERRO` vindo da DLQ é genérico~~ — feito (2026-10-24): o `DlqListener` lê o header
             `x-exception-message`. Texto original:

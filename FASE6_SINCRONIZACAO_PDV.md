@@ -679,3 +679,32 @@ Sem isto, o faturamento de uma loja com PDV saía subestimado: os relatórios do
 - PDF renderizado e conferido. No navegador, as duas abas e o download do PDF funcionaram. Dados de teste removidos.
 - **Ainda não**: comissões (não se aplicam ao PDV) e KPIs de venda no BI (ver BACKLOG).
 
+## 15. Cancelamento de venda já fechada (PDV + ERP, 2026-10-25) ✅
+
+**Achado antes de codar:** o PDV só cancelava cupom EM ABERTO (`VendaService.cancelarCupom`). Venda finalizada não tinha cancelamento e não existia cancelamento de NFC-e, então o cenário "venda já sincronizada sendo cancelada" nem acontecia. Decisão do usuário: fazer as duas pontas.
+
+### PDV (`CancelamentoVendaService`, tela Consulta de Cupom, atalho F8)
+- Só venda `F`, com autorização gerencial (`AutorizacaoGerencialDialog`) e justificativa de 15 a 255 caracteres.
+- Só com o turno da venda ainda aberto: depois do fechamento a conferência já contou a venda. Fora do turno, o caminho é a devolução.
+- **NFC-e autorizada:** cancela primeiro na SEFAZ com `NFE.CancelarNFe("chave","justificativa","CNPJ")` (assinatura conferida na documentação oficial do ACBr), dentro do prazo (`cactus.pdv.fiscal.prazo-cancelamento-nfce-minutos`, padrão 30). Sucesso exige `CStat` 135, 155 ou 101. O ACBr responde `OK:` mesmo quando a SEFAZ rejeita, então o `CStat` é conferido. Se a SEFAZ recusar, nada muda no PDV. Sem CNPJ do emitente configurado, recusa antes de chamar o ACBr. SAT/MF-e autorizado: recusado (comando próprio, não mapeado).
+- **Sem documento autorizado:** cancela só localmente. Se a emissão estava pendente, o status fiscal vira `C` e o `ReprocessamentoFiscalService` passou a ignorar venda que não seja `F` (antes emitiria NFC-e de uma venda cancelada).
+- **Estoque:** reentrada `D` do que ainda não tinha sido devolvido de cada item. **Dinheiro:** nada a lançar no PDV, porque a conferência só soma vendas `F`; reembolso em dinheiro sai como sangria, igual à devolução.
+- DDL: 6 colunas novas em `PDV_VENDA_CABECALHO` (data/hora, operador, gerente, justificativa, protocolo), aplicadas no MySQL local e registradas no `PDV.md`/`BANCO_PDV.md`.
+- Se a SEFAZ homologar e a gravação local falhar, o erro é logado como inconsistência para correção manual (a parte irreversível vem primeiro de propósito).
+
+### Contrato `CANCELAMENTO_VENDA_PDV` (fila `vendas.pdv.q`)
+| Obrigatórios | Opcionais |
+|---|---|
+| `vendaIdOrigem`, `pdvGerenteAutorizadorId`, `dataHoraCancelamento` (`yyyy-MM-ddTHH:mm:ss`, hora local), `justificativa` (15 a 255, validado na entrada → `REJEITADO`) | `pdvOperadorId`, `protocoloCancelamento` |
+
+### ERP
+- `vendas-service`: a `VendaPdv` vira `CANCELADA` e guarda os dados do cancelamento (`V5__venda_pdv_cancelamento.sql`), idempotente por `registro_cancelamento_id`. Venda ainda não recebida = erro técnico (retentado), igual à devolução. Venda já cancelada = `VENDA_PDV_JA_CANCELADA` (vai pra `ERRO` sem retentar). Estoque volta pelo `ESTOQUE_MOVIMENTO` `D` do PDV; relatórios e BI já ignoram vendas canceladas.
+- `financeiro-service`: `POST /api/v1/pdv/vendas/dinheiro/estorno` lança SAÍDA (`CANCELAMENTO_VENDA_PDV`) do mesmo dinheiro líquido na conta do terminal, na data do cancelamento. Idempotente pelo registro do cancelamento.
+- Frontend: "Vendas do PDV" mostra, na linha expandida, quando, por quê, quem autorizou e o protocolo da SEFAZ.
+
+### Validação
+- **PDV:** 22 testes (`CancelamentoNfceRespostaTest`, `CancelamentoVendaServiceIT` contra o MySQL local com rollback, `EmissaoFiscalServiceTest`). Cobrem: cancelamento de recibo (estoque e auditoria), reentrada descontando devolução prévia, gerente e justificativa obrigatórios, turno fechado, emissão pendente virando `C`, NFC-e cancelada com protocolo, SEFAZ rejeitando (nada muda), sem CNPJ e fora do prazo. O caminho da NFC-e usou um **ACBr Monitor falso** local (mesmo protocolo TCP), nunca o real; os comandos recebidos batem com a assinatura documentada. Banco conferido sem resíduo depois.
+- **ERP ao vivo (RabbitMQ real):** venda de R$ 50 em dinheiro (pagou 60, troco 10) levou o caixa do terminal a R$ 50. Justificativa curta foi `REJEITADO` na entrada. O cancelamento válido deixou a venda `CANCELADA` com os dados e o caixa em R$ 0. Reenvio do mesmo cancelamento não estornou de novo. Um segundo cancelamento foi pra `ERRO` com "já está cancelada". Cancelamento enviado antes da própria venda foi aplicado quando ela chegou (R$ 20 entrou e saiu). Dados e usuário de teste removidos.
+- **Não exercitado:** ACBr/SEFAZ reais; a tela JavaFX não foi aberta (sem ambiente gráfico de teste), só o serviço por trás; a tela web foi conferida só pelo TypeScript, não num navegador.
+- **Ainda falta para funcionar de ponta a ponta:** o PDV não tem cliente de envio para o ERP (nenhum tipo de registro sai do PDV sozinho hoje). O contrato acima é o que esse cliente precisará mandar.
+

@@ -440,6 +440,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
     requiredAuthorities: ['BI_CONSULTAR', 'BI_GERENCIAR'],
     children: [
       {
+        key: 'bi-faturamento',
+        label: 'Faturamento',
+        path: '/bi/faturamento',
+        requiredAuthorities: ['BI_CONSULTAR'],
+      },
+      {
         key: 'bi-estoque-valor',
         label: 'Valor de Estoque',
         path: '/bi/estoque-valor',

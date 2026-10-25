@@ -19,6 +19,8 @@ public interface VendaPdvRepository extends JpaRepository<VendaPdv, Long> {
 
     boolean existsByRegistroSincronizacaoId(Long registroSincronizacaoId);
 
+    boolean existsByRegistroCancelamentoId(Long registroCancelamentoId);
+
     Optional<VendaPdv> findByEmpresaIdAndIdOrigem(Long empresaId, String idOrigem);
 
     @Query("""

@@ -2,19 +2,26 @@ package br.com.cactusdigital.erp.bi.service;
 
 import br.com.cactusdigital.erp.bi.dto.ComprasFornecedorIndicadorResponse;
 import br.com.cactusdigital.erp.bi.dto.CurvaAbcIndicadorResponse;
+import br.com.cactusdigital.erp.bi.dto.CanalVenda;
 import br.com.cactusdigital.erp.bi.dto.EstoqueValorIndicadorResponse;
+import br.com.cactusdigital.erp.bi.dto.FaturamentoDiarioIndicadorResponse;
+import br.com.cactusdigital.erp.bi.dto.FaturamentoIndicadorResponse;
 import br.com.cactusdigital.erp.bi.entity.ComprasFornecedorResumo;
 import br.com.cactusdigital.erp.bi.entity.CurvaAbcSnapshot;
 import br.com.cactusdigital.erp.bi.entity.DepositoDim;
 import br.com.cactusdigital.erp.bi.entity.EstoqueValorSnapshot;
+import br.com.cactusdigital.erp.bi.entity.FaturamentoDiario;
 import br.com.cactusdigital.erp.bi.entity.FornecedorDim;
 import br.com.cactusdigital.erp.bi.entity.ProdutoDim;
 import br.com.cactusdigital.erp.bi.repository.ComprasFornecedorResumoRepository;
 import br.com.cactusdigital.erp.bi.repository.CurvaAbcSnapshotRepository;
 import br.com.cactusdigital.erp.bi.repository.DepositoDimRepository;
 import br.com.cactusdigital.erp.bi.repository.EstoqueValorSnapshotRepository;
+import br.com.cactusdigital.erp.bi.repository.FaturamentoDiarioRepository;
 import br.com.cactusdigital.erp.bi.repository.FornecedorDimRepository;
 import br.com.cactusdigital.erp.bi.repository.ProdutoDimRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +47,7 @@ public class IndicadoresService {
     private final EstoqueValorSnapshotRepository estoqueValorSnapshotRepository;
     private final CurvaAbcSnapshotRepository curvaAbcSnapshotRepository;
     private final ComprasFornecedorResumoRepository comprasFornecedorResumoRepository;
+    private final FaturamentoDiarioRepository faturamentoDiarioRepository;
     private final ProdutoDimRepository produtoDimRepository;
     private final FornecedorDimRepository fornecedorDimRepository;
     private final DepositoDimRepository depositoDimRepository;
@@ -132,6 +140,35 @@ public class IndicadoresService {
                         item.getAnoMes(), item.getFornecedorId(), nomesFornecedor.get(item.getFornecedorId()),
                         item.getQuantidadePedidos(), item.getValorTotalComprado()))
                 .toList();
+    }
+
+    /** Série diária + totais. Sem paginação: no máximo uma linha por dia × empresa × canal. */
+    @Transactional(readOnly = true)
+    public FaturamentoIndicadorResponse faturamento(LocalDate dataInicio, LocalDate dataFim, Long empresaId, CanalVenda canal) {
+        List<FaturamentoDiarioIndicadorResponse> dias = faturamentoDiarioRepository
+                .buscar(dataInicio, dataFim, empresaId, canal != null ? canal.name() : null).stream()
+                .map(this::toResponse)
+                .toList();
+        int quantidade = dias.stream().mapToInt(FaturamentoDiarioIndicadorResponse::quantidadeVendas).sum();
+        BigDecimal bruto = somar(dias.stream().map(FaturamentoDiarioIndicadorResponse::valorBruto).toList());
+        BigDecimal devolvido = somar(dias.stream().map(FaturamentoDiarioIndicadorResponse::valorDevolvido).toList());
+        BigDecimal liquido = somar(dias.stream().map(FaturamentoDiarioIndicadorResponse::valorLiquido).toList());
+        return new FaturamentoIndicadorResponse(quantidade, bruto, devolvido, liquido, ticketMedio(liquido, quantidade), dias);
+    }
+
+    private FaturamentoDiarioIndicadorResponse toResponse(FaturamentoDiario item) {
+        return new FaturamentoDiarioIndicadorResponse(
+                item.getDataReferencia(), item.getEmpresaId(), item.getCanal(), item.getQuantidadeVendas(),
+                item.getValorBruto(), item.getValorDevolvido(), item.getValorLiquido(),
+                ticketMedio(item.getValorLiquido(), item.getQuantidadeVendas()));
+    }
+
+    private static BigDecimal somar(List<BigDecimal> valores) {
+        return valores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static BigDecimal ticketMedio(BigDecimal valorLiquido, int quantidadeVendas) {
+        return quantidadeVendas == 0 ? BigDecimal.ZERO : valorLiquido.divide(BigDecimal.valueOf(quantidadeVendas), 2, RoundingMode.HALF_UP);
     }
 
     private Map<Long, String> nomesProduto(List<Long> ids) {

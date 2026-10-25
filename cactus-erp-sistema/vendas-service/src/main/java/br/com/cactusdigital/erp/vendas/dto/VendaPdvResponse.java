@@ -39,6 +39,11 @@ public record VendaPdvResponse(
         BigDecimal valorCofins,
         BigDecimal valorIssqn,
         BigDecimal valorDinheiroLiquido,
+        Instant dataHoraCancelamento,
+        Long pdvOperadorCancelamentoId,
+        Long pdvGerenteCancelamentoId,
+        String justificativaCancelamento,
+        String protocoloCancelamento,
         List<VendaPdvItemResponse> itens,
         List<VendaPdvPagamentoResponse> pagamentos,
         List<VendaPdvDevolucaoResponse> devolucoes) {

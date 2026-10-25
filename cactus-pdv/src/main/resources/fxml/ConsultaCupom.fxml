@@ -145,6 +145,12 @@
                             </HBox>
                             <Label fx:id="lblDataHora" text="—" styleClass="cp-codigos"/>
                             <Label fx:id="lblOperadorCliente" text="—" styleClass="cp-desc"/>
+                            <Label fx:id="lblInfoCancelamento" text="" styleClass="cp-desc" wrapText="true"
+                                   visible="false" managed="false"/>
+                            <HBox spacing="8">
+                                <Button fx:id="btnCancelarVenda" text="Cancelar venda (F8)"
+                                        styleClass="cc-btn-devolver" onAction="#handleCancelarVenda"/>
+                            </HBox>
                         </VBox>
 
                         <!-- Bloco ITENS -->

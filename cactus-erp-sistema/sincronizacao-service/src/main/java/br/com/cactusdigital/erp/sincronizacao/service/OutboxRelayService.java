@@ -71,7 +71,7 @@ public class OutboxRelayService {
         return switch (tipo) {
             case ESTOQUE_MOVIMENTO -> RabbitConfig.ROUTING_KEY_ESTOQUE_MOVIMENTO;
             case SANGRIA, SUPRIMENTO, ABERTURA_CAIXA, CONFERENCIA_CAIXA, FIADO_LANCAMENTO -> RabbitConfig.ROUTING_KEY_FINANCEIRO_PDV;
-            case VENDA_PDV, DEVOLUCAO_PDV -> RabbitConfig.ROUTING_KEY_VENDAS_PDV;
+            case VENDA_PDV, DEVOLUCAO_PDV, CANCELAMENTO_VENDA_PDV -> RabbitConfig.ROUTING_KEY_VENDAS_PDV;
         };
     }
 }

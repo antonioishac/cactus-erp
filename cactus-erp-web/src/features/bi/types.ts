@@ -59,6 +59,38 @@ export interface ComprasFornecedorFiltro {
   anoMes?: string
 }
 
+/** `B2B` = venda do vendas-service; `PDV` = venda de balcão sincronizada do cactus-pdv. */
+export type CanalVenda = 'B2B' | 'PDV'
+
+/** Uma linha por dia × empresa × canal. Valores do PDV já são líquidos de devolução. */
+export interface FaturamentoDiarioIndicadorResponse {
+  dataReferencia: string
+  empresaId: number
+  canal: CanalVenda
+  quantidadeVendas: number
+  valorBruto: number
+  valorDevolvido: number
+  valorLiquido: number
+  ticketMedio: number
+}
+
+/** `ticketMedio` do total = líquido do período / vendas do período (não a média das médias diárias). */
+export interface FaturamentoIndicadorResponse {
+  quantidadeVendas: number
+  valorBruto: number
+  valorDevolvido: number
+  valorLiquido: number
+  ticketMedio: number
+  dias: FaturamentoDiarioIndicadorResponse[]
+}
+
+export interface FaturamentoFiltro {
+  dataInicio: string
+  dataFim: string
+  empresaId?: number
+  canal?: CanalVenda
+}
+
 /** `dataReferencia` nula assume hoje — ver Javadoc de `EtlExecucaoRequest.java`. */
 export interface EtlExecucaoRequest {
   dataReferencia?: string

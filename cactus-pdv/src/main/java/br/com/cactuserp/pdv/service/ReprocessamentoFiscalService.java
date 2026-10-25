@@ -2,6 +2,7 @@ package br.com.cactuserp.pdv.service;
 
 import br.com.cactuserp.pdv.entity.PdvCaixa;
 import br.com.cactuserp.pdv.entity.PdvVendaCabecalho;
+import br.com.cactuserp.pdv.entity.StatusVenda;
 import br.com.cactuserp.pdv.repository.PdvVendaCabecalhoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,9 @@ public class ReprocessamentoFiscalService {
         try {
             PdvVendaCabecalho cupom = cabecalhoRepository.findById(idCupom).orElse(null);
             if (cupom == null) return;
+            // Cancelada depois de ficar pendente: emitir agora geraria documento
+            // fiscal de uma venda que não existe mais.
+            if (cupom.getStatusVenda() != StatusVenda.F) return;
 
             PdvCaixa caixa = cupom.getPdvMovimento() != null ? cupom.getPdvMovimento().getCaixa() : null;
             if (caixa == null) {

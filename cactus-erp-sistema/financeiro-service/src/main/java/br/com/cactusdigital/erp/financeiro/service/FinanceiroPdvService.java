@@ -193,6 +193,25 @@ public class FinanceiroPdvService {
         return true;
     }
 
+    /**
+     * Desfaz o dinheiro de uma venda do PDV cancelada depois de fechada: SAÍDA do mesmo valor líquido na conta do
+     * terminal. Espelha o PDV, cuja conferência só soma vendas FECHADAS: cancelada, a venda some do "esperado" da
+     * gaveta. Idempotente por {@code registroId} (o do cancelamento, não o da venda).
+     */
+    @Transactional
+    public boolean estornarDinheiroVenda(VendaPdvDinheiroRequest request) {
+        if (processadoRepository.existsById(request.registroId())) {
+            return false;
+        }
+        if (request.valor().signum() > 0) {
+            Long contaId = contaDoTerminal(request.empresaId(), request.pdvCaixaId(), request.pdvCaixaNome()).getId();
+            movimentoService.registrar(contaId, TipoMovimentoCaixa.SAIDA, OrigemMovimentoCaixa.CANCELAMENTO_VENDA_PDV, request.registroId(),
+                    request.valor(), request.dataVenda(), truncar("Cancelamento de venda PDV (estorno do dinheiro) - " + request.descricao(), 250), null);
+        }
+        processadoRepository.save(new SincronizacaoPdvProcessado(request.registroId(), "CANCELAMENTO_VENDA", Instant.now()));
+        return true;
+    }
+
     private ContaBancaria contaDoTerminal(Long empresaId, Long pdvCaixaId, String nomeTerminal) {
         return contaBancariaRepository.findByEmpresaIdAndPdvCaixaId(empresaId, pdvCaixaId)
                 .orElseGet(() -> {

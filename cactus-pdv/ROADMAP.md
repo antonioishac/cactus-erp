@@ -586,6 +586,12 @@ remoto).
 - [ ] Integração com retaguarda Cactus ERP (API/carga/mensageria/tópicos)
       — não iniciado; o Cactus ERP em si não existe ainda como módulo.
 
+### Cancelamento de venda finalizada ✅ (2026-10-25)
+`CancelamentoVendaService` + botão/F8 na Consulta de Cupom: venda `F` com turno aberto, gerente + justificativa (15-255),
+NFC-e cancelada na SEFAZ via `NFE.CancelarNFe` dentro do prazo (padrão 30 min, CStat conferido), reentrada de estoque `D`
+do que não foi devolvido. SAT/MF-e não suportado. Testado com ACBr falso local, nunca o real. Detalhe:
+`FASE6_SINCRONIZACAO_PDV.md` (raiz), seção 15.
+
 ## Decisões em aberto
 
 - Formato exato do payload/endpoint de licenciamento no Cactus ERP —

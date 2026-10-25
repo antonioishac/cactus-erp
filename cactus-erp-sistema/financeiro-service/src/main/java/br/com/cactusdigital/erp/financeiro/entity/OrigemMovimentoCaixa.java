@@ -35,5 +35,8 @@ public enum OrigemMovimentoCaixa {
     CONFERENCIA_CAIXA_PDV,
     /** Dinheiro líquido (recebido − troco) de uma venda do PDV — {@code origemId} = {@code RegistroSincronizacao.id}
      * da venda. Lançado pelo vendas-service via {@code POST /pdv/vendas/dinheiro}. */
-    VENDA_PDV
+    VENDA_PDV,
+    /** Saída que desfaz o {@link #VENDA_PDV} de uma venda cancelada depois de fechada — {@code origemId} =
+     * {@code RegistroSincronizacao.id} do cancelamento. Via {@code POST /pdv/vendas/dinheiro/estorno}. */
+    CANCELAMENTO_VENDA_PDV
 }

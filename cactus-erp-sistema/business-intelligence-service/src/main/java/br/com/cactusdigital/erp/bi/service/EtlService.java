@@ -6,29 +6,36 @@ import br.com.cactusdigital.erp.bi.entity.ComprasFornecedorResumo;
 import br.com.cactusdigital.erp.bi.entity.CurvaAbcSnapshot;
 import br.com.cactusdigital.erp.bi.entity.DepositoDim;
 import br.com.cactusdigital.erp.bi.entity.EstoqueValorSnapshot;
+import br.com.cactusdigital.erp.bi.entity.FaturamentoDiario;
 import br.com.cactusdigital.erp.bi.entity.FornecedorDim;
 import br.com.cactusdigital.erp.bi.entity.ProdutoDim;
 import br.com.cactusdigital.erp.bi.repository.ComprasFornecedorResumoRepository;
 import br.com.cactusdigital.erp.bi.repository.CurvaAbcSnapshotRepository;
 import br.com.cactusdigital.erp.bi.repository.DepositoDimRepository;
 import br.com.cactusdigital.erp.bi.repository.EstoqueValorSnapshotRepository;
+import br.com.cactusdigital.erp.bi.repository.FaturamentoDiarioRepository;
 import br.com.cactusdigital.erp.bi.repository.FornecedorDimRepository;
 import br.com.cactusdigital.erp.bi.repository.ProdutoDimRepository;
 import br.com.cactusdigital.erp.common.domain.Situacao;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Orquestra o ETL do BI — lê as 3 fontes somente-leitura direto via JDBC (bulk, ver
+ * Orquestra o ETL do BI — lê as 4 fontes somente-leitura direto via JDBC (bulk, ver
  * {@code DataSourceLeituraConfig}) + uma chamada HTTP ao controle-estoque-service pra
  * Curva ABC (reaproveita a lógica de classificação já existente lá, não duplica aqui).
  * Ordem importa: dimensões antes de fatos (fatos resolvem nome via dimensão já
@@ -47,6 +54,7 @@ public class EtlService {
     private final JdbcTemplate cadastroJdbcTemplate;
     private final JdbcTemplate estoqueJdbcTemplate;
     private final JdbcTemplate comprasJdbcTemplate;
+    private final JdbcTemplate vendasJdbcTemplate;
     private final EstoqueClient estoqueClient;
 
     private final ProdutoDimRepository produtoDimRepository;
@@ -55,6 +63,12 @@ public class EtlService {
     private final EstoqueValorSnapshotRepository estoqueValorSnapshotRepository;
     private final CurvaAbcSnapshotRepository curvaAbcSnapshotRepository;
     private final ComprasFornecedorResumoRepository comprasFornecedorResumoRepository;
+    private final FaturamentoDiarioRepository faturamentoDiarioRepository;
+
+    @Value("${cactus.bi.faturamento.janela-dias:35}")
+    private int janelaDiasFaturamento;
+    @Value("${cactus.bi.faturamento.fuso-horario:America/Sao_Paulo}")
+    private String fusoHorario;
 
     @Scheduled(cron = "${cactus.bi.etl.cron:0 0 2 * * *}")
     public void executarAgendado() {
@@ -68,6 +82,7 @@ public class EtlService {
         gerarEstoqueValorSnapshot(dataReferencia);
         gerarCurvaAbcSnapshot(dataReferencia);
         gerarComprasFornecedorResumo(YearMonth.from(dataReferencia));
+        gerarFaturamentoDiario(dataReferencia.minusDays(janelaDiasFaturamento - 1L), dataReferencia);
         log.info("ETL do BI concluído pra dataReferencia={}", dataReferencia);
     }
 
@@ -181,5 +196,72 @@ public class EtlService {
 
         comprasFornecedorResumoRepository.deleteByAnoMes(anoMes.toString());
         comprasFornecedorResumoRepository.saveAll(resumos);
+    }
+
+    /**
+     * Recalcula a janela inteira {@code [inicio, fim]} (não só o dia de referência): a venda
+     * do PDV pode chegar dias depois por sync e uma devolução muda o líquido de uma venda
+     * antiga. Mesmo critério dos relatórios de vendas do vendas-service, para os números
+     * baterem: B2B {@code CONFIRMADA} por {@code data_venda}; PDV {@code FECHADA} pelo dia
+     * LOCAL da loja, líquida do valor devolvido.
+     */
+    void gerarFaturamentoDiario(LocalDate inicio, LocalDate fim) {
+        Map<ChaveFaturamento, FaturamentoDiario> porChave = new LinkedHashMap<>();
+
+        vendasJdbcTemplate.query(
+                """
+                SELECT data_venda, empresa_id, COUNT(*) AS quantidade, SUM(valor_total) AS valor
+                FROM venda_cabecalho
+                WHERE situacao = 'CONFIRMADA' AND data_venda BETWEEN ? AND ?
+                GROUP BY data_venda, empresa_id
+                """,
+                rs -> {
+                    BigDecimal valor = rs.getBigDecimal("valor");
+                    porChave.put(new ChaveFaturamento(rs.getObject("data_venda", LocalDate.class), rs.getLong("empresa_id"), "B2B"),
+                            FaturamentoDiario.builder()
+                                    .quantidadeVendas(rs.getInt("quantidade"))
+                                    .valorBruto(valor)
+                                    .valorDevolvido(BigDecimal.ZERO)
+                                    .valorLiquido(valor)
+                                    .build());
+                },
+                inicio, fim);
+
+        ZoneId fuso = ZoneId.of(fusoHorario);
+        vendasJdbcTemplate.query(
+                """
+                SELECT v.empresa_id, v.data_hora_venda, v.valor_final,
+                       COALESCE((SELECT SUM(d.valor_devolvido) FROM venda_pdv_devolucao d WHERE d.venda_pdv_id = v.id), 0) AS devolvido
+                FROM venda_pdv v
+                WHERE v.situacao = 'FECHADA' AND v.data_hora_venda >= ? AND v.data_hora_venda < ?
+                """,
+                rs -> {
+                    LocalDate dia = rs.getTimestamp("data_hora_venda").toInstant().atZone(fuso).toLocalDate();
+                    BigDecimal bruto = rs.getBigDecimal("valor_final");
+                    BigDecimal devolvido = rs.getBigDecimal("devolvido");
+                    FaturamentoDiario acumulado = porChave.computeIfAbsent(new ChaveFaturamento(dia, rs.getLong("empresa_id"), "PDV"),
+                            chave -> FaturamentoDiario.builder()
+                                    .quantidadeVendas(0)
+                                    .valorBruto(BigDecimal.ZERO)
+                                    .valorDevolvido(BigDecimal.ZERO)
+                                    .valorLiquido(BigDecimal.ZERO)
+                                    .build());
+                    acumulado.setQuantidadeVendas(acumulado.getQuantidadeVendas() + 1);
+                    acumulado.setValorBruto(acumulado.getValorBruto().add(bruto));
+                    acumulado.setValorDevolvido(acumulado.getValorDevolvido().add(devolvido));
+                    acumulado.setValorLiquido(acumulado.getValorLiquido().add(bruto.subtract(devolvido)));
+                },
+                Timestamp.from(inicio.atStartOfDay(fuso).toInstant()), Timestamp.from(fim.plusDays(1).atStartOfDay(fuso).toInstant()));
+
+        porChave.forEach((chave, linha) -> {
+            linha.setDataReferencia(chave.dia());
+            linha.setEmpresaId(chave.empresaId());
+            linha.setCanal(chave.canal());
+        });
+        faturamentoDiarioRepository.deleteByPeriodo(inicio, fim);
+        faturamentoDiarioRepository.saveAll(porChave.values());
+    }
+
+    private record ChaveFaturamento(LocalDate dia, Long empresaId, String canal) {
     }
 }

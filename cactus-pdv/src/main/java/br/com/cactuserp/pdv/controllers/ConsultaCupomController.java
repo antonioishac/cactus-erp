@@ -7,7 +7,12 @@ import br.com.cactuserp.pdv.entity.PdvVendaDetalhe;
 import br.com.cactuserp.pdv.entity.SimNao;
 import br.com.cactuserp.pdv.entity.StatusVenda;
 import br.com.cactuserp.pdv.service.ConsultaCupomService;
+import br.com.cactuserp.pdv.config.SessaoPdv;
+import br.com.cactuserp.pdv.config.util.AutorizacaoGerencialDialog;
+import br.com.cactuserp.pdv.entity.PdvOperador;
+import br.com.cactuserp.pdv.service.CancelamentoVendaService;
 import br.com.cactuserp.pdv.service.DevolucaoService;
+import br.com.cactuserp.pdv.service.LoginService;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,6 +20,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -76,6 +82,9 @@ public class ConsultaCupomController implements Initializable {
     private final StageManager stageManager;
     private final ConsultaCupomService consultaCupomService;
     private final DevolucaoService devolucaoService;
+    private final CancelamentoVendaService cancelamentoVendaService;
+    private final LoginService loginService;
+    private final SessaoPdv sessaoPdv;
 
     @FXML private AnchorPane root;
     @FXML private DatePicker dpDataInicio;
@@ -100,6 +109,8 @@ public class ConsultaCupomController implements Initializable {
     @FXML private Label lblBadgeStatus;
     @FXML private Label lblDataHora;
     @FXML private Label lblOperadorCliente;
+    @FXML private Label lblInfoCancelamento;
+    @FXML private Button btnCancelarVenda;
 
     // Itens
     @FXML private TableView<PdvVendaDetalhe> tabelaItens;
@@ -129,10 +140,16 @@ public class ConsultaCupomController implements Initializable {
 
     public ConsultaCupomController(StageManager stageManager,
                                    ConsultaCupomService consultaCupomService,
-                                   DevolucaoService devolucaoService) {
+                                   DevolucaoService devolucaoService,
+                                   CancelamentoVendaService cancelamentoVendaService,
+                                   LoginService loginService,
+                                   SessaoPdv sessaoPdv) {
         this.stageManager = stageManager;
         this.consultaCupomService = consultaCupomService;
         this.devolucaoService = devolucaoService;
+        this.cancelamentoVendaService = cancelamentoVendaService;
+        this.loginService = loginService;
+        this.sessaoPdv = sessaoPdv;
     }
 
     @Override
@@ -309,6 +326,12 @@ public class ConsultaCupomController implements Initializable {
                 if (ev.getCode() == KeyCode.F2) {
                     tfNumeroCupom.requestFocus();
                     tfNumeroCupom.selectAll();
+                    ev.consume();
+                    return;
+                }
+                // F8 = cancelar a venda finalizada exibida (PDV não depende de mouse)
+                if (ev.getCode() == KeyCode.F8) {
+                    handleCancelarVenda();
                     ev.consume();
                     return;
                 }
@@ -507,6 +530,8 @@ public class ConsultaCupomController implements Initializable {
         }
         lblOperadorCliente.setText(oc.toString());
 
+        renderizarCancelamento(cupom);
+
         // Itens
         itensDoCupom.setAll(det.getItens());
 
@@ -521,6 +546,71 @@ public class ConsultaCupomController implements Initializable {
         lblTotalFinalDetalhe.setText(formatarMoeda(cupom.getValorTotalDocumento()));
         lblRecebidoDetalhe.setText(formatarMoeda(cupom.getValorRecebido()));
         lblTrocoDetalhe.setText(formatarMoeda(cupom.getValorTroco()));
+    }
+
+    /** Botão habilitado só quando o cancelamento é possível; o motivo do bloqueio vai no tooltip. */
+    private void renderizarCancelamento(PdvVendaCabecalho cupom) {
+        String bloqueio = cancelamentoVendaService.motivoBloqueio(cupom);
+        boolean finalizada = cupom.getStatusVenda() == StatusVenda.F;
+        btnCancelarVenda.setVisible(finalizada);
+        btnCancelarVenda.setManaged(finalizada);
+        btnCancelarVenda.setDisable(bloqueio != null);
+        btnCancelarVenda.setTooltip(bloqueio != null ? new javafx.scene.control.Tooltip(bloqueio) : null);
+
+        boolean temCancelamento = cupom.getStatusVenda() == StatusVenda.C && cupom.getDataCancelamento() != null;
+        lblInfoCancelamento.setVisible(temCancelamento);
+        lblInfoCancelamento.setManaged(temCancelamento);
+        if (temCancelamento) {
+            lblInfoCancelamento.setText("Cancelada em " + cupom.getDataCancelamento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    + " " + cupom.getHoraCancelamento() + "  ·  " + cupom.getJustificativaCancelamento()
+                    + (cupom.getProtocoloCancelamento() != null ? "  ·  Protocolo SEFAZ " + cupom.getProtocoloCancelamento() : ""));
+        }
+    }
+
+    @FXML
+    private void handleCancelarVenda() {
+        PdvVendaCabecalho cupom = cupomExibido;
+        if (cupom == null || cupom.getStatusVenda() != StatusVenda.F) return;
+        String bloqueio = cancelamentoVendaService.motivoBloqueio(cupom);
+        if (bloqueio != null) {
+            mostrarAlerta(Alert.AlertType.WARNING, bloqueio);
+            return;
+        }
+
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle("Cancelar venda");
+        dialog.setHeaderText("Cancelar a venda inteira (" + formatarMoeda(cupom.getValorFinal()) + ")?\n"
+                + "Os itens voltam ao estoque. A NFC-e autorizada é cancelada na SEFAZ.");
+        dialog.setContentText("Justificativa (15 a 255 caracteres):");
+        java.util.Optional<String> justificativa = dialog.showAndWait();
+        if (justificativa.isEmpty()) return;
+        String texto = justificativa.get().trim();
+        if (texto.length() < 15 || texto.length() > 255) {
+            mostrarAlerta(Alert.AlertType.ERROR, "A justificativa precisa ter entre 15 e 255 caracteres.");
+            return;
+        }
+
+        java.util.Optional<PdvOperador> gerente = AutorizacaoGerencialDialog.pedir(loginService,
+                "Cancelamento de venda exige autorização de Gerente/Supervisor.");
+        if (gerente.isEmpty()) return;
+
+        try {
+            PdvVendaCabecalho cancelada = cancelamentoVendaService.cancelar(cupom, texto, sessaoPdv.getOperadorAtual(), gerente.get());
+            mostrarAlerta(Alert.AlertType.INFORMATION, "Venda cancelada."
+                    + (cancelada.getProtocoloCancelamento() != null ? "\nProtocolo SEFAZ: " + cancelada.getProtocoloCancelamento() : "")
+                    + "\nO reembolso em dinheiro, se houver, sai da gaveta como sangria.");
+            executarBusca();
+            renderizarDetalhe(cancelada);
+        } catch (Exception ex) {
+            LOGGER.error("Falha ao cancelar a venda #{}", cupom.getId(), ex);
+            mostrarAlerta(Alert.AlertType.ERROR, "Não foi possível cancelar a venda.\n\nMotivo: " + ex.getMessage());
+        }
+    }
+
+    private void mostrarAlerta(Alert.AlertType tipo, String mensagem) {
+        Alert alert = new Alert(tipo, mensagem);
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 
     private void renderizarPagamentos(List<PdvTotalTipoPagamento> pagamentos) {

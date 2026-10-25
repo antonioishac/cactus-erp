@@ -142,6 +142,26 @@ public class VendaPdv extends BaseEntity {
     @Column(name = "valor_dinheiro_liquido", nullable = false, precision = 18, scale = 6)
     private BigDecimal valorDinheiroLiquido = BigDecimal.ZERO;
 
+    /** Preenchidos só quando a venda chegou FECHADA e depois foi cancelada ({@code CANCELAMENTO_VENDA_PDV}). Uma venda
+     * que já chegou cancelada (cupom abortado antes de fechar) não tem nada disso. */
+    @Column(name = "registro_cancelamento_id", unique = true)
+    private Long registroCancelamentoId;
+
+    @Column(name = "data_hora_cancelamento")
+    private Instant dataHoraCancelamento;
+
+    @Column(name = "pdv_operador_cancelamento_id")
+    private Long pdvOperadorCancelamentoId;
+
+    @Column(name = "pdv_gerente_cancelamento_id")
+    private Long pdvGerenteCancelamentoId;
+
+    @Column(name = "justificativa_cancelamento", length = 255)
+    private String justificativaCancelamento;
+
+    @Column(name = "protocolo_cancelamento", length = 30)
+    private String protocoloCancelamento;
+
     @Builder.Default
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<VendaPdvItem> itens = new ArrayList<>();

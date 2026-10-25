@@ -39,7 +39,21 @@ public class RegistroPayloadValidator {
             case VENDA_PDV -> validarVenda(payload);
             case DEVOLUCAO_PDV -> exigirTodos(payload, "vendaIdOrigem", "numeroItem", "quantidadeDevolvida",
                     "valorDevolvido", "pdvGerenteAutorizadorId", "dataHoraDevolucao");
+            case CANCELAMENTO_VENDA_PDV -> validarCancelamento(payload);
         };
+    }
+
+    /** Mesma regra de justificativa do evento de cancelamento da NFC-e (15 a 255 caracteres), exigida mesmo sem documento fiscal. */
+    private Optional<String> validarCancelamento(JsonNode payload) {
+        Optional<String> ausentes = exigirTodos(payload, "vendaIdOrigem", "pdvGerenteAutorizadorId", "dataHoraCancelamento", "justificativa");
+        if (ausentes.isPresent()) {
+            return ausentes;
+        }
+        int tamanho = payload.get("justificativa").asString().trim().length();
+        if (tamanho < 15 || tamanho > 255) {
+            return Optional.of("justificativa deve ter entre 15 e 255 caracteres (tem " + tamanho + ")");
+        }
+        return Optional.empty();
     }
 
     private Optional<String> validarEstoqueMovimento(JsonNode payload) {

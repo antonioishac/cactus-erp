@@ -52,6 +52,22 @@ public class FinanceiroClient {
         }
     }
 
+    /** Desfaz {@link #registrarDinheiroVendaPdv} quando a venda é cancelada depois de fechada. Mesma política de erro. */
+    public void estornarDinheiroVendaPdv(VendaPdvDinheiroClientRequest request) {
+        try {
+            financeiroRestClient.post()
+                    .uri("/api/v1/pdv/vendas/dinheiro/estorno")
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (org.springframework.web.client.HttpClientErrorException ex) {
+            throw new BusinessException(VendasErrorCode.FALHA_INTEGRACAO_FINANCEIRO,
+                    "Financeiro rejeitou o estorno do dinheiro da venda do PDV (registro #" + request.registroId() + "): " + ex.getMessage());
+        } catch (RestClientException ex) {
+            throw new IllegalStateException("Falha de comunicação ao estornar o dinheiro da venda do PDV no financeiro-service: " + ex.getMessage(), ex);
+        }
+    }
+
     public void gerarContasReceber(GerarContasReceberClientRequest request) {
         try {
             financeiroRestClient.post()

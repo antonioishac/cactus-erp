@@ -105,6 +105,24 @@ public class AcbrComandoFiscalBuilder {
         return "NFE.CriarEnviarNFe(" + ini + "," + lote + ",0,1)";
     }
 
+    /**
+     * Comando do evento de cancelamento da NFC-e:
+     * {@code NFE.CancelarNFe("<chave>","<justificativa>","<CNPJ emitente>")}.
+     * Assinatura conferida na documentação oficial
+     * (acbr.sourceforge.io/ACBrMonitor/NFECancelarNFe.html, 2026-10-25),
+     * <b>não exercitada contra o ACBr real</b> (mesmo bloqueio de certificado
+     * de produção da emissão). Os três vão entre aspas e sem aspas internas:
+     * uma vírgula na justificativa quebraria a lista de parâmetros.
+     */
+    public String construirComandoCancelamentoNfce(String chaveAcesso, String justificativa, String cnpjEmitente) {
+        return "NFE.CancelarNFe(" + entreAspas(chaveAcesso) + "," + entreAspas(justificativa) + ","
+                + entreAspas(cnpjEmitente) + ")";
+    }
+
+    private static String entreAspas(String valor) {
+        return "\"" + (valor == null ? "" : valor.replace("\"", "").trim()) + "\"";
+    }
+
     // ====================================================================
     //  Construção do INI — lógica pura, sem I/O (testável isoladamente)
     // ====================================================================

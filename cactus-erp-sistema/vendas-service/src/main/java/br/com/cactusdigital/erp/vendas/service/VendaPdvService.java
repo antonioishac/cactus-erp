@@ -230,6 +230,47 @@ public class VendaPdvService {
         return true;
     }
 
+    /**
+     * Cancela uma venda que chegou FECHADA. Só registra o fato e desfaz o dinheiro no caixa do terminal: o estoque
+     * volta pelo {@code ESTOQUE_MOVIMENTO} de reentrada que o próprio PDV gera (mesma regra da venda, uma fonte só
+     * para o ledger), e relatórios/BI já ignoram vendas canceladas. Venda ainda não recebida = erro técnico
+     * (retentado), igual à devolução.
+     */
+    @Transactional
+    public boolean registrarCancelamento(JsonNode m) {
+        Long registroId = m.get("registroId").asLong();
+        if (repository.existsByRegistroCancelamentoId(registroId)) {
+            return false;
+        }
+        Long empresaId = m.get("lojaId").asLong();
+        String vendaIdOrigem = texto(m, "vendaIdOrigem");
+        VendaPdv venda = repository.findByEmpresaIdAndIdOrigem(empresaId, vendaIdOrigem)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Venda do PDV '" + vendaIdOrigem + "' ainda não recebida pelo ERP — o cancelamento será retentado"));
+        if (venda.getSituacao() == SituacaoVendaPdv.CANCELADA) {
+            throw new BusinessException(VendasErrorCode.VENDA_PDV_JA_CANCELADA,
+                    "A venda do PDV '" + vendaIdOrigem + "' já está cancelada");
+        }
+
+        Instant dataHoraCancelamento = instante(m, "dataHoraCancelamento");
+        venda.setSituacao(SituacaoVendaPdv.CANCELADA);
+        venda.setRegistroCancelamentoId(registroId);
+        venda.setDataHoraCancelamento(dataHoraCancelamento);
+        venda.setPdvOperadorCancelamentoId(inteiroLongo(m, "pdvOperadorId"));
+        venda.setPdvGerenteCancelamentoId(m.get("pdvGerenteAutorizadorId").asLong());
+        venda.setJustificativaCancelamento(texto(m, "justificativa").trim());
+        venda.setProtocoloCancelamento(texto(m, "protocoloCancelamento"));
+        repository.saveAndFlush(venda);
+
+        if (venda.getValorDinheiroLiquido().signum() > 0) {
+            financeiroClient.estornarDinheiroVendaPdv(new VendaPdvDinheiroClientRequest(
+                    registroId, empresaId, venda.getPdvCaixaId(), venda.getPdvCaixaNome(), venda.getValorDinheiroLiquido(),
+                    LocalDateTime.ofInstant(dataHoraCancelamento, ZoneId.of(fusoHorario)).toLocalDate(),
+                    "venda " + venda.getIdOrigem()));
+        }
+        return true;
+    }
+
     private void validarConsistencia(VendaPdv venda) {
         BigDecimal somaPagamentos = venda.getPagamentos().stream()
                 .filter(p -> !p.isEstornado())

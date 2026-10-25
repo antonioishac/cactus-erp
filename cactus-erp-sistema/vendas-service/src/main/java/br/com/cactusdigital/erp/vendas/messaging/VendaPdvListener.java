@@ -13,7 +13,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Consumidor de {@code vendas.pdv.q}: despacha pelo {@code tipoRegistro} ({@code VENDA_PDV}/{@code DEVOLUCAO_PDV})
+ * Consumidor de {@code vendas.pdv.q}: despacha pelo {@code tipoRegistro} ({@code VENDA_PDV}/{@code DEVOLUCAO_PDV}/{@code CANCELAMENTO_VENDA_PDV})
  * e publica a confirmação que fecha o registro como {@code PROCESSADO} no sincronizacao-service. Reentrega de
  * um registro já aplicado também é confirmada. Não captura exceção — propagar aciona o retry/DLQ.
  */
@@ -36,6 +36,7 @@ public class VendaPdvListener {
         boolean aplicado = switch (tipo) {
             case "VENDA_PDV" -> service.registrarVenda(mensagem);
             case "DEVOLUCAO_PDV" -> service.registrarDevolucao(mensagem);
+            case "CANCELAMENTO_VENDA_PDV" -> service.registrarCancelamento(mensagem);
             default -> throw new IllegalArgumentException("tipoRegistro sem destino no vendas-service: " + tipo);
         };
 

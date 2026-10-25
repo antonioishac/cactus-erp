@@ -58,7 +58,7 @@ cactus:
     etl:
       # Diário às 2h — janela de baixo tráfego. Configurável por ambiente.
       cron: ${CACTUS_BI_ETL_CRON:0 0 2 * * *}
-    # 3 fontes de leitura somente-leitura — DataSource/JdbcTemplate próprios, sem JPA
+    # 4 fontes de leitura somente-leitura — DataSource/JdbcTemplate próprios, sem JPA
     # (ETL em lote só precisa de SELECT agregando, não de grafo de entidade). Reaproveita
     # os *_app já provisionados de cada serviço (sem acesso root ao MySQL neste ambiente
     # pra criar um usuário read-only dedicado — trade-off registrado, não escondido).
@@ -75,6 +75,17 @@ cactus:
         url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_compras?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
         username: ${CACTUS_COMPRAS_DB_USER:cactus_compras_app}
         password: ${CACTUS_COMPRAS_DB_PASSWORD:cactus_compras_local}
+      vendas:
+        url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/cactus_vendas?useUnicode=true&characterEncoding=utf8&preserveInstants=true&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+        username: ${CACTUS_VENDAS_DB_USER:cactus_vendas_app}
+        password: ${CACTUS_VENDAS_DB_PASSWORD:cactus_vendas_local}
+    faturamento:
+      # Quantos dias para trás cada execução recalcula. Venda do PDV chega por sync
+      # (pode atrasar se a loja ficou offline) e devolução muda o líquido de uma venda
+      # antiga — recalcular só o dia de referência deixaria esses casos desatualizados.
+      janela-dias: ${CACTUS_BI_FATURAMENTO_JANELA_DIAS:35}
+      # Mesmo fuso de vendas-service (cactus.vendas.pdv.fuso-horario): dia LOCAL da loja.
+      fuso-horario: ${CACTUS_BI_FUSO_HORARIO:America/Sao_Paulo}
 
 springdoc:
   swagger-ui:

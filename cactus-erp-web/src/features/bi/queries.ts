@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { executarEtl, listarComprasFornecedor, listarCurvaAbc, listarDepositosAtivos, listarEstoqueValor } from './api'
-import type { ComprasFornecedorFiltro, CurvaAbcFiltro, EstoqueValorFiltro, EtlExecucaoRequest } from './types'
+import { buscarFaturamento, executarEtl, listarComprasFornecedor, listarCurvaAbc, listarDepositosAtivos, listarEstoqueValor } from './api'
+import type { ComprasFornecedorFiltro, CurvaAbcFiltro, EstoqueValorFiltro, EtlExecucaoRequest, FaturamentoFiltro } from './types'
 
 export function useEstoqueValor(filtro: EstoqueValorFiltro, pagina: number, tamanho = 10) {
   return useQuery({
@@ -26,7 +26,15 @@ export function useComprasFornecedor(filtro: ComprasFornecedorFiltro, pagina: nu
   })
 }
 
-/** Invalida os 3 indicadores — o ETL recalcula tudo junto (dimensões antes de fatos, ver `EtlService`). */
+export function useFaturamento(filtro: FaturamentoFiltro) {
+  return useQuery({
+    queryKey: ['bi-faturamento', filtro],
+    queryFn: () => buscarFaturamento(filtro),
+    placeholderData: (dadosAnteriores) => dadosAnteriores,
+  })
+}
+
+/** Invalida os 4 indicadores — o ETL recalcula tudo junto (dimensões antes de fatos, ver `EtlService`). */
 export function useExecutarEtl() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -35,6 +43,7 @@ export function useExecutarEtl() {
       queryClient.invalidateQueries({ queryKey: ['bi-estoque-valor'] })
       queryClient.invalidateQueries({ queryKey: ['bi-curva-abc'] })
       queryClient.invalidateQueries({ queryKey: ['bi-compras-fornecedor'] })
+      queryClient.invalidateQueries({ queryKey: ['bi-faturamento'] })
     },
   })
 }
