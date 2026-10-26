@@ -101,6 +101,7 @@ public class VendaPdvService {
                 .registroSincronizacaoId(registroId)
                 .idOrigem(texto(m, "idOrigem"))
                 .pdvCaixaId(m.get("pdvCaixaId").asLong())
+                .pdvDispositivoId(texto(m, "dispositivoId"))
                 .pdvCaixaNome(texto(m, "pdvCaixaNome"))
                 .pdvOperadorId(inteiroLongo(m, "pdvOperadorId"))
                 .clienteId(inteiroLongo(m, "clienteId"))
@@ -174,7 +175,7 @@ public class VendaPdvService {
 
         if (venda.getValorDinheiroLiquido().signum() > 0) {
             financeiroClient.registrarDinheiroVendaPdv(new VendaPdvDinheiroClientRequest(
-                    registroId, empresaId, venda.getPdvCaixaId(), venda.getPdvCaixaNome(), venda.getValorDinheiroLiquido(),
+                    registroId, empresaId, venda.getPdvDispositivoId(), venda.getPdvCaixaId(), venda.getPdvCaixaNome(), venda.getValorDinheiroLiquido(),
                     LocalDateTime.ofInstant(venda.getDataHoraVenda(), ZoneId.of(fusoHorario)).toLocalDate(),
                     "venda " + venda.getIdOrigem()));
         }
@@ -264,7 +265,7 @@ public class VendaPdvService {
 
         if (venda.getValorDinheiroLiquido().signum() > 0) {
             financeiroClient.estornarDinheiroVendaPdv(new VendaPdvDinheiroClientRequest(
-                    registroId, empresaId, venda.getPdvCaixaId(), venda.getPdvCaixaNome(), venda.getValorDinheiroLiquido(),
+                    registroId, empresaId, venda.getPdvDispositivoId(), venda.getPdvCaixaId(), venda.getPdvCaixaNome(), venda.getValorDinheiroLiquido(),
                     LocalDateTime.ofInstant(dataHoraCancelamento, ZoneId.of(fusoHorario)).toLocalDate(),
                     "venda " + venda.getIdOrigem()));
         }

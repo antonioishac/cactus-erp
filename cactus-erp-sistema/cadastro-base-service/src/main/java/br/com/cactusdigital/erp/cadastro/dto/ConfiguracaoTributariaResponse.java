@@ -11,5 +11,6 @@ public record ConfiguracaoTributariaResponse(
         List<IcmsConfiguracaoDTO> icmsPorUf,
         PisConfiguracaoDTO pis,
         CofinsConfiguracaoDTO cofins,
-        IpiConfiguracaoDTO ipi) {
+        IpiConfiguracaoDTO ipi,
+        IbsCbsConfiguracaoResponse ibsCbs) {
 }

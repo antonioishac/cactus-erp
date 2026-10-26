@@ -592,6 +592,22 @@ NFC-e cancelada na SEFAZ via `NFE.CancelarNFe` dentro do prazo (padrão 30 min, 
 do que não foi devolvido. SAT/MF-e não suportado. Testado com ACBr falso local, nunca o real. Detalhe:
 `FASE6_SINCRONIZACAO_PDV.md` (raiz), seção 15.
 
+### Sincronização com o ERP — fatia 1 (pull) ✅ (2026-10-25)
+`SincronizacaoPullService` + `ErpSincronizacaoClient` + `ImportadorCadastroErp`: cadastros do ERP (produtos com
+faixas, clientes, formas de pagamento, operadores, configuração da loja) gravados com vínculo `ID_ERP`, cursor
+do servidor em `SINCRONIZACAO_CURSOR`. Desligado por padrão (`cactus.pdv.sync.habilitado`). Validado contra o ERP
+real. Falta a fatia 2 (envio). Detalhe: `FASE6_SINCRONIZACAO_PDV.md` (raiz), seção 16.
+
+### Sincronização com o ERP — fatia 2 (envio) ✅ (2026-10-25)
+`SincronizacaoEnvioService` + `MontadorPayloadErp`: outbox local `SINCRONIZACAO_ENVIO` alimentada por um coletor que
+lê as tabelas de operação (venda, devolução, cancelamento, caixa, fiado, estoque, conferência) a partir de
+`cactus.pdv.sync.envio.a-partir-de`; envio em lotes por tipo, ids traduzidos pelo `ID_ERP`, bloqueio com motivo
+quando falta vínculo. Validado ponta a ponta contra o ERP real. Detalhe: `FASE6_SINCRONIZACAO_PDV.md` (raiz), seção 17.
+
+### Tela de sincronização com o ERP ✅ (2026-10-25)
+F12 → Sincronização (gerente/supervisor): situação do pull, fila de envio com bloqueados/rejeitados e motivo,
+reenviar (F6/F7) e sincronizar agora (F5, em thread de fundo). Detalhe: `FASE6_SINCRONIZACAO_PDV.md` (raiz), seção 19.
+
 ## Decisões em aberto
 
 - Formato exato do payload/endpoint de licenciamento no Cactus ERP —

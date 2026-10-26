@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<AnchorPane fx:id="root" prefHeight="800.0" prefWidth="1280.0"
+            styleClass="cp-root"
+            stylesheets="@styles/consulta-produto.css"
+            xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="br.com.cactuserp.pdv.controllers.SincronizacaoErpController">
+
+    <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+        <HBox styleClass="cp-header" alignment="CENTER_LEFT" spacing="14">
+            <FontIcon iconLiteral="mdi2c-cloud-sync" iconSize="28" iconColor="white"/>
+            <VBox spacing="2">
+                <Label text="SINCRONIZAÇÃO COM O ERP" styleClass="cp-header-titulo"/>
+                <Label text="Cadastros recebidos da retaguarda e operações enviadas a ela"
+                       styleClass="cp-header-sub"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="F5 sincronizar  ·  F6 reenviar selecionado  ·  F7 reenviar todos  ·  ESC voltar"
+                   styleClass="cp-header-hint"/>
+        </HBox>
+
+        <!-- Situação geral + ações -->
+        <HBox styleClass="cp-busca-container" spacing="12" alignment="CENTER_LEFT">
+            <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
+            <Label fx:id="lblDisponibilidade" styleClass="cp-desc" wrapText="true"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblProgresso" styleClass="cp-desc"/>
+            <Button fx:id="btnSincronizar" text="SINCRONIZAR AGORA (F5)" styleClass="cc-btn-buscar"
+                    onAction="#handleSincronizar"/>
+        </HBox>
+
+        <HBox spacing="16" VBox.vgrow="ALWAYS">
+            <padding><Insets top="12" right="20" bottom="16" left="20"/></padding>
+
+            <!-- Pull: o que vem do ERP -->
+            <VBox spacing="8" prefWidth="420" minWidth="420" styleClass="cp-card">
+                <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                <Label text="RECEBIDO DO ERP" styleClass="cp-card-titulo"/>
+                <TableView fx:id="tabelaPull" styleClass="cp-tabela" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colPullEntidade" text="Cadastro" prefWidth="160"/>
+                        <TableColumn fx:id="colPullExecucao" text="Última rodada" prefWidth="150"/>
+                        <TableColumn fx:id="colPullSituacao" text="Situação" prefWidth="80"/>
+                    </columns>
+                </TableView>
+                <Label fx:id="lblPullErro" styleClass="cp-status-zero" wrapText="true"/>
+            </VBox>
+
+            <!-- Envio: o que sai para o ERP -->
+            <VBox spacing="8" HBox.hgrow="ALWAYS" styleClass="cp-card">
+                <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="ENVIADO AO ERP" styleClass="cp-card-titulo"/>
+                    <Label fx:id="lblResumoFila" styleClass="cp-desc"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="cbFiltro" prefWidth="220"/>
+                </HBox>
+                <TableView fx:id="tabelaFila" styleClass="cp-tabela" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colTipo" text="Tipo" prefWidth="175"/>
+                        <TableColumn fx:id="colOrigem" text="Id de origem" prefWidth="140"/>
+                        <TableColumn fx:id="colStatus" text="Status" prefWidth="95"/>
+                        <TableColumn fx:id="colTentativas" text="Tentativas" prefWidth="85"/>
+                        <TableColumn fx:id="colCriacao" text="Na fila desde" prefWidth="115"/>
+                        <TableColumn fx:id="colEnvio" text="Enviado em" prefWidth="115"/>
+                    </columns>
+                </TableView>
+                <Label text="MOTIVO" styleClass="cc-filtro-label"/>
+                <TextArea fx:id="taMotivo" editable="false" wrapText="true" prefRowCount="3"/>
+                <HBox spacing="10">
+                    <Button fx:id="btnReenviar" text="REENVIAR SELECIONADO (F6)" styleClass="cc-btn-devolver"
+                            onAction="#handleReenviarSelecionado"/>
+                    <Button fx:id="btnReenviarTodos" text="REENVIAR TODOS COM PROBLEMA (F7)" styleClass="cc-btn-devolver"
+                            onAction="#handleReenviarTodos"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</AnchorPane>

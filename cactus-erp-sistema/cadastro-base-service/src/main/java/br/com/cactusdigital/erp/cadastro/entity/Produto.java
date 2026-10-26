@@ -161,6 +161,13 @@ public class Produto extends BaseEntity {
     @Column(name = "data_resolucao_padrao")
     private Instant dataResolucaoPadrao;
 
+    /** IBS/CBS do "resolvido padrão": CST e cClassTrib da célula padrão (alíquotas vêm da vigência do ano). */
+    @Column(name = "cst_ibs_cbs_padrao", length = 3)
+    private String cstIbsCbsPadrao;
+
+    @Column(name = "classificacao_ibs_cbs_padrao", length = 6)
+    private String classificacaoIbsCbsPadrao;
+
     // --- Situação e agregados filhos ------------------------------------------------------
 
     @Builder.Default

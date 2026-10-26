@@ -1,6 +1,8 @@
 package br.com.cactusdigital.erp.fiscal.client;
 
 import br.com.cactusdigital.erp.common.exception.BusinessException;
+import br.com.cactusdigital.erp.fiscal.client.dto.AliquotaIbsCbsDTO;
+import br.com.cactusdigital.erp.fiscal.client.dto.ClassificacaoIbsCbsDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.ClienteFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaConfiguracaoFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaFiscalDTO;
@@ -29,6 +31,31 @@ public class CadastroClient {
 
     public ProdutoFiscalDTO buscarProduto(Long produtoId) {
         return get("/api/v1/produtos/{id}", produtoId, ProdutoFiscalDTO.class, "produto");
+    }
+
+    public ClassificacaoIbsCbsDTO buscarClassificacaoIbsCbs(String codigo) {
+        try {
+            return cadastroBaseRestClient.get()
+                    .uri("/api/v1/tributacao/ibs-cbs/classificacoes/{codigo}", codigo)
+                    .retrieve()
+                    .body(ClassificacaoIbsCbsDTO.class);
+        } catch (RestClientException ex) {
+            throw new BusinessException(FiscalErrorCode.FALHA_INTEGRACAO_CADASTRO,
+                    "Falha ao consultar a classificação IBS/CBS " + codigo + " no cadastro-base-service: " + ex.getMessage());
+        }
+    }
+
+    /** Alíquotas de IBS/CBS do ano de {@code data}. Ano sem alíquota em lei: o cadastro responde 422 e a mensagem sobe. */
+    public AliquotaIbsCbsDTO buscarAliquotasIbsCbs(java.time.LocalDate data) {
+        try {
+            return cadastroBaseRestClient.get()
+                    .uri(uri -> uri.path("/api/v1/tributacao/ibs-cbs/aliquotas").queryParam("data", data).build())
+                    .retrieve()
+                    .body(AliquotaIbsCbsDTO.class);
+        } catch (RestClientException ex) {
+            throw new BusinessException(FiscalErrorCode.FALHA_INTEGRACAO_CADASTRO,
+                    "Falha ao consultar as alíquotas de IBS/CBS de " + data + " no cadastro-base-service: " + ex.getMessage());
+        }
     }
 
     public EmpresaFiscalDTO buscarEmpresa(Long empresaId) {

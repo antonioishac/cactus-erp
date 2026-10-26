@@ -20,6 +20,11 @@ public record NotaFiscalEletronicaResponse(
         Instant dataEmissao,
         AmbienteFiscal ambiente,
         BigDecimal valorTotal,
+        BigDecimal valorBaseIbsCbs,
+        BigDecimal valorIbsUf,
+        BigDecimal valorIbsMunicipio,
+        BigDecimal valorIbs,
+        BigDecimal valorCbs,
         SituacaoNotaFiscal situacao,
         String mensagemSefaz,
         List<NotaFiscalEletronicaItemResponse> itens) {

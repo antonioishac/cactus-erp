@@ -24,5 +24,20 @@ public record NotaFiscalEletronicaItemResponse(
         BigDecimal aliquotaPis,
         BigDecimal valorPis,
         BigDecimal aliquotaCofins,
-        BigDecimal valorCofins) {
+        BigDecimal valorCofins,
+        String cstIbsCbs,
+        String classificacaoIbsCbs,
+        BigDecimal valorBaseIbsCbs,
+        BigDecimal aliquotaIbsUf,
+        BigDecimal percentualReducaoIbs,
+        BigDecimal aliquotaEfetivaIbsUf,
+        BigDecimal valorIbsUf,
+        BigDecimal aliquotaIbsMunicipio,
+        BigDecimal aliquotaEfetivaIbsMunicipio,
+        BigDecimal valorIbsMunicipio,
+        BigDecimal valorIbs,
+        BigDecimal aliquotaCbs,
+        BigDecimal percentualReducaoCbs,
+        BigDecimal aliquotaEfetivaCbs,
+        BigDecimal valorCbs) {
 }

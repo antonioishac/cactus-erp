@@ -8,10 +8,8 @@ import br.com.cactusdigital.erp.financeiro.entity.ContaReceber;
 import br.com.cactusdigital.erp.financeiro.entity.OrigemContaReceber;
 import br.com.cactusdigital.erp.financeiro.entity.OrigemMovimentoCaixa;
 import br.com.cactusdigital.erp.financeiro.entity.SincronizacaoPdvProcessado;
-import br.com.cactusdigital.erp.financeiro.entity.TipoContaBancaria;
 import br.com.cactusdigital.erp.financeiro.entity.TipoMovimentoCaixa;
 import br.com.cactusdigital.erp.financeiro.exception.FinanceiroErrorCode;
-import br.com.cactusdigital.erp.financeiro.repository.ContaBancariaRepository;
 import br.com.cactusdigital.erp.financeiro.repository.ContaReceberRepository;
 import br.com.cactusdigital.erp.financeiro.repository.SincronizacaoPdvProcessadoRepository;
 import java.math.BigDecimal;
@@ -64,7 +62,7 @@ import tools.jackson.databind.JsonNode;
 public class FinanceiroPdvService {
 
     private final SincronizacaoPdvProcessadoRepository processadoRepository;
-    private final ContaBancariaRepository contaBancariaRepository;
+    private final ContaTerminalPdvService contaTerminalPdvService;
     private final ContaReceberRepository contaReceberRepository;
     private final MovimentoCaixaBancoService movimentoService;
     private final ContaReceberService contaReceberService;
@@ -162,13 +160,14 @@ public class FinanceiroPdvService {
                 valor, dataMovimento, observacao != null ? truncar(historico + " - " + observacao, 250) : historico, null);
     }
 
-    /**
-     * Conta {@code CAIXA_INTERNO} do terminal, criada na primeira vez. Dois envios simultâneos do
-     * mesmo terminal novo colidem no {@code uk_conta_bancaria_pdv_caixa}; o perdedor falha, e o retry
-     * do listener reprocessa e encontra a conta já criada.
-     */
+    /** Conta {@code CAIXA_INTERNO} do terminal (empresa + dispositivo + terminal), criada na primeira vez — ver
+     * {@link ContaTerminalPdvService}. O {@code dispositivoId} vem do relay do sincronizacao-service. */
     ContaBancaria contaDoTerminal(Long empresaId, JsonNode mensagem) {
-        return contaDoTerminal(empresaId, mensagem.get("pdvCaixaId").asLong(), texto(mensagem, "pdvCaixaNome"));
+        String dispositivoId = texto(mensagem, "dispositivoId");
+        if (dispositivoId == null) {
+            throw new IllegalArgumentException("Mensagem do PDV sem dispositivoId — não dá para identificar o terminal");
+        }
+        return contaTerminalPdvService.obter(empresaId, dispositivoId, mensagem.get("pdvCaixaId").asLong(), texto(mensagem, "pdvCaixaNome"));
     }
 
     /**
@@ -185,7 +184,7 @@ public class FinanceiroPdvService {
             return false;
         }
         if (request.valor().signum() > 0) {
-            Long contaId = contaDoTerminal(request.empresaId(), request.pdvCaixaId(), request.pdvCaixaNome()).getId();
+            Long contaId = contaTerminalPdvService.obter(request.empresaId(), request.pdvDispositivoId(), request.pdvCaixaId(), request.pdvCaixaNome()).getId();
             movimentoService.registrar(contaId, TipoMovimentoCaixa.ENTRADA, OrigemMovimentoCaixa.VENDA_PDV, request.registroId(),
                     request.valor(), request.dataVenda(), truncar("Venda PDV em dinheiro (líquido de troco) - " + request.descricao(), 250), null);
         }
@@ -204,27 +203,12 @@ public class FinanceiroPdvService {
             return false;
         }
         if (request.valor().signum() > 0) {
-            Long contaId = contaDoTerminal(request.empresaId(), request.pdvCaixaId(), request.pdvCaixaNome()).getId();
+            Long contaId = contaTerminalPdvService.obter(request.empresaId(), request.pdvDispositivoId(), request.pdvCaixaId(), request.pdvCaixaNome()).getId();
             movimentoService.registrar(contaId, TipoMovimentoCaixa.SAIDA, OrigemMovimentoCaixa.CANCELAMENTO_VENDA_PDV, request.registroId(),
                     request.valor(), request.dataVenda(), truncar("Cancelamento de venda PDV (estorno do dinheiro) - " + request.descricao(), 250), null);
         }
         processadoRepository.save(new SincronizacaoPdvProcessado(request.registroId(), "CANCELAMENTO_VENDA", Instant.now()));
         return true;
-    }
-
-    private ContaBancaria contaDoTerminal(Long empresaId, Long pdvCaixaId, String nomeTerminal) {
-        return contaBancariaRepository.findByEmpresaIdAndPdvCaixaId(empresaId, pdvCaixaId)
-                .orElseGet(() -> {
-                    return contaBancariaRepository.saveAndFlush(ContaBancaria.builder()
-                            .empresaId(empresaId)
-                            .tipo(TipoContaBancaria.CAIXA_INTERNO)
-                            .nome(truncar("Caixa PDV " + (nomeTerminal != null ? nomeTerminal : "#" + pdvCaixaId), 100))
-                            .pdvCaixaId(pdvCaixaId)
-                            .dataSaldoInicial(LocalDate.now())
-                            .saldoInicial(BigDecimal.ZERO)
-                            .saldoAtual(BigDecimal.ZERO)
-                            .build());
-                });
     }
 
     private BigDecimal decimal(JsonNode mensagem, String campo) {

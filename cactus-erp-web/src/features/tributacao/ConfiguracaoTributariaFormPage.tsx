@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { App, Breadcrumb, Button, Card, Col, Divider, Empty, Flex, Form, InputNumber, Row, Select, Skeleton, Space, Popconfirm, Table, Typography } from 'antd'
+import { Alert, App, Breadcrumb, Button, Card, Col, Divider, Empty, Flex, Form, InputNumber, Row, Select, Skeleton, Space, Popconfirm, Table, Typography } from 'antd'
 import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons'
 import { useAuth } from '@features/auth/useAuth'
 import { hasAuthority } from '@features/auth/authority'
 import IcmsPorUfModal from './modals/IcmsPorUfModal'
 import {
   useAtualizarConfiguracaoTributaria,
+  useClassificacoesIbsCbs,
   useConfiguracaoTributaria,
   useCriarConfiguracaoTributaria,
   useTodasOperacoesFiscais,
@@ -20,6 +21,9 @@ import {
   MODALIDADE_BASE_CALCULO_LABEL,
 } from './types'
 import type { ConfiguracaoTributariaRequest, IcmsConfiguracaoDTO } from './types'
+
+/** Valor do formulário: o cClassTrib vem achatado num campo só (a API usa `ibsCbs: { classificacaoTributaria }`). */
+type ValoresFormulario = Omit<ConfiguracaoTributariaRequest, 'icmsPorUf' | 'ibsCbs'> & { classificacaoIbsCbs?: string }
 
 const { Text } = Typography
 
@@ -39,13 +43,16 @@ export default function ConfiguracaoTributariaFormPage() {
   const modoEdicao = configuracaoId !== undefined
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const [form] = Form.useForm<Omit<ConfiguracaoTributariaRequest, 'icmsPorUf'>>()
+  const [form] = Form.useForm<ValoresFormulario>()
   const { authorities } = useAuth()
   const podeSalvar = hasAuthority(authorities, modoEdicao ? 'CADASTRO_TRIBUTACAO_EDITAR' : 'CADASTRO_TRIBUTACAO_CRIAR')
 
   const { data: configuracao, isLoading: carregando } = useConfiguracaoTributaria(configuracaoId)
   const { data: grupos } = useTodosGruposTributarios()
   const { data: operacoes } = useTodasOperacoesFiscais()
+  const { data: classificacoes, isLoading: carregandoClassificacoes } = useClassificacoesIbsCbs()
+  const classificacaoSelecionada = Form.useWatch('classificacaoIbsCbs', form)
+  const detalheClassificacao = classificacoes?.find((c) => c.codigo === classificacaoSelecionada)
   const criar = useCriarConfiguracaoTributaria()
   const atualizar = useAtualizarConfiguracaoTributaria()
   const salvando = criar.isPending || atualizar.isPending
@@ -56,7 +63,7 @@ export default function ConfiguracaoTributariaFormPage() {
 
   /* oxlint-disable react-hooks/set-state-in-effect */
   if (configuracao && form.getFieldValue('grupoTributarioId') === undefined) {
-    form.setFieldsValue(configuracao)
+    form.setFieldsValue({ ...configuracao, classificacaoIbsCbs: configuracao.ibsCbs?.classificacaoTributaria })
     setIcmsPorUf(configuracao.icmsPorUf)
   }
   /* oxlint-enable react-hooks/set-state-in-effect */
@@ -81,8 +88,13 @@ export default function ConfiguracaoTributariaFormPage() {
   }
 
   async function handleSalvar() {
-    const valores = await form.validateFields()
-    const request: ConfiguracaoTributariaRequest = { ...valores, icmsPorUf }
+    const { classificacaoIbsCbs, ...valores } = await form.validateFields()
+    // Sempre reenvia o cClassTrib atual: ausente no PUT, o backend REMOVE a classificação da célula.
+    const request: ConfiguracaoTributariaRequest = {
+      ...valores,
+      icmsPorUf,
+      ibsCbs: classificacaoIbsCbs ? { classificacaoTributaria: classificacaoIbsCbs } : undefined,
+    }
 
     try {
       if (modoEdicao) {
@@ -188,6 +200,44 @@ export default function ConfiguracaoTributariaFormPage() {
                 : []),
             ]}
           />
+
+          <Divider titlePlacement="left">IBS / CBS (Reforma Tributária)</Divider>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+            Classificação tributária oficial (cClassTrib, tabela da SVRS). O CST, as reduções e as alíquotas vêm da tabela oficial e da
+            lei — nada é digitado. Obrigatória na NF-e de empresas do Regime Normal desde 03/08/2026.
+          </Text>
+          <Row gutter={12}>
+            <Col span={24}>
+              <Form.Item name="classificacaoIbsCbs" label="Classificação tributária (cClassTrib)">
+                <Select
+                  allowClear
+                  showSearch
+                  loading={carregandoClassificacoes}
+                  optionFilterProp="label"
+                  placeholder="Busque pelo código ou pela descrição"
+                  options={classificacoes
+                    ?.filter((c) => c.motivoNaoSuportada === null || c.codigo === classificacaoSelecionada)
+                    .map((c) => ({ value: c.codigo, label: `${c.codigo} — CST ${c.cst} — ${c.nomeReduzido ?? c.descricao}` }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          {detalheClassificacao && (
+            <Alert
+              type={detalheClassificacao.motivoNaoSuportada ? 'warning' : 'info'}
+              showIcon
+              style={{ marginBottom: 16 }}
+              title={detalheClassificacao.descricao}
+              description={
+                detalheClassificacao.motivoNaoSuportada ??
+                (detalheClassificacao.exigeGrupoTributacao
+                  ? detalheClassificacao.reducaoAliquota
+                    ? `Redução de alíquota: IBS ${detalheClassificacao.percentualReducaoIbs}% · CBS ${detalheClassificacao.percentualReducaoCbs}%`
+                    : 'Tributação pela alíquota cheia vigente no ano de emissão.'
+                  : 'Sem valores de IBS/CBS na nota (isenção/imunidade): só CST e classificação.')
+              }
+            />
+          )}
 
           <Divider titlePlacement="left">PIS</Divider>
           <Row gutter={12}>

@@ -15,5 +15,6 @@ public record ConfiguracaoTributariaRequest(
         @Valid List<IcmsConfiguracaoDTO> icmsPorUf,
         @Valid PisConfiguracaoDTO pis,
         @Valid CofinsConfiguracaoDTO cofins,
-        @Valid IpiConfiguracaoDTO ipi) {
+        @Valid IpiConfiguracaoDTO ipi,
+        @Valid IbsCbsConfiguracaoRequest ibsCbs) {
 }

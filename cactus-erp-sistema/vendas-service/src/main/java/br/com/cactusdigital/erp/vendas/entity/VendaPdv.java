@@ -54,6 +54,11 @@ public class VendaPdv extends BaseEntity {
     @Column(name = "pdv_caixa_id", nullable = false)
     private Long pdvCaixaId;
 
+    /** Instalação do PDV que enviou a venda — com {@code pdvCaixaId}, identifica o terminal. Nulo só em vendas
+     * recebidas antes da V6. */
+    @Column(name = "pdv_dispositivo_id", length = 30)
+    private String pdvDispositivoId;
+
     @Column(name = "pdv_caixa_nome", length = 60)
     private String pdvCaixaNome;
 

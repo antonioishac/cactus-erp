@@ -5,6 +5,7 @@ import br.com.cactusdigital.erp.cadastro.dto.ConfiguracaoTributariaRequest;
 import br.com.cactusdigital.erp.cadastro.dto.ConfiguracaoTributariaResponse;
 import br.com.cactusdigital.erp.cadastro.dto.IcmsConfiguracaoDTO;
 import br.com.cactusdigital.erp.cadastro.dto.IpiConfiguracaoDTO;
+import br.com.cactusdigital.erp.cadastro.dto.IbsCbsConfiguracaoRequest;
 import br.com.cactusdigital.erp.cadastro.dto.PisConfiguracaoDTO;
 import br.com.cactusdigital.erp.cadastro.entity.CofinsConfiguracao;
 import br.com.cactusdigital.erp.cadastro.entity.ConfiguracaoTributaria;
@@ -12,14 +13,18 @@ import br.com.cactusdigital.erp.cadastro.entity.GrupoTributario;
 import br.com.cactusdigital.erp.cadastro.entity.IcmsConfiguracao;
 import br.com.cactusdigital.erp.cadastro.entity.IpiConfiguracao;
 import br.com.cactusdigital.erp.cadastro.entity.OperacaoFiscal;
+import br.com.cactusdigital.erp.cadastro.entity.ClassificacaoTributariaIbsCbs;
+import br.com.cactusdigital.erp.cadastro.entity.IbsCbsConfiguracao;
 import br.com.cactusdigital.erp.cadastro.entity.PisConfiguracao;
 import br.com.cactusdigital.erp.cadastro.exception.CadastroErrorCode;
 import br.com.cactusdigital.erp.cadastro.mapper.TributacaoMotorMapper;
 import br.com.cactusdigital.erp.cadastro.repository.ConfiguracaoTributariaRepository;
 import br.com.cactusdigital.erp.cadastro.repository.GrupoTributarioRepository;
 import br.com.cactusdigital.erp.cadastro.repository.OperacaoFiscalRepository;
+import br.com.cactusdigital.erp.common.exception.BusinessException;
 import br.com.cactusdigital.erp.common.exception.ConflictException;
 import br.com.cactusdigital.erp.common.exception.NotFoundException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +46,8 @@ public class ConfiguracaoTributariaService {
     private final ConfiguracaoTributariaRepository repository;
     private final GrupoTributarioRepository grupoTributarioRepository;
     private final OperacaoFiscalRepository operacaoFiscalRepository;
+    private final IbsCbsCatalogoService ibsCbsCatalogoService;
+    private final RegrasClassificacaoIbsCbs regrasIbsCbs;
     private final TributacaoMotorMapper mapper;
 
     /**
@@ -86,6 +93,7 @@ public class ConfiguracaoTributariaService {
         aplicarPis(entidade, request.pis());
         aplicarCofins(entidade, request.cofins());
         aplicarIpi(entidade, request.ipi());
+        aplicarIbsCbs(entidade, request.ibsCbs());
 
         return mapper.toResponse(repository.save(entidade));
     }
@@ -107,6 +115,7 @@ public class ConfiguracaoTributariaService {
         aplicarPis(entidade, request.pis());
         aplicarCofins(entidade, request.cofins());
         aplicarIpi(entidade, request.ipi());
+        aplicarIbsCbs(entidade, request.ibsCbs());
 
         return mapper.toResponse(entidade);
     }
@@ -117,16 +126,29 @@ public class ConfiguracaoTributariaService {
     }
 
     /**
-     * Substitui o conteúdo da lista sem trocar a referência — necessário pra
-     * {@code orphanRemoval=true} rastrear a MESMA coleção gerenciada (mesmo padrão do
-     * {@link PessoaAssembler#substituirListas}).
+     * Sincroniza as linhas de ICMS por UF casando pela UF: a linha que já existe é ATUALIZADA no lugar, UF nova
+     * é incluída e só a UF que saiu da requisição é removida (orphanRemoval, mesma coleção gerenciada).
+     *
+     * <p>Bug corrigido (2026-10-25): a versão anterior limpava a lista e recriava todas as linhas. O Hibernate
+     * executa os INSERTs antes dos DELETEs dos órfãos no flush, então a linha nova de "SP" colidia com a antiga
+     * na chave única {@code uk_icms_config_uf} — TODO {@code PUT} de configuração com ICMS falhava com 409.
      */
     private void aplicarIcms(ConfiguracaoTributaria entidade, List<IcmsConfiguracaoDTO> icmsPorUf) {
-        entidade.getIcmsPorUf().clear();
-        for (IcmsConfiguracaoDTO dto : icmsPorUf != null ? icmsPorUf : List.<IcmsConfiguracaoDTO>of()) {
-            IcmsConfiguracao icms = mapper.toEntity(dto);
-            icms.setConfiguracaoTributaria(entidade);
-            entidade.getIcmsPorUf().add(icms);
+        List<IcmsConfiguracaoDTO> novas = icmsPorUf != null ? icmsPorUf : List.of();
+        java.util.Set<String> ufsNovas = novas.stream().map(dto -> dto.ufDestino().toUpperCase()).collect(java.util.stream.Collectors.toSet());
+        entidade.getIcmsPorUf().removeIf(existente -> !ufsNovas.contains(existente.getUfDestino().toUpperCase()));
+        for (IcmsConfiguracaoDTO dto : novas) {
+            IcmsConfiguracao icms = entidade.getIcmsPorUf().stream()
+                    .filter(existente -> existente.getUfDestino().equalsIgnoreCase(dto.ufDestino()))
+                    .findFirst()
+                    .orElse(null);
+            if (icms != null) {
+                mapper.atualizar(dto, icms);
+            } else {
+                icms = mapper.toEntity(dto);
+                icms.setConfiguracaoTributaria(entidade);
+                entidade.getIcmsPorUf().add(icms);
+            }
         }
     }
 
@@ -161,6 +183,31 @@ public class ConfiguracaoTributariaService {
         mapper.atualizar(dto, ipi);
         ipi.setConfiguracaoTributaria(entidade);
         entidade.setIpi(ipi);
+    }
+
+    /**
+     * Só aceita classificação que o ERP sabe emitir e que está vigente hoje — a recusa vem aqui, na
+     * configuração, e não na hora da NF-e (ver {@link RegrasClassificacaoIbsCbs}).
+     */
+    private void aplicarIbsCbs(ConfiguracaoTributaria entidade, IbsCbsConfiguracaoRequest dto) {
+        if (dto == null) {
+            entidade.setIbsCbs(null);
+            return;
+        }
+        ClassificacaoTributariaIbsCbs classificacao = ibsCbsCatalogoService.buscarEntidade(dto.classificacaoTributaria());
+        regrasIbsCbs.motivoNaoSuportada(classificacao).ifPresent(motivo -> {
+            throw new BusinessException(CadastroErrorCode.CLASSIFICACAO_IBS_CBS_NAO_SUPORTADA,
+                    "cClassTrib " + classificacao.getCodigo() + ": " + motivo);
+        });
+        if (!classificacao.vigenteEm(LocalDate.now())) {
+            throw new BusinessException(CadastroErrorCode.CLASSIFICACAO_IBS_CBS_FORA_DE_VIGENCIA,
+                    "cClassTrib " + classificacao.getCodigo() + " fora de vigência (vigente de " + classificacao.getInicioVigencia()
+                            + (classificacao.getFimVigencia() != null ? " até " + classificacao.getFimVigencia() : "") + ")");
+        }
+        IbsCbsConfiguracao ibsCbs = entidade.getIbsCbs() != null ? entidade.getIbsCbs() : new IbsCbsConfiguracao();
+        ibsCbs.setClassificacaoTributaria(classificacao);
+        ibsCbs.setConfiguracaoTributaria(entidade);
+        entidade.setIbsCbs(ibsCbs);
     }
 
     private ConfiguracaoTributaria buscarEntidade(Long id) {

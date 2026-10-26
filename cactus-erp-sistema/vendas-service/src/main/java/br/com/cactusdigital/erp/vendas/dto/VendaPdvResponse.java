@@ -12,6 +12,7 @@ public record VendaPdvResponse(
         Long registroSincronizacaoId,
         String idOrigem,
         Long pdvCaixaId,
+        String pdvDispositivoId,
         String pdvCaixaNome,
         Long pdvOperadorId,
         Long clienteId,

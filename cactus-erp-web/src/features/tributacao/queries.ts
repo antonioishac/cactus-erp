@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import {
+  listarClassificacoesIbsCbs,
   atualizarConfiguracaoTributaria,
   atualizarGrupoTributario,
   atualizarOperacaoFiscal,
@@ -30,6 +31,15 @@ export function useGruposTributariosPaginado(pagina: number, tamanho = 10, nome?
     queryKey: [...QUERY_KEY_GRUPOS, pagina, tamanho, nome],
     queryFn: () => listarGruposTributarios(pagina, tamanho, nome),
     placeholderData: (dadosAnteriores) => dadosAnteriores,
+  })
+}
+
+/** Catálogo oficial de cClassTrib — muda só com migration nova, então fica em cache a sessão toda. */
+export function useClassificacoesIbsCbs() {
+  return useQuery({
+    queryKey: ['tributacao-ibs-cbs-classificacoes'],
+    queryFn: () => listarClassificacoesIbsCbs(),
+    staleTime: Infinity,
   })
 }
 

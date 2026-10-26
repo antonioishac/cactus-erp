@@ -708,3 +708,134 @@ Sem isto, o faturamento de uma loja com PDV saía subestimado: os relatórios do
 - **Não exercitado:** ACBr/SEFAZ reais; a tela JavaFX não foi aberta (sem ambiente gráfico de teste), só o serviço por trás; a tela web foi conferida só pelo TypeScript, não num navegador.
 - **Ainda falta para funcionar de ponta a ponta:** o PDV não tem cliente de envio para o ERP (nenhum tipo de registro sai do PDV sozinho hoje). O contrato acima é o que esse cliente precisará mandar.
 
+## 16. Cliente de sincronização do PDV — fatia 1: pull de cadastros (2026-10-25) ✅
+
+Até aqui o PDV não falava com o ERP para nada: o ERP tinha pull e push prontos, mas foi validado recebendo chamadas diretas. Decisões do usuário: **vínculo por coluna `ID_ERP`** nos cadastros do PDV (preserva os ids e os dados locais; cadastro só do PDV fica com `ID_ERP` nulo) e **pull primeiro, envio depois** (o envio precisa do vínculo para traduzir id local → id do ERP).
+
+### Peças no PDV
+- `ErpSincronizacaoClient`: `HttpClient` do JDK, token OAuth2 Client Credentials **da loja** (`POST /api/v1/sincronizacao/clientes-loja` no ERP), reaproveitado até 30s antes de expirar; 401 força renovar.
+- `SincronizacaoPullService` (`@Scheduled`, padrão a cada 5 min): formas de pagamento → operadores → clientes → produtos → configuração da loja. Cursor por entidade em `SINCRONIZACAO_CURSOR`, sempre o `proximoCursor` do servidor. Cada página numa transação; o cursor só avança depois da rodada inteira gravada (repetir é seguro, o upsert é idempotente). Erro de uma entidade não para as outras e fica em `ULTIMO_ERRO`.
+- `ImportadorCadastroErp`: upsert por `ID_ERP`, JDBC direto (tradução campo a campo de formato externo, sem regra de negócio do PDV no meio).
+- **Desligado por padrão** (`cactus.pdv.sync.habilitado=false`) e também sem client configurado: o PDV continua 100% local. Segredo só por variável de ambiente (`CACTUS_SYNC_CLIENT_SECRET`).
+- DDL: `ID_ERP` (único) em `PRODUTO`, `CLIENTE`, `PDV_TIPO_PAGAMENTO`, `COLABORADOR`, `PDV_OPERADOR` + tabela `SINCRONIZACAO_CURSOR`. Aplicado no MySQL local, registrado no `PDV.md`/`BANCO_PDV.md`.
+
+### Regras de tradução
+- **Produto**: tributação já resolvida (CST/CSOSN sem o prefixo do enum, alíquotas), `tipoItemSped` pelo código do Registro 0200, unidade pela sigla (criada se não existir). Subgrupo/tipo/grupo tributário não vêm do ERP: produto novo usa `cactus.pdv.sync.produto.*-padrao-id`; produto já vinculado mantém os locais. Faixas de preço são trocadas pelas do ERP. **Saldo de estoque só no produto novo** (carga inicial); depois disso o saldo do PDV só muda pelo próprio ledger.
+- **Operador**: `ID_ERP` = `usuarioId`, senha = hash BCrypt do ERP (o login continua local, sem depender de rede). Nível G/S/O/E no colaborador. Inativo ou bloqueado no ERP tem a senha local invalidada (prefixo `!`), porque `PDV_OPERADOR` não tem coluna de situação. Colaborador novo nasce com o login como nome (o ERP não manda o nome).
+- **Cliente / forma de pagamento**: inativo no ERP não é criado no PDV; o que já existe continua (venda antiga referencia). Endereço principal e primeiro telefone/celular.
+- **Configuração da loja**: mesas/comandas/delivery na `LOJA_CONFIGURACAO` e limites de desconto/acréscimo em todo `PDV_CONFIGURACAO`.
+
+### Validação ao vivo
+`SincronizacaoPullServiceIT`: PDV real contra o ERP real (seguranca, cadastro-base, estoque e sincronizacao no ar), com um client de loja provisionado só para o teste (`loja-4`, removido ao final), gravando no MySQL do PDV em transação revertida. Comparado com o banco do ERP: todos os produtos vinculados, produto conferido campo a campo (nome, GTIN, preço, quantidade de faixas), formas de pagamento e clientes ativos vinculados, usuário GERENTE da loja virou operador com nível `G` e a mesma senha BCrypt. Nenhum erro em nenhuma entidade. Segunda rodada com cursor: nenhuma linha duplicada. Banco do PDV conferido sem resíduo.
+- **Bug encontrado e corrigido no teste**: `Map.of(...).get(null)` lança NPE em Java; produto sem `tipoItemSped` derrubava a página. Corrigido com tradução que aceita nulo.
+- Suíte padrão do PDV (`mvnw test`, 36 testes) sem regressão.
+
+### Fica para a fatia 2
+Envio PDV → ERP: fila local (outbox) com os 10 tipos de registro (seções 12, 13 e 15), traduzindo id local para `ID_ERP`, com reenvio idempotente pelo `idOrigem`.
+
+## 17. Cliente de sincronização do PDV — fatia 2: envio PDV → ERP (2026-10-25) ✅
+
+Com isto a sincronização funciona **nos dois sentidos**: cadastros descem pelo pull (seção 16) e a operação da loja sobe pelo envio.
+
+### Desenho (`SincronizacaoEnvioService` + `MontadorPayloadErp`, PDV)
+- **Outbox local** `SINCRONIZACAO_ENVIO` (`UNIQUE(TIPO_REGISTRO, ID_LOCAL)`). Um **coletor** varre as tabelas de operação a partir de `cactus.pdv.sync.envio.a-partir-de` (evita mandar o histórico anterior à implantação) e enfileira o que ainda não foi enfileirado. O código que registra venda, sangria etc. **não mudou**: o envio só lê as tabelas, e o que aconteceu com o PDV fora da rede é enviado quando ela volta.
+- **Envio** em lotes por tipo (até `tamanho-lote`), na ordem de dependência: abertura → suprimento → venda → devolução → cancelamento → sangria → fiado → estoque → conferência. Resultado por item: `ACEITO` → `E`; `REJEITADO` → `R` com o motivo; falha de rede → continua `P` e repete (o ERP deduplica pelo `idOrigem`).
+- **`idOrigem` = `dispositivo:prefixo:idLocal`** (ex: `CAIXA01:V:43`), para dois PDVs da mesma loja não colidirem no ERP. `cactus.pdv.sync.dispositivo-id` (vazio = hostname).
+- **Tradução de id**: produto e cliente vão pelo `ID_ERP` (seção 16). Sem vínculo, o registro fica **bloqueado** (`B`) com o motivo e é tentado de novo a cada rodada (o pull pode trazer o vínculo depois). Terminal, operador e gerente vão com o id local (são identidades do terminal no ERP). O estoque vai para o depósito do ERP em `cactus.pdv.sync.deposito-id`.
+- **Regras de venda**:
+  - Só vai venda que foi finalizada um dia (`F`/`P`, ou `C` com data de cancelamento). Cupom aberto e abortado nunca existiu como venda e não vai.
+  - Venda fechada e cancelada **antes** de ser enviada vai direto como cancelada, sem registro de cancelamento.
+  - O cancelamento só é enfileirado depois que a venda foi aceita como fechada (`SITUACAO_ENVIADA`).
+  - Devolução espera a venda ser aceita. Se a venda saiu cancelada, a devolução é dispensada (`D`).
+- **Mapeamentos**:
+  - Estoque: E/S/A/P/D → ENTRADA/SAIDA/AJUSTE (direção pelo saldo novo × anterior)/PERDA/DEVOLUCAO. Origem VENDA_PDV, DEVOLUCAO_PDV ou AJUSTE_MANUAL.
+  - Conferência: só a divergência da forma dinheiro (tPag 01).
+  - Pagamento de fiado: vai para o terminal do turno do mesmo operador aberto na data. Sem turno, fica bloqueado.
+- Desligado por padrão, como o pull.
+
+### Bug real no `financeiro-service`, encontrado por este teste e corrigido
+**Lost-update do saldo do caixa do terminal.** Duas vendas do PDV lançadas ao mesmo tempo (o vendas-service tem 3 consumidores) partiam do mesmo saldo e uma se perdia. 11 lançamentos simultâneos somavam R$ 101 e o saldo ficava em R$ 31.
+- Causa: o consumidor do PDV (`contaDoTerminal`) carrega a conta antes. O `SELECT ... FOR UPDATE` de `buscarParaAtualizarSaldo` trava a linha no MySQL, mas o Hibernate devolve a instância que já estava em memória, com o saldo lido antes do lock. Nem `refresh(PESSIMISTIC_WRITE)` relê nesse caso (testado).
+- Correção em `MovimentoCaixaBancoService#registrar`, o único ponto que muda saldo: o saldo vem de `ContaBancariaRepository#lerSaldoTravado` (`SELECT saldo_atual ... FOR UPDATE` nativo, leitura atual que não passa pelo contexto de persistência).
+- Validado: 20 lançamentos simultâneos de R$ 10 + 1 de R$ 1 → saldo R$ 201, e todo movimento com saldo posterior = anterior + valor.
+- O bug existia desde a Fase 6-B e só não apareceu antes porque os testes eram sequenciais.
+
+### Validação ponta a ponta (`SincronizacaoEnvioServiceIT`)
+PDV real → `sincronizacao-service` → RabbitMQ → vendas, financeiro e estoque reais, com um client de loja temporário. O lado do PDV roda em transação revertida; o lado do ERP foi limpo depois.
+
+O cenário do dia:
+- abertura de R$ 100, suprimento de 20, sangria de 10;
+- 4 vendas:
+  - uma com troco e devolução de 1 item;
+  - uma cancelada depois de enviada;
+  - uma cancelada antes de enviar;
+  - uma com produto sem vínculo;
+- um fiado, um movimento de estoque e uma conferência com falta de R$ 5.
+
+Resultado, em 3 rodadas:
+- 11 registros `PROCESSADO` no ERP.
+- O caixa do terminal fechou em **R$ 125** (100 + 20 + 20 + 10 − 10 − 10 − 5), cada movimento partindo do saldo anterior certo.
+- No ERP: 1 venda fechada e 2 canceladas (a cancelada antes do envio foi direto como cancelada, sem registro de cancelamento), item com 1 unidade devolvida, título de fiado de R$ 15 e saída de estoque `VENDA_PDV`.
+- A venda com produto sem vínculo ficou bloqueada com o motivo.
+- A 3ª rodada não reenviou nada.
+
+Bancos conferidos sem resíduo depois. Suíte padrão do PDV (36 testes) sem regressão.
+
+**Primeira execução deste teste:** o caixa deu R$ 95. Foi isso que revelou o bug acima.
+
+### Fica pendente
+- Tela no PDV para a fila (bloqueados/rejeitados e reenvio).
+- Terminal identificado pelo id local no financeiro (ver BACKLOG).
+- Imagens e tabelas de preço no pull (seção 16).
+
+## 18. Terminal identificado por dispositivo + criação da conta segura contra corrida (2026-10-25) ✅
+
+### Problema
+O id do terminal (`PDV_CAIXA.ID`) é local de cada banco de PDV. Duas instalações na mesma loja podem ter um "Caixa 1" cada. Com a chave antiga da conta do terminal no financeiro, `(empresa, pdv_caixa_id)`, o dinheiro das duas cairia na mesma conta e a conferência de nenhuma bateria.
+
+### Correção
+- **`sincronizacao-service`**: o relay passa a pôr o `dispositivoId` do registro na mensagem de financeiro e vendas.
+- **`financeiro-service`** (`V9__conta_terminal_por_dispositivo.sql`):
+  - `conta_bancaria.pdv_dispositivo_id`, com a chave única trocada para `(empresa_id, pdv_dispositivo_id, pdv_caixa_id)`.
+  - `VendaPdvDinheiroRequest.pdvDispositivoId` passou a ser obrigatório; sem ele, 400.
+  - Mensagem da fila sem dispositivo é recusada.
+  - Contas criadas antes ficam com o dispositivo nulo e deixam de ser usadas pela sincronização. O sistema ainda não está em produção.
+- **`vendas-service`** (`V6__venda_pdv_dispositivo.sql`): `VendaPdv.pdvDispositivoId`, repassado ao financeiro no lançamento e no estorno do dinheiro.
+- **Frontend**: a coluna Terminal de "Vendas do PDV" mostra `dispositivo / terminal`.
+
+### Corrida na criação da conta: dois bugs achados no teste de carga
+Abertura e primeira venda de um terminal novo chegam juntas, uma pela fila do financeiro e outra pela chamada do vendas-service.
+1. **Antes desta seção**: o perdedor da corrida batia na chave única. Pela fila, o retry resolvia. Pela chamada HTTP do vendas, porém, o 409 virava erro de negócio e a venda ia para `ERRO` sem retentar.
+2. **Primeira correção (descartada)**: criar a conta numa transação `REQUIRES_NEW`. Com 20 envios simultâneos, cada requisição segurava uma conexão esperando uma segunda. O pool (10) esgotou e **todas** falharam por timeout.
+3. **Correção final** (`ContaTerminalPdvService`, na mesma transação e na mesma conexão):
+   - busca normal, sem lock: um `FOR UPDATE` numa chave inexistente faz gap lock;
+   - se não acha, `INSERT ... ON DUPLICATE KEY UPDATE id = id` nativo: a chave única resolve a corrida no próprio MySQL;
+   - relê com leitura travada, que é uma leitura atual e enxerga o que outra transação commitou.
+
+### Validação ao vivo
+- **Corrida e isolamento:** 30 lançamentos simultâneos de R$ 10 no "Caixa 1" da instalação PDV-A e 10 no "Caixa 1" da PDV-B, todos em terminais novos.
+  - Resultado: **duas contas distintas**, com R$ 300 e R$ 100 exatos.
+  - Nenhum movimento com saldo inconsistente e nenhum esgotamento de pool ou deadlock.
+  - Sem dispositivo, a requisição devolve 400.
+- **`SincronizacaoEnvioServiceIT` de novo, ponta a ponta:** a conta nasceu como `IT-ENVIO / PDV-001` com R$ 125, e as vendas gravaram o dispositivo.
+- Dados de teste removidos.
+
+## 19. Tela de sincronização no PDV (2026-10-25) ✅
+
+F12 → **Sincronização** (gerente e supervisor; operador não vê). Overlay em tela cheia, no mesmo padrão da Consulta de Cupom, e **100% por teclado**: F5 sincroniza agora, F6 reenvia o selecionado, F7 reenvia todos os bloqueados e rejeitados, ESC volta.
+
+- **Recebido do ERP**: situação do pull por cadastro (última rodada, OK/ERRO); o erro aparece ao selecionar a linha.
+- **Enviado ao ERP**: resumo da fila por status e lista filtrável. O filtro padrão é "bloqueados e rejeitados", o que pede ação. O motivo de cada registro aparece embaixo.
+- **Reenviar** só reabre bloqueado/rejeitado (volta a pendente, zera tentativas e erro). O payload é remontado no envio a partir do estado atual da origem, então um cadastro corrigido no meio tempo já sai certo.
+- **Sincronizar agora** roda pull + envio numa thread de fundo (`Task`), sem travar a tela. Pull e envio passaram a ser `synchronized`: o disparo manual espera uma rodada agendada em andamento, em vez de as duas pegarem os mesmos pendentes. Com a sincronização desligada ou sem configuração, a tela diz o motivo e o botão fica desabilitado.
+- Camadas: `SincronizacaoPainelService` (regra), `SincronizacaoErpController` (só apresentação), DTOs `ItemFilaEnvio`/`SituacaoPullEntidade` com os rótulos em português.
+
+### Validação
+- `SincronizacaoPainelServiceIT`, contra o MySQL do PDV com rollback:
+  - resumo e filtro da fila;
+  - reenviar recusa registro já enviado e reabre bloqueado/rejeitado;
+  - motivo quando desligada;
+  - **carregamento real do FXML** com o toolkit JavaFX e o controller do Spring, que pega `fx:id`/`onAction`/ícone inválidos que só quebrariam ao abrir a tela.
+- Tela renderizada em imagem pelo próprio JavaFX e conferida visualmente. A primeira versão tinha colunas cortadas e nomes técnicos (`VENDA_PDV`), e foi corrigida com rótulos em português, colunas que ocupam a largura e data curta na fila.
+- Suíte padrão do PDV (36) sem regressão.
+

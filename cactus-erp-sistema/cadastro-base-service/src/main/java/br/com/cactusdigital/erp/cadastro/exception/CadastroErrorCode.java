@@ -37,6 +37,9 @@ public enum CadastroErrorCode implements ErrorCode {
     REGIME_TRIBUTARIO_ANO_DUPLICADO("Já existe regime tributário registrado para este ano-calendário", HttpStatus.CONFLICT),
     CONFIGURACAO_TRIBUTARIA_DUPLICADA("Já existe configuração tributária para esse grupo tributário e operação fiscal", HttpStatus.CONFLICT),
     TRIBUTACAO_UF_NAO_CONFIGURADA("Não há regra de ICMS configurada para essa UF nessa combinação de grupo tributário e operação fiscal", HttpStatus.UNPROCESSABLE_ENTITY),
+    CLASSIFICACAO_IBS_CBS_NAO_SUPORTADA("Classificação tributária do IBS/CBS ainda não suportada pelo ERP", HttpStatus.UNPROCESSABLE_ENTITY),
+    CLASSIFICACAO_IBS_CBS_FORA_DE_VIGENCIA("Classificação tributária do IBS/CBS fora de vigência", HttpStatus.UNPROCESSABLE_ENTITY),
+    ALIQUOTA_IBS_CBS_NAO_DEFINIDA("Não há alíquota de IBS/CBS definida em lei para o ano de emissão", HttpStatus.UNPROCESSABLE_ENTITY),
     CONFIGURACAO_FISCAL_INCOMPLETA("A empresa não tem série de NF-e configurada — complete a configuração fiscal antes de emitir", HttpStatus.UNPROCESSABLE_ENTITY);
 
     private final String mensagemPadrao;

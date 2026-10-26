@@ -18,6 +18,10 @@ import br.com.cactusdigital.erp.cadastro.entity.IpiConfiguracao;
 import br.com.cactusdigital.erp.cadastro.entity.IssConfiguracao;
 import br.com.cactusdigital.erp.cadastro.entity.OperacaoFiscal;
 import br.com.cactusdigital.erp.cadastro.entity.PisConfiguracao;
+import br.com.cactusdigital.erp.cadastro.dto.IbsCbsConfiguracaoResponse;
+import br.com.cactusdigital.erp.cadastro.dto.IbsCbsResolvidoDTO;
+import br.com.cactusdigital.erp.cadastro.entity.ClassificacaoTributariaIbsCbs;
+import br.com.cactusdigital.erp.cadastro.entity.IbsCbsConfiguracao;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -71,6 +75,10 @@ public interface TributacaoMotorMapper {
     @Mapping(target = "configuracaoTributaria", ignore = true)
     IcmsConfiguracao toEntity(IcmsConfiguracaoDTO dto);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "configuracaoTributaria", ignore = true)
+    void atualizar(IcmsConfiguracaoDTO dto, @MappingTarget IcmsConfiguracao entity);
+
     PisConfiguracaoDTO toDto(PisConfiguracao entity);
 
     @Mapping(target = "id", ignore = true)
@@ -106,4 +114,22 @@ public interface TributacaoMotorMapper {
     @Mapping(target = "operacaoFiscalId", source = "operacaoFiscal.id")
     @Mapping(target = "operacaoFiscalNome", source = "operacaoFiscal.nome")
     ConfiguracaoTributariaResponse toResponse(ConfiguracaoTributaria entity);
+
+    default IbsCbsConfiguracaoResponse toResponse(IbsCbsConfiguracao entity) {
+        if (entity == null) {
+            return null;
+        }
+        ClassificacaoTributariaIbsCbs c = entity.getClassificacaoTributaria();
+        return new IbsCbsConfiguracaoResponse(c.getCodigo(), c.getCst().getCodigo(), c.getDescricao(),
+                c.getPercentualReducaoIbs(), c.getPercentualReducaoCbs());
+    }
+
+    default IbsCbsResolvidoDTO toResolvido(IbsCbsConfiguracao entity) {
+        if (entity == null) {
+            return null;
+        }
+        ClassificacaoTributariaIbsCbs c = entity.getClassificacaoTributaria();
+        return new IbsCbsResolvidoDTO(c.getCst().getCodigo(), c.getCodigo(), c.getCst().isExigeTributacao(),
+                c.getCst().isReducaoAliquota(), c.getPercentualReducaoIbs(), c.getPercentualReducaoCbs());
+    }
 }

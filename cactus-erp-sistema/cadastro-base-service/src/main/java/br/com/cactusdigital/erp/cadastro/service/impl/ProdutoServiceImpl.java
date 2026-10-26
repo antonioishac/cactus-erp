@@ -180,6 +180,8 @@ class ProdutoServiceImpl implements ProdutoService {
         produto.setAliquotaPisPadrao(resolvido.pis() != null ? resolvido.pis().aliquotaPercentual() : null);
         produto.setAliquotaCofinsPadrao(resolvido.cofins() != null ? resolvido.cofins().aliquotaPercentual() : null);
         produto.setAliquotaIssqnPadrao(resolvido.iss() != null ? resolvido.iss().aliquotaPercentual() : null);
+        produto.setCstIbsCbsPadrao(resolvido.ibsCbs() != null ? resolvido.ibsCbs().cst() : null);
+        produto.setClassificacaoIbsCbsPadrao(resolvido.ibsCbs() != null ? resolvido.ibsCbs().classificacaoTributaria() : null);
         produto.setDataResolucaoPadrao(Instant.now());
 
         return mapper.toResponse(produto);

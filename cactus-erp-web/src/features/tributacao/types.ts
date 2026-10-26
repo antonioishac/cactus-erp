@@ -232,6 +232,42 @@ export interface IpiConfiguracaoDTO {
   valorPautaFiscal?: number
 }
 
+/**
+ * IBS/CBS (Reforma Tributária, LC 214/2025): a célula só guarda a classificação oficial (cClassTrib).
+ * CST, redução e indicadores vêm do catálogo oficial da SVRS; as alíquotas, da lei (por ano de emissão).
+ * Ausente no PUT = remove a classificação — a tela precisa sempre reenviar o valor atual.
+ */
+export interface IbsCbsConfiguracaoRequest {
+  classificacaoTributaria: string
+}
+
+export interface IbsCbsConfiguracaoResponse {
+  classificacaoTributaria: string
+  cst: string
+  descricao: string
+  percentualReducaoIbs: number
+  percentualReducaoCbs: number
+}
+
+/** Catálogo oficial. `motivoNaoSuportada` preenchido = o ERP ainda não emite documento com esta classificação. */
+export interface ClassificacaoTributariaIbsCbsResponse {
+  codigo: string
+  cst: string
+  exigeGrupoTributacao: boolean
+  reducaoAliquota: boolean
+  descricao: string
+  nomeReduzido: string | null
+  percentualReducaoIbs: number
+  percentualReducaoCbs: number
+  tributacaoRegular: boolean
+  aceitaNfe: boolean
+  aceitaNfce: boolean
+  urlLegislacao: string | null
+  inicioVigencia: string
+  fimVigencia: string | null
+  motivoNaoSuportada: string | null
+}
+
 export interface ConfiguracaoTributariaRequest {
   grupoTributarioId: number
   operacaoFiscalId: number
@@ -239,6 +275,7 @@ export interface ConfiguracaoTributariaRequest {
   pis?: PisConfiguracaoDTO
   cofins?: CofinsConfiguracaoDTO
   ipi?: IpiConfiguracaoDTO
+  ibsCbs?: IbsCbsConfiguracaoRequest
 }
 
 export interface ConfiguracaoTributariaResponse {
@@ -251,4 +288,5 @@ export interface ConfiguracaoTributariaResponse {
   pis?: PisConfiguracaoDTO
   cofins?: CofinsConfiguracaoDTO
   ipi?: IpiConfiguracaoDTO
+  ibsCbs?: IbsCbsConfiguracaoResponse | null
 }

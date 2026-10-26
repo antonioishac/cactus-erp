@@ -77,7 +77,9 @@ public class AuthorizationServerConfig {
             // no os-service pra compor a nota de serviço.
             "fiscal-service", List.of("VENDAS_CONSULTAR", "CADASTRO_CLIENTE_CONSULTAR",
                     "CADASTRO_PRODUTO_CONSULTAR", "CADASTRO_EMPRESA_CONSULTAR", "CADASTRO_EMPRESA_EDITAR",
-                    "CADASTRO_TRANSPORTADORA_CONSULTAR", "OS_CONSULTAR", "LOJA_CONSULTAR"));
+                    "CADASTRO_TRANSPORTADORA_CONSULTAR", "OS_CONSULTAR", "LOJA_CONSULTAR",
+                    // IBS/CBS (Reforma Tributária): classificação e alíquotas vigentes na hora de compor a NF-e
+                    "CADASTRO_TRIBUTACAO_CONSULTAR"));
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)

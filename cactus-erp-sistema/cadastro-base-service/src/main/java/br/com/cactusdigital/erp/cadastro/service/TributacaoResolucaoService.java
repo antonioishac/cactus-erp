@@ -53,6 +53,7 @@ public class TributacaoResolucaoService {
                 configuracao.getPis() != null ? mapper.toDto(configuracao.getPis()) : null,
                 configuracao.getCofins() != null ? mapper.toDto(configuracao.getCofins()) : null,
                 configuracao.getIpi() != null ? mapper.toDto(configuracao.getIpi()) : null,
-                operacaoFiscal.getIssConfiguracao() != null ? mapper.toDto(operacaoFiscal.getIssConfiguracao()) : null);
+                operacaoFiscal.getIssConfiguracao() != null ? mapper.toDto(operacaoFiscal.getIssConfiguracao()) : null,
+                mapper.toResolvido(configuracao.getIbsCbs()));
     }
 }

@@ -45,6 +45,8 @@ public class StageManager {
     private Scene cenaQueAbriuConsulta;
     private Parent cenaAnteriorConsultaCupom;
     private Scene cenaQueAbriuConsultaCupom;
+    private Parent cenaAnteriorSincronizacao;
+    private Scene cenaQueAbriuSincronizacao;
     private Parent cenaAnteriorConferencia;
     private Scene cenaQueAbriuConferencia;
     private Stage primaryStage;
@@ -850,6 +852,51 @@ public class StageManager {
             new Alert(Alert.AlertType.ERROR,
                     "Falha ao abrir Consulta de Cupom: " + e.getMessage())
                     .showAndWait();
+        }
+    }
+
+    /**
+     * Abre a tela de Sincronização com o ERP (F12 → Sincronização) como overlay da
+     * cena atual — mesmo padrão da Consulta de Cupom: restaura a cena ao fechar.
+     */
+    public void showSincronizacaoErp() {
+        try {
+            Scene cenaAtual = primaryStage.getScene();
+            cenaQueAbriuSincronizacao = cenaAtual;
+            cenaAnteriorSincronizacao = cenaAtual != null ? cenaAtual.getRoot() : null;
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/SincronizacaoErp.fxml"));
+            loader.setControllerFactory(springContext::getBean);
+            Parent rootSincronizacao = loader.load();
+            SincronizacaoErpController controller = loader.getController();
+
+            String css = getClass().getResource("/fxml/styles/consulta-produto.css").toExternalForm();
+            if (cenaAtual != null) {
+                cenaAtual.setRoot(rootSincronizacao);
+                if (!cenaAtual.getStylesheets().contains(css)) {
+                    cenaAtual.getStylesheets().add(css);
+                }
+            } else {
+                Scene cena = new Scene(rootSincronizacao);
+                cena.getStylesheets().add(css);
+                primaryStage.setScene(cena);
+            }
+            controller.prepararParaAbertura();
+        } catch (IOException e) {
+            LOGGER.error("Falha ao abrir Sincronização com o ERP", e);
+            new Alert(Alert.AlertType.ERROR, "Falha ao abrir Sincronização com o ERP: " + e.getMessage()).showAndWait();
+        }
+    }
+
+    /** Fecha a tela de Sincronização e volta pra cena anterior. */
+    public void fecharSincronizacaoErp() {
+        if (cenaQueAbriuSincronizacao != null && cenaAnteriorSincronizacao != null) {
+            cenaQueAbriuSincronizacao.setRoot(cenaAnteriorSincronizacao);
+            if (pdv4ControllerCache != null) {
+                Platform.runLater(pdv4ControllerCache::reativarAtalhos);
+            }
+            cenaQueAbriuSincronizacao = null;
+            cenaAnteriorSincronizacao = null;
         }
     }
 

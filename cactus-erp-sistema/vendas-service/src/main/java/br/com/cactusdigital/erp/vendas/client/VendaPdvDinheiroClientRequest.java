@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record VendaPdvDinheiroClientRequest(
         Long registroId,
         Long empresaId,
+        String pdvDispositivoId,
         Long pdvCaixaId,
         String pdvCaixaNome,
         BigDecimal valor,

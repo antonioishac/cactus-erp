@@ -407,9 +407,25 @@ outros itens deste backlog.
             cancelamento de venda finalizada no PDV (com evento de cancelamento da
             NFC-e) + tipo `CANCELAMENTO_VENDA_PDV` no ERP (ver
             `FASE6_SINCRONIZACAO_PDV.md`, seção 15).
-      - [ ] PDV não tem cliente de envio para o ERP (nenhum tipo de registro sai
-            sozinho do PDV hoje; o ERP foi validado recebendo lotes direto na API).
-            Pré-requisito para a sincronização funcionar de ponta a ponta.
+      - [x] ~~Cliente de sincronização do PDV, fatia 1 (pull)~~ — feito (2026-10-25):
+            cadastros do ERP chegam ao PDV com vínculo `ID_ERP` (ver
+            `FASE6_SINCRONIZACAO_PDV.md`, seção 16).
+      - [x] ~~Cliente de sincronização do PDV, fatia 2 (envio PDV → ERP)~~ — feito
+            (2026-10-25): outbox local + envio dos 9 tipos de operação, validado ponta a
+            ponta (ver `FASE6_SINCRONIZACAO_PDV.md`, seção 17). Sincronização PDV ↔ ERP
+            funcionando nos dois sentidos.
+      - [x] ~~Tela no PDV para a fila de envio~~ — feito (2026-10-25): F12 → Sincronização
+            (ver `FASE6_SINCRONIZACAO_PDV.md`, seção 19).
+      - [x] ~~Terminal identificado só pelo id local~~ — feito (2026-10-25): a conta do
+            terminal no financeiro é única por empresa + dispositivo + terminal, e a
+            criação dela é segura contra corrida (ver `FASE6_SINCRONIZACAO_PDV.md`, seção 18).
+      - [ ] Filtro por dispositivo em "Vendas do PDV" (hoje filtra só pelo id do terminal,
+            que se repete entre instalações).
+      - [ ] Pull: imagens de produto (no ERP são URL; o PDV guarda arquivo) e tabelas
+            de preço (o PDV não tem tabela para elas) ainda não chegam ao PDV.
+      - [ ] Pull: o ERP não manda subgrupo/tipo/grupo tributário do produto — produto
+            novo usa os padrões `cactus.pdv.sync.produto.*`. Mandar no payload quando
+            o PDV precisar classificar por grupo vindo do ERP.
       - [ ] Cancelamento de SAT/MF-e no PDV (só NFC-e implementado; SAT/MF-e
             autorizado é recusado com mensagem, caminho é a devolução).
       - [ ] Cancelamento da NFC-e nunca exercitado contra ACBr/SEFAZ real (mesmo
@@ -888,3 +904,14 @@ outros itens deste backlog.
       vendas — a lista de "serviços necessários" no `cactus-erp-web/CLAUDE.md`,
       seção "Como rodar localmente", precisa de uma revisão geral, não só
       deste item).
+
+## Reforma Tributária — IBS/CBS (fase 1 feita em 2026-10-25, ver `CLAUDE.md` raiz)
+- [ ] NFC-e com IBS/CBS: `NfceIniBuilder` (Loja Virtual) e o emissor do cactus-pdv (o PDV também emite NFC-e).
+- [ ] Simples Nacional/MEI: aguardar a NT específica (a NT 2025.002 v1.50 diz que serão publicadas depois).
+- [ ] CST com grupos próprios: diferimento (510/515), suspensão (550), monofásica (620), tributação regular (gTribRegular), crédito presumido, transferência de crédito, ajustes, alíquota fixa (220/221/222).
+- [ ] Imposto Seletivo (grupo IS) e `vNFTot`/`vItem` (regras ainda "implementação futura" na NT).
+- [ ] Alíquotas de 2027+: inserir em `aliquota_ibs_cbs_vigencia` por migration quando definidas em lei (hoje 2027 → 422 de propósito).
+- [ ] Atualização da tabela oficial de cClassTrib: rodar `cadastro-base-service/ferramentas/gerar_catalogo_ibs_cbs.py` e gerar migration de delta.
+- [ ] SPED (EFD) com IBS/CBS.
+- [ ] Emissão contra ACBr/SEFAZ reais (mesmo bloqueio de certificado de toda a emissão).
+

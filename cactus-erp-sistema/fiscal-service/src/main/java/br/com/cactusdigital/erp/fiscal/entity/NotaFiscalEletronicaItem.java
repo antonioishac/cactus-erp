@@ -116,4 +116,50 @@ public class NotaFiscalEletronicaItem extends BaseEntity {
 
     @Column(name = "valor_cofins", precision = 18, scale = 6)
     private BigDecimal valorCofins;
+
+    // ====== IBS/CBS (Reforma Tributária) — preenchidos só para emitente CRT 3, ver CalculadoraIbsCbs ======
+    @Column(name = "cst_ibs_cbs", length = 3)
+    private String cstIbsCbs;
+
+    @Column(name = "classificacao_ibs_cbs", length = 6)
+    private String classificacaoIbsCbs;
+
+    @Column(name = "valor_base_ibs_cbs", precision = 15, scale = 2)
+    private BigDecimal valorBaseIbsCbs;
+
+    @Column(name = "aliquota_ibs_uf", precision = 7, scale = 4)
+    private BigDecimal aliquotaIbsUf;
+
+    @Column(name = "percentual_reducao_ibs", precision = 7, scale = 4)
+    private BigDecimal percentualReducaoIbs;
+
+    @Column(name = "aliquota_efetiva_ibs_uf", precision = 7, scale = 4)
+    private BigDecimal aliquotaEfetivaIbsUf;
+
+    @Column(name = "valor_ibs_uf", precision = 15, scale = 2)
+    private BigDecimal valorIbsUf;
+
+    @Column(name = "aliquota_ibs_municipio", precision = 7, scale = 4)
+    private BigDecimal aliquotaIbsMunicipio;
+
+    @Column(name = "aliquota_efetiva_ibs_municipio", precision = 7, scale = 4)
+    private BigDecimal aliquotaEfetivaIbsMunicipio;
+
+    @Column(name = "valor_ibs_municipio", precision = 15, scale = 2)
+    private BigDecimal valorIbsMunicipio;
+
+    @Column(name = "valor_ibs", precision = 15, scale = 2)
+    private BigDecimal valorIbs;
+
+    @Column(name = "aliquota_cbs", precision = 7, scale = 4)
+    private BigDecimal aliquotaCbs;
+
+    @Column(name = "percentual_reducao_cbs", precision = 7, scale = 4)
+    private BigDecimal percentualReducaoCbs;
+
+    @Column(name = "aliquota_efetiva_cbs", precision = 7, scale = 4)
+    private BigDecimal aliquotaEfetivaCbs;
+
+    @Column(name = "valor_cbs", precision = 15, scale = 2)
+    private BigDecimal valorCbs;
 }

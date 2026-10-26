@@ -80,7 +80,12 @@ public class MovimentoCaixaBancoService {
             throw new ConflictException(FinanceiroErrorCode.CONTA_BANCARIA_INATIVA);
         }
 
-        BigDecimal saldoAnterior = conta.getSaldoAtual();
+        // O saldo vem de uma leitura NATIVA e travada, nunca da entidade. Achado real (2026-10-25): quando a conta já
+        // estava no contexto de persistência (o consumidor do PDV acha a conta do terminal antes de lançar), o
+        // SELECT ... FOR UPDATE da consulta acima trava a linha mas o Hibernate devolve a instância em memória, com o
+        // saldo lido ANTES do lock — e nem refresh() relê nesse caso. 11 vendas simultâneas no mesmo terminal somavam
+        // R$ 101 e o saldo ficava em R$ 31. A consulta nativa faz leitura atual (não a foto do REPEATABLE READ).
+        BigDecimal saldoAnterior = contaRepository.lerSaldoTravado(contaBancariaId);
         BigDecimal saldoPosterior = CREDITO.contains(tipo) ? saldoAnterior.add(valor) : saldoAnterior.subtract(valor);
         conta.setSaldoAtual(saldoPosterior);
         contaRepository.save(conta);

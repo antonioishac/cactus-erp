@@ -84,6 +84,8 @@ export interface VendaPdv {
   empresaId: number
   idOrigem: string
   pdvCaixaId: number
+  /** Instalação do PDV (o id do terminal só é único dentro dela). Nulo em vendas recebidas antes de 2026-10-25. */
+  pdvDispositivoId?: string | null
   pdvCaixaNome?: string | null
   pdvOperadorId?: number | null
   clienteId?: number | null

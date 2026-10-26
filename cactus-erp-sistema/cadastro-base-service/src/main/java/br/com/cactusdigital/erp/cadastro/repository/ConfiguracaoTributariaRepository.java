@@ -51,6 +51,7 @@ public interface ConfiguracaoTributariaRepository extends JpaRepository<Configur
             LEFT JOIN FETCH c.pis
             LEFT JOIN FETCH c.cofins
             LEFT JOIN FETCH c.ipi
+            LEFT JOIN FETCH c.ibsCbs
             WHERE c.id IN :ids
             """)
     List<ConfiguracaoTributaria> hidratarColecoes(@Param("ids") List<Long> ids);

@@ -9,6 +9,8 @@ import br.com.cactusdigital.erp.common.saga.SagaOrchestrator;
 import br.com.cactusdigital.erp.common.saga.SagaStep;
 import br.com.cactusdigital.erp.fiscal.client.CadastroClient;
 import br.com.cactusdigital.erp.fiscal.client.VendaClient;
+import br.com.cactusdigital.erp.fiscal.client.dto.AliquotaIbsCbsDTO;
+import br.com.cactusdigital.erp.fiscal.client.dto.ClassificacaoIbsCbsDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.ClienteFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaConfiguracaoFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaFiscalDTO;
@@ -27,8 +29,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -75,6 +82,13 @@ public class NotaFiscalEletronicaService {
     private final SagaOrchestrator sagaOrchestrator;
     private final SagaAuditoriaService sagaAuditoriaService;
     private final FiscalMapper mapper;
+    private final CalculadoraIbsCbs calculadoraIbsCbs;
+
+    /** CRT do emitente que exige IBS/CBS na NF-e hoje (NT 2025.002-RTC: obrigatório para o Regime Normal desde
+     * 03/08/2026; Simples Nacional/MEI aguardam NT futura e seguem sem o grupo). */
+    private static final String CRT_REGIME_NORMAL = "3";
+    /** "Ano de emissão" das alíquotas de IBS/CBS é o do horário oficial de Brasília. */
+    private static final ZoneId FUSO_BRASILIA = ZoneId.of("America/Sao_Paulo");
 
     @Value("${cactus.acbr.host}")
     private String acbrHost;
@@ -123,6 +137,16 @@ public class NotaFiscalEletronicaService {
             cadastroClient.buscarTransportadora(venda.transportadoraId());
         }
 
+        // Produtos e IBS/CBS são lidos e validados ANTES de reservar o número da NF-e: um produto inexistente
+        // ou sem classificação de IBS/CBS (obrigatória no Regime Normal) é recusado sem queimar numeração.
+        Map<Long, ProdutoFiscalDTO> produtos = new LinkedHashMap<>();
+        for (VendaItemClienteDTO itemVenda : venda.itens()) {
+            produtos.computeIfAbsent(itemVenda.produtoId(), cadastroClient::buscarProduto);
+        }
+        boolean regimeNormal = CRT_REGIME_NORMAL.equals(cadastroClient.buscarEmpresa(venda.empresaId()).crt());
+        Map<String, ClassificacaoIbsCbsDTO> classificacoes = regimeNormal ? validarIbsCbs(produtos.values()) : Map.of();
+        AliquotaIbsCbsDTO aliquotas = regimeNormal ? cadastroClient.buscarAliquotasIbsCbs(LocalDate.now(FUSO_BRASILIA)) : null;
+
         NotaFiscalEletronica nota = NotaFiscalEletronica.builder()
                 .vendaId(venda.id())
                 .empresaId(venda.empresaId())
@@ -133,12 +157,14 @@ public class NotaFiscalEletronicaService {
                 .build();
 
         sagaOrchestrator.executar("GERAR_NOTA_FISCAL_ELETRONICA", nota,
-                construirPassosComposicao(nota, venda), new NotaFiscalSagaAuditor(sagaAuditoriaService));
+                construirPassosComposicao(nota, venda, produtos, classificacoes, aliquotas), new NotaFiscalSagaAuditor(sagaAuditoriaService));
+        calculadoraIbsCbs.totalizar(nota);
 
         return mapper.toResponse(repository.save(nota));
     }
 
-    private List<SagaStep<NotaFiscalEletronica>> construirPassosComposicao(NotaFiscalEletronica nota, VendaClienteDTO venda) {
+    private List<SagaStep<NotaFiscalEletronica>> construirPassosComposicao(NotaFiscalEletronica nota, VendaClienteDTO venda,
+            Map<Long, ProdutoFiscalDTO> produtos, Map<String, ClassificacaoIbsCbsDTO> classificacoes, AliquotaIbsCbsDTO aliquotas) {
         List<SagaStep<NotaFiscalEletronica>> passos = new ArrayList<>();
         passos.add(new SagaStep<NotaFiscalEletronica>() {
             @Override
@@ -172,8 +198,12 @@ public class NotaFiscalEletronicaService {
 
                 @Override
                 public void executar(NotaFiscalEletronica n) {
-                    ProdutoFiscalDTO produto = cadastroClient.buscarProduto(itemVenda.produtoId());
-                    n.getItens().add(montarItem(n, numeroItemFinal, itemVenda, produto));
+                    ProdutoFiscalDTO produto = produtos.get(itemVenda.produtoId());
+                    NotaFiscalEletronicaItem item = montarItem(n, numeroItemFinal, itemVenda, produto);
+                    if (aliquotas != null) {
+                        calculadoraIbsCbs.calcularItem(item, classificacoes.get(produto.classificacaoIbsCbsPadrao()), aliquotas);
+                    }
+                    n.getItens().add(item);
                 }
             });
         }
@@ -201,6 +231,9 @@ public class NotaFiscalEletronicaService {
                 : null;
 
         nota.setDataEmissao(Instant.now());
+        if (CRT_REGIME_NORMAL.equals(emitente.crt())) {
+            recalcularIbsCbs(nota);
+        }
         String comando = iniBuilder.construirComando(nota, emitente, destinatario, transportadora, 1);
 
         nota.setSituacao(SituacaoNotaFiscal.ENVIADA);
@@ -221,6 +254,45 @@ public class NotaFiscalEletronicaService {
             nota.setMensagemSefaz(truncar("Falha de comunicação com o ACBr Monitor: " + ex.getMessage(), 500));
             return mapper.toResponse(nota);
         }
+    }
+
+    /**
+     * Toda classificação de IBS/CBS dos produtos, já validada: produto sem classificação (o "resolvido padrão" não
+     * foi recalculado, ou a célula tributária não tem IBS/CBS) e classificação que o ERP ainda não emite são
+     * recusados aqui — o IBS/CBS é obrigatório por lei na NF-e do Regime Normal, emitir sem ele seria emitir errado.
+     */
+    private Map<String, ClassificacaoIbsCbsDTO> validarIbsCbs(Iterable<ProdutoFiscalDTO> produtos) {
+        Map<String, ClassificacaoIbsCbsDTO> classificacoes = new HashMap<>();
+        for (ProdutoFiscalDTO produto : produtos) {
+            String codigo = produto.classificacaoIbsCbsPadrao();
+            if (codigo == null) {
+                throw new BusinessException(FiscalErrorCode.PRODUTO_SEM_CLASSIFICACAO_IBS_CBS,
+                        "Produto #" + produto.id() + " (" + produto.nome() + ") sem classificação de IBS/CBS: configure o cClassTrib na "
+                                + "configuração tributária do grupo do produto e recalcule a tributação padrão dele");
+            }
+            ClassificacaoIbsCbsDTO classificacao = classificacoes.computeIfAbsent(codigo, cadastroClient::buscarClassificacaoIbsCbs);
+            if (classificacao.motivoNaoSuportada() != null) {
+                throw new BusinessException(FiscalErrorCode.CLASSIFICACAO_IBS_CBS_NAO_SUPORTADA,
+                        "Produto #" + produto.id() + ", cClassTrib " + codigo + ": " + classificacao.motivoNaoSuportada());
+            }
+        }
+        return classificacoes;
+    }
+
+    /** Refaz o IBS/CBS com as alíquotas do ano da emissão (um rascunho composto em dezembro pode ser emitido em janeiro). */
+    private void recalcularIbsCbs(NotaFiscalEletronica nota) {
+        AliquotaIbsCbsDTO aliquotas = cadastroClient.buscarAliquotasIbsCbs(LocalDate.ofInstant(nota.getDataEmissao(), FUSO_BRASILIA));
+        Map<String, ClassificacaoIbsCbsDTO> classificacoes = new HashMap<>();
+        for (NotaFiscalEletronicaItem item : nota.getItens()) {
+            if (item.getClassificacaoIbsCbs() == null) {
+                throw new BusinessException(FiscalErrorCode.PRODUTO_SEM_CLASSIFICACAO_IBS_CBS,
+                        "Item " + item.getNumeroItem() + " da NF-e sem classificação de IBS/CBS (rascunho composto antes da obrigatoriedade): "
+                                + "gere a NF-e de novo a partir da venda");
+            }
+            calculadoraIbsCbs.calcularItem(item,
+                    classificacoes.computeIfAbsent(item.getClassificacaoIbsCbs(), cadastroClient::buscarClassificacaoIbsCbs), aliquotas);
+        }
+        calculadoraIbsCbs.totalizar(nota);
     }
 
     private NotaFiscalEletronicaItem montarItem(NotaFiscalEletronica nota, int numeroItem, VendaItemClienteDTO itemVenda, ProdutoFiscalDTO produto) {

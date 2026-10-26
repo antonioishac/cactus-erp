@@ -2,6 +2,7 @@ import { cadastroBaseApi } from '@shared/api/httpClients'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
   CfopResponse,
+  ClassificacaoTributariaIbsCbsResponse,
   ConfiguracaoTributariaRequest,
   ConfiguracaoTributariaResponse,
   GrupoTributarioRequest,
@@ -9,6 +10,16 @@ import type {
   OperacaoFiscalRequest,
   OperacaoFiscalResponse,
 } from './types'
+
+// --- IBS/CBS (catálogo oficial, só leitura) ---
+
+/** Catálogo inteiro (173 códigos na tabela oficial de 2026-10): pequeno o bastante pra carregar de uma vez e filtrar na tela. */
+export async function listarClassificacoesIbsCbs(): Promise<ClassificacaoTributariaIbsCbsResponse[]> {
+  const { data } = await cadastroBaseApi.get<PageResponse<ClassificacaoTributariaIbsCbsResponse>>('/api/v1/tributacao/ibs-cbs/classificacoes', {
+    params: { page: 0, size: 500 },
+  })
+  return data.conteudo
+}
 
 // --- Grupo Tributário ---
 

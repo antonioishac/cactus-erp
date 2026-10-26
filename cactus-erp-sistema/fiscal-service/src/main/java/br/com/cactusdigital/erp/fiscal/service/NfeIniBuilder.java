@@ -81,9 +81,11 @@ public class NfeIniBuilder {
             secaoIpi(ini, item);
             secaoPis(ini, item);
             secaoCofins(ini, item);
+            secaoIbsCbs(ini, item);
         }
 
         secaoTotal(ini, nota);
+        secaoIbsCbsTotal(ini, nota);
 
         return ini.toString();
     }
@@ -228,6 +230,78 @@ public class NfeIniBuilder {
         chave(ini, "ValorProduto", str(nota.getItens().stream().map(NotaFiscalEletronicaItem::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)));
         chave(ini, "ValorNota", str(nota.getValorTotal()));
+    }
+
+    /**
+     * Grupo UB do item (IBS/CBS), nas seções e chaves do modelo oficial do ACBr para a Reforma Tributária
+     * (acbr.sourceforge.io/ACBrMonitor/ModeloNFeINICompletoReformaTribu.html, conferido em 2026-10-25).
+     * Item sem classificação (emitente fora do Regime Normal) não leva o grupo. Isenção/imunidade: só CST e
+     * cClassTrib. Redução de alíquota: {@code pRedAliq}/{@code pAliqEfet} na mesma seção do tributo.
+     * <b>Nunca exercitado contra o ACBr real</b> (mesmo bloqueio de certificado de toda a emissão).
+     */
+    private void secaoIbsCbs(StringBuilder ini, NotaFiscalEletronicaItem item) {
+        if (item.getCstIbsCbs() == null) {
+            return;
+        }
+        String n = pad(item.getNumeroItem());
+        secao(ini, "IBSCBS" + n);
+        chave(ini, "CST", item.getCstIbsCbs());
+        chave(ini, "cClassTrib", item.getClassificacaoIbsCbs());
+        if (item.getValorBaseIbsCbs() == null) {
+            return;
+        }
+        secao(ini, "gIBSCBS" + n);
+        chave(ini, "vBC", str(item.getValorBaseIbsCbs()));
+        chave(ini, "vIBS", str(item.getValorIbs()));
+
+        secao(ini, "gIBSUF" + n);
+        chave(ini, "pIBSUF", str(item.getAliquotaIbsUf()));
+        chave(ini, "vIBSUF", str(item.getValorIbsUf()));
+        reducao(ini, item.getPercentualReducaoIbs(), item.getAliquotaEfetivaIbsUf());
+
+        secao(ini, "gIBSMun" + n);
+        chave(ini, "pIBSMun", str(item.getAliquotaIbsMunicipio()));
+        chave(ini, "vIBSMun", str(item.getValorIbsMunicipio()));
+        reducao(ini, item.getPercentualReducaoIbs(), item.getAliquotaEfetivaIbsMunicipio());
+
+        secao(ini, "gCBS" + n);
+        chave(ini, "pCBS", str(item.getAliquotaCbs()));
+        chave(ini, "vCBS", str(item.getValorCbs()));
+        reducao(ini, item.getPercentualReducaoCbs(), item.getAliquotaEfetivaCbs());
+    }
+
+    private void reducao(StringBuilder ini, BigDecimal percentualReducao, BigDecimal aliquotaEfetiva) {
+        if (percentualReducao != null) {
+            chave(ini, "pRedAliq", str(percentualReducao));
+            chave(ini, "pAliqEfet", str(aliquotaEfetiva));
+        }
+    }
+
+    /** Grupo W03 (IBSCBSTot). Sem diferimento, devolução de tributo nem crédito presumido nesta fase: zeros. */
+    private void secaoIbsCbsTotal(StringBuilder ini, NotaFiscalEletronica nota) {
+        if (nota.getValorBaseIbsCbs() == null) {
+            return;
+        }
+        secao(ini, "IBSCBSTot");
+        chave(ini, "vBCIBSCBS", str(nota.getValorBaseIbsCbs()));
+        secao(ini, "gIBS");
+        chave(ini, "vIBS", str(nota.getValorIbs()));
+        chave(ini, "vCredPres", "0.00");
+        chave(ini, "vCredPresCondSus", "0.00");
+        secao(ini, "gIBSUFTot");
+        chave(ini, "vDif", "0.00");
+        chave(ini, "vDevTrib", "0.00");
+        chave(ini, "vIBSUF", str(nota.getValorIbsUf()));
+        secao(ini, "gIBSMunTot");
+        chave(ini, "vDif", "0.00");
+        chave(ini, "vDevTrib", "0.00");
+        chave(ini, "vIBSMun", str(nota.getValorIbsMunicipio()));
+        secao(ini, "gCBSTot");
+        chave(ini, "vDif", "0.00");
+        chave(ini, "vDevTrib", "0.00");
+        chave(ini, "vCBS", str(nota.getValorCbs()));
+        chave(ini, "vCredPres", "0.00");
+        chave(ini, "vCredPresCondSus", "0.00");
     }
 
     // ====================================================================

@@ -54,6 +54,8 @@ public class OutboxRelayService {
                 mensagem.put("tipoRegistro", registro.getTipoRegistro().name());
                 mensagem.put("lojaId", registro.getLojaId());
                 mensagem.put("idOrigem", registro.getIdOrigem());
+                // Id do terminal é local de cada banco de PDV: o dispositivo entra na chave do terminal no ERP.
+                mensagem.put("dispositivoId", registro.getDispositivoId());
             }
             rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, routingKey, mensagem.toString());
 

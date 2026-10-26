@@ -25,5 +25,6 @@ public record ContaBancariaResponse(
         BigDecimal saldoAtual,
         /** Só nas contas de terminal do PDV, criadas automaticamente (Fase 6-B). */
         Long pdvCaixaId,
+        String pdvDispositivoId,
         boolean ativo) {
 }

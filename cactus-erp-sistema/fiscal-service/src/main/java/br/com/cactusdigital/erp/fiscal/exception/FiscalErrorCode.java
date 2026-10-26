@@ -16,6 +16,8 @@ public enum FiscalErrorCode implements ErrorCode {
     NOTA_FISCAL_SITUACAO_INVALIDA("A nota fiscal não está numa situação válida para essa ação", HttpStatus.CONFLICT),
     EMPRESA_SEM_CONFIGURACAO_FISCAL("A empresa não tem configuração fiscal cadastrada (certificado/série/ambiente)", HttpStatus.UNPROCESSABLE_ENTITY),
     FALHA_INTEGRACAO_VENDAS("Falha ao consultar a venda no vendas-service", HttpStatus.BAD_GATEWAY),
+    PRODUTO_SEM_CLASSIFICACAO_IBS_CBS("Produto sem classificação de IBS/CBS — obrigatória em NF-e de emitente do Regime Normal desde 03/08/2026", HttpStatus.UNPROCESSABLE_ENTITY),
+    CLASSIFICACAO_IBS_CBS_NAO_SUPORTADA("Classificação de IBS/CBS do produto ainda não é emitida pelo ERP", HttpStatus.UNPROCESSABLE_ENTITY),
     FALHA_INTEGRACAO_CADASTRO("Falha ao consultar cadastro base (cliente/produto/empresa/transportadora)", HttpStatus.BAD_GATEWAY),
     FALHA_INTEGRACAO_OS("Falha ao consultar a OS no os-service", HttpStatus.BAD_GATEWAY),
     FALHA_COMUNICACAO_ACBR("Falha ao comunicar com o ACBr Monitor", HttpStatus.BAD_GATEWAY),

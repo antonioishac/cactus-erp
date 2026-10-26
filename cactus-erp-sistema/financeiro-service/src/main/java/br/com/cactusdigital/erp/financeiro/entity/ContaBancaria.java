@@ -107,6 +107,11 @@ public class ContaBancaria extends BaseEntity {
     @Column(name = "pdv_caixa_id")
     private Long pdvCaixaId;
 
+    /** Instalação do PDV dona do terminal ({@code dispositivoId} do envio). O id do terminal sozinho não é
+     * único na loja — ver {@code ContaTerminalPdvService}. */
+    @Column(name = "pdv_dispositivo_id", length = 30)
+    private String pdvDispositivoId;
+
     @Builder.Default
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;

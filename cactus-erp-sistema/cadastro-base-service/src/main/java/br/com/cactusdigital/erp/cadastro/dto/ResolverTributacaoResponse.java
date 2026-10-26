@@ -17,5 +17,6 @@ public record ResolverTributacaoResponse(
         PisConfiguracaoDTO pis,
         CofinsConfiguracaoDTO cofins,
         IpiConfiguracaoDTO ipi,
-        IssConfiguracaoDTO iss) {
+        IssConfiguracaoDTO iss,
+        IbsCbsResolvidoDTO ibsCbs) {
 }

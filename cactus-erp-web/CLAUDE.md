@@ -2784,3 +2784,7 @@ Sem tela nova: os 5 tipos de registro novos (`SANGRIA`/`SUPRIMENTO`/`ABERTURA_CA
 
 `RelatoriosVendasPage`: "Vendas por Período" e "Produtos Mais Vendidos" ganharam o filtro de canal (`SeletorCanal`; vazio = os dois). A tabela de vendas ganhou a coluna Canal, `rowKey` composto `canal-vendaId` (os ids de `VendaPdv` e `VendaCabecalho` colidem), "PDV #n" no número, "—"/"Consumidor" quando não há vendedor ou cliente, e clique numa venda do PDV leva a "Vendas do PDV". `VendaPeriodoItemResponse.vendedorId`/`clienteId` passaram a `number | null`. Conferido no navegador contra o backend real (detalhe em `FASE6_SINCRONIZACAO_PDV.md`, seção 14).
 
+## Configuração Tributária: IBS/CBS (2026-10-25)
+
+`ConfiguracaoTributariaFormPage` ganhou a seção "IBS / CBS (Reforma Tributária)": `Select` de cClassTrib alimentado pelo catálogo oficial (`useClassificacoesIbsCbs`, 173 códigos carregados uma vez, `staleTime: Infinity`), mostrando só as classificações que o ERP emite (`motivoNaoSuportada === null`), com `Alert` explicando redução/isenção. **Motivo além da funcionalidade**: a tela manda o PUT completo da célula, e o backend trata `ibsCbs` ausente como "remover" — sem o campo, qualquer edição apagaria a classificação em silêncio e a NF-e do Regime Normal seria recusada. Conferido no navegador: classificação carregada, salvar sem alterar reenviou `000001`, zero erro de console. Detalhe no `CLAUDE.md` raiz, seção "REFORMA TRIBUTÁRIA".
+

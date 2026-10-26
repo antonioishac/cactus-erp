@@ -79,6 +79,12 @@ public enum MenuPrincipalItem {
             EnumSet.of(NivelAutorizacao.G, NivelAutorizacao.S, NivelAutorizacao.O),
             false
     ),
+    /** Painel da sincronização com o ERP: fila de envio, bloqueados/rejeitados, sincronizar agora. */
+    SINCRONIZACAO_ERP(
+            Secao.SISTEMA, "Sincronização", "mdi2c-cloud-sync", "#9fe1cb", 'S',
+            EnumSet.of(NivelAutorizacao.G, NivelAutorizacao.S),
+            false
+    ),
     CONFIGURACOES(
             Secao.SISTEMA, "Configurações", "mdi2c-cog", "#b5d4f4", 'C',
             EnumSet.of(NivelAutorizacao.G),

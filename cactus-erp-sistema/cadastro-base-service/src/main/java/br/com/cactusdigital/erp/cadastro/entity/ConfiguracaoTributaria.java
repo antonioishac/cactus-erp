@@ -56,4 +56,8 @@ public class ConfiguracaoTributaria extends BaseEntity {
 
     @OneToOne(mappedBy = "configuracaoTributaria", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private IpiConfiguracao ipi;
+
+    /** IBS/CBS (Reforma Tributária) — nulo quando a célula ainda não foi classificada. */
+    @OneToOne(mappedBy = "configuracaoTributaria", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private IbsCbsConfiguracao ibsCbs;
 }

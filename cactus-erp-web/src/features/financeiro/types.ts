@@ -371,6 +371,8 @@ export interface ContaBancariaResponse extends ContaBancariaRequest {
   saldoAtual: number
   /** Só nas contas criadas automaticamente pra um terminal do PDV (Fase 6-B). */
   pdvCaixaId?: number | null
+  /** Instalação do PDV dona do terminal — a conta do terminal é única por dispositivo + terminal. */
+  pdvDispositivoId?: string | null
   ativo: boolean
 }
 

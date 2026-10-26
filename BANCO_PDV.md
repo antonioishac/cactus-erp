@@ -899,3 +899,44 @@ CREATE TABLE `PDV_VENDA_DETALHE_HISTORICO` (
   KEY `IDX_HIST_DATA` (`DATA_HORA`),
   CONSTRAINT `FK_HIST_DETALHE` FOREIGN KEY (`ID_PDV_VENDA_DETALHE`) REFERENCES `PDV_VENDA_DETALHE` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=170 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Trilha auditável de alterações de itens de venda (PAF-NFC-e)';
+
+-- ============================================================================
+-- Sincronização com o ERP (2026-10-25) — fatia 1: pull de cadastros
+-- ============================================================================
+-- ID_ERP: vínculo do cadastro local com o id do ERP (upsert do pull e tradução
+-- de id no envio). Nulo = cadastrado só no PDV. UNIQUE aceita vários nulos.
+ALTER TABLE `PRODUTO`            ADD COLUMN `ID_ERP` bigint DEFAULT NULL COMMENT 'Id do produto no ERP (cadastro-base)', ADD UNIQUE KEY `UK_PRODUTO_ID_ERP` (`ID_ERP`);
+ALTER TABLE `CLIENTE`            ADD COLUMN `ID_ERP` bigint DEFAULT NULL COMMENT 'Id do cliente no ERP', ADD UNIQUE KEY `UK_CLIENTE_ID_ERP` (`ID_ERP`);
+ALTER TABLE `PDV_TIPO_PAGAMENTO` ADD COLUMN `ID_ERP` bigint DEFAULT NULL COMMENT 'Id da FormaPagamento no ERP', ADD UNIQUE KEY `UK_TIPO_PAGAMENTO_ID_ERP` (`ID_ERP`);
+ALTER TABLE `COLABORADOR`        ADD COLUMN `ID_ERP` bigint DEFAULT NULL COMMENT 'Id do Colaborador no ERP', ADD UNIQUE KEY `UK_COLABORADOR_ID_ERP` (`ID_ERP`);
+ALTER TABLE `PDV_OPERADOR`       ADD COLUMN `ID_ERP` bigint DEFAULT NULL COMMENT 'Id do Usuario no ERP (seguranca-service)', ADD UNIQUE KEY `UK_OPERADOR_ID_ERP` (`ID_ERP`);
+
+-- Cursor do pull por entidade: carimbo do SERVIDOR (proximoCursor), nunca o relógio do PC.
+CREATE TABLE `SINCRONIZACAO_CURSOR` (
+  `ENTIDADE` varchar(30) NOT NULL COMMENT 'PRODUTO | CLIENTE | FORMA_PAGAMENTO | OPERADOR | CONFIGURACAO_LOJA',
+  `CURSOR_ATUAL` varchar(40) DEFAULT NULL COMMENT 'proximoCursor devolvido pelo ERP (ISO-8601). Nulo = próxima rodada é carga completa',
+  `DATA_ULTIMA_EXECUCAO` datetime DEFAULT NULL,
+  `ULTIMO_ERRO` varchar(500) DEFAULT NULL COMMENT 'Nulo = última rodada OK',
+  PRIMARY KEY (`ENTIDADE`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ============================================================================
+-- Sincronização com o ERP (2026-10-25) — fatia 2: envio PDV → ERP (outbox)
+-- ============================================================================
+-- Fila local de envio: o coletor enfileira cada linha de operação ainda não
+-- enfileirada (UNIQUE tipo + id local) e o envio manda em lotes por tipo.
+CREATE TABLE `SINCRONIZACAO_ENVIO` (
+  `ID` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `TIPO_REGISTRO` varchar(30) NOT NULL COMMENT 'Tipo do contrato do ERP: VENDA_PDV, SANGRIA, ESTOQUE_MOVIMENTO...',
+  `ID_LOCAL` bigint unsigned NOT NULL COMMENT 'Id da linha de origem no PDV (no cancelamento, o id da venda)',
+  `ID_ORIGEM` varchar(100) NOT NULL COMMENT 'dispositivo:prefixo:idLocal — chave de idempotência no ERP',
+  `STATUS` char(1) NOT NULL DEFAULT 'P' COMMENT 'P=Pendente | E=Enviado (aceito) | R=Rejeitado | B=Bloqueado (falta vínculo/config) | D=Dispensado',
+  `SITUACAO_ENVIADA` char(1) DEFAULT NULL COMMENT 'Venda: F ou C como foi aceita pelo ERP (decide se ainda cabe cancelamento)',
+  `TENTATIVAS` int NOT NULL DEFAULT 0,
+  `ULTIMO_ERRO` varchar(500) DEFAULT NULL,
+  `DATA_CRIACAO` datetime NOT NULL,
+  `DATA_ENVIO` datetime DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `UK_SINCRONIZACAO_ENVIO` (`TIPO_REGISTRO`, `ID_LOCAL`),
+  KEY `IDX_SINCRONIZACAO_ENVIO_STATUS` (`STATUS`, `TIPO_REGISTRO`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

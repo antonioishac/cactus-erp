@@ -80,6 +80,22 @@ public class NotaFiscalEletronica extends BaseEntity {
     @Column(name = "valor_total", nullable = false, precision = 18, scale = 6)
     private BigDecimal valorTotal = BigDecimal.ZERO;
 
+    /** Totais de IBS/CBS (grupo W03 IBSCBSTot) — soma dos itens, preenchidos só para emitente CRT 3. */
+    @Column(name = "valor_base_ibs_cbs", precision = 15, scale = 2)
+    private BigDecimal valorBaseIbsCbs;
+
+    @Column(name = "valor_ibs_uf", precision = 15, scale = 2)
+    private BigDecimal valorIbsUf;
+
+    @Column(name = "valor_ibs_municipio", precision = 15, scale = 2)
+    private BigDecimal valorIbsMunicipio;
+
+    @Column(name = "valor_ibs", precision = 15, scale = 2)
+    private BigDecimal valorIbs;
+
+    @Column(name = "valor_cbs", precision = 15, scale = 2)
+    private BigDecimal valorCbs;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "situacao", nullable = false, length = 15)
     private SituacaoNotaFiscal situacao;

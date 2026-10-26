@@ -55,6 +55,8 @@ public record ProdutoResponse(
         BigDecimal aliquotaCofinsPadrao,
         BigDecimal aliquotaIssqnPadrao,
         Instant dataResolucaoPadrao,
+        String cstIbsCbsPadrao,
+        String classificacaoIbsCbsPadrao,
 
         Situacao situacao,
         List<ProdutoFaixaPrecoDTO> faixasPreco,

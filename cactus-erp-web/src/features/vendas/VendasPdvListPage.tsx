@@ -83,7 +83,7 @@ export default function VendasPdvListPage() {
           }}
           columns={[
             { title: 'Data/hora', dataIndex: 'dataHoraVenda', width: 150, render: (v: string) => dayjs(v).format('DD/MM/YYYY HH:mm') },
-            { title: 'Terminal', key: 'terminal', render: (_, v) => v.pdvCaixaNome ?? `#${v.pdvCaixaId}` },
+            { title: 'Terminal', key: 'terminal', render: (_, v) => [v.pdvDispositivoId, v.pdvCaixaNome ?? `#${v.pdvCaixaId}`].filter(Boolean).join(' / ') },
             { title: 'Origem', dataIndex: 'origemVenda', render: (v: VendaPdv['origemVenda']) => ORIGEM_VENDA_PDV_LABEL[v] },
             { title: 'Cliente', key: 'cliente', render: (_, v) => v.nomeCliente ?? (v.clienteId ? `#${v.clienteId}` : 'Consumidor') },
             {

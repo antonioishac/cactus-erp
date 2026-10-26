@@ -284,6 +284,7 @@ public class MenuPrincipalController {
             case CONSULTAR_CUPOM:         handleConsultarCupom();         break;
             case CONSULTA_PRODUTO:        handleConsultaProduto();        break;
             case BLOQUEAR:                handleBloquear();               break;
+            case SINCRONIZACAO_ERP:       handleSincronizacaoErp();       break;
             case CONFIGURACOES:           handleConfiguracoes();          break;
             case SAIR:                    handleSair();                   break;
             default:
@@ -594,6 +595,12 @@ public class MenuPrincipalController {
         stageManager.showConsultaProduto();
     }
 
+    private void handleSincronizacaoErp() {
+        LOGGER.info("Abrindo Sincronização com o ERP");
+        fecharMenu();
+        stageManager.showSincronizacaoErp();
+    }
+
     private void handleConfiguracoes() {
         LOGGER.info("Abrindo Configuração de Periféricos");
         fecharMenu();
@@ -680,6 +687,7 @@ public class MenuPrincipalController {
             case CONSULTAR_CUPOM:
             case CONSULTA_PRODUTO:
             case BLOQUEAR:
+            case SINCRONIZACAO_ERP:
             case CONFIGURACOES:
             case SAIR:
                 return true; // sempre disponíveis enquanto houver operador logado

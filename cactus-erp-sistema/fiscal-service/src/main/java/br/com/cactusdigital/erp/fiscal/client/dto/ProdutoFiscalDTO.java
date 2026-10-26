@@ -16,5 +16,7 @@ public record ProdutoFiscalDTO(
         BigDecimal aliquotaIcmsPadrao,
         BigDecimal aliquotaIpiPadrao,
         BigDecimal aliquotaPisPadrao,
-        BigDecimal aliquotaCofinsPadrao) {
+        BigDecimal aliquotaCofinsPadrao,
+        String cstIbsCbsPadrao,
+        String classificacaoIbsCbsPadrao) {
 }
