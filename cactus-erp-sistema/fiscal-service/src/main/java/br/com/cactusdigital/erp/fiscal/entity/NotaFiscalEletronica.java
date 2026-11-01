@@ -103,6 +103,10 @@ public class NotaFiscalEletronica extends BaseEntity {
     @Column(name = "mensagem_sefaz", length = 500)
     private String mensagemSefaz;
 
+    /** cStat do último retorno da SEFAZ (100 = autorizada; 2xx/5xx/7xx = rejeição; 110/301/302/303 = denegada). */
+    @Column(name = "codigo_status_sefaz", length = 3)
+    private String codigoStatusSefaz;
+
     @Builder.Default
     @OneToMany(mappedBy = "notaFiscal", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<NotaFiscalEletronicaItem> itens = new ArrayList<>();

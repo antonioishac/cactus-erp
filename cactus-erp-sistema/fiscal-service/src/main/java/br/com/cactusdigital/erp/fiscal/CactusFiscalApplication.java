@@ -1,7 +1,9 @@
 package br.com.cactusdigital.erp.fiscal;
 
 import org.springframework.boot.SpringApplication;
+import br.com.cactusdigital.erp.fiscal.sefaz.FiscalProperties;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 
 /**
@@ -13,6 +15,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
  */
 @SpringBootApplication(scanBasePackages = "br.com.cactusdigital.erp")
 @EntityScan(basePackages = "br.com.cactusdigital.erp")
+@EnableConfigurationProperties(FiscalProperties.class)
 public class CactusFiscalApplication {
 
     public static void main(String[] args) {

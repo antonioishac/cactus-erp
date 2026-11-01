@@ -1,4 +1,4 @@
-export type SituacaoNotaFiscal = 'RASCUNHO' | 'ENVIADA' | 'AUTORIZADA' | 'REJEITADA' | 'ERRO' | 'CANCELADA' | 'ENCERRADA'
+export type SituacaoNotaFiscal = 'RASCUNHO' | 'ENVIADA' | 'AUTORIZADA' | 'DENEGADA' | 'REJEITADA' | 'ERRO' | 'CANCELADA' | 'ENCERRADA'
 export type AmbienteFiscal = 'PRODUCAO' | 'HOMOLOGACAO'
 export type TipoTomadorCte = 'REMETENTE' | 'EXPEDIDOR' | 'RECEBEDOR' | 'DESTINATARIO' | 'OUTROS'
 
@@ -7,6 +7,7 @@ export const SITUACAO_NOTA_FISCAL_LABEL: Record<SituacaoNotaFiscal, string> = {
   ENVIADA: 'Enviada',
   AUTORIZADA: 'Autorizada',
   REJEITADA: 'Rejeitada',
+  DENEGADA: 'Denegada',
   ERRO: 'Erro',
   CANCELADA: 'Cancelada',
   ENCERRADA: 'Encerrada',
@@ -68,6 +69,8 @@ export interface NotaFiscalEletronicaResponse {
   valorTotal: number
   situacao: SituacaoNotaFiscal
   mensagemSefaz?: string
+  /** cStat do último retorno da SEFAZ (100 = autorizada). */
+  codigoStatusSefaz?: string | null
   itens: NotaFiscalEletronicaItemResponse[]
 }
 
@@ -289,6 +292,7 @@ export const COR_SITUACAO_MDFE: Record<SituacaoNotaFiscal, string> = {
   ENVIADA: 'processing',
   AUTORIZADA: 'success',
   REJEITADA: 'error',
+  DENEGADA: 'error',
   ERRO: 'error',
   CANCELADA: 'default',
   ENCERRADA: 'blue',

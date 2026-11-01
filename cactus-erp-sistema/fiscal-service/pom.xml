@@ -28,6 +28,7 @@
     <java.version>25</java.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+    <wmixvideo-nfe.version>5.1.11</wmixvideo-nfe.version>
   </properties>
 
   <dependencies>
@@ -56,6 +57,25 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+
+    <!-- Documentos fiscais eletrônicos (NF-e/NFC-e/CT-e/MDF-e): montagem, assinatura, validação XSD e
+         transmissão direto à SEFAZ, sem o ACBr Monitor. stax-api/xpp3 (transitivos antigos do simple-xml)
+         são excluídos porque o JDK já traz StAX e eles conflitam com o parser da plataforma. -->
+    <dependency>
+      <groupId>com.github.wmixvideo</groupId>
+      <artifactId>nfe</artifactId>
+      <version>${wmixvideo-nfe.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>stax</groupId>
+          <artifactId>stax-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>xpp3</groupId>
+          <artifactId>xpp3</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

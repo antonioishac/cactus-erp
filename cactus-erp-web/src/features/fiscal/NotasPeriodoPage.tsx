@@ -20,6 +20,7 @@ const COR_SITUACAO: Record<string, string> = {
   ENVIADA: 'processing',
   AUTORIZADA: 'success',
   REJEITADA: 'error',
+  DENEGADA: 'error',
   ERRO: 'error',
   CANCELADA: 'default',
 }

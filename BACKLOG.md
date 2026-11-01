@@ -626,6 +626,26 @@ outros itens deste backlog.
       financeiro inteiro (ver item "Financeiro — telas do frontend
       pendentes" acima). (2026-09-05, root `CLAUDE.md`, seção
       `financeiro-service`; superado 2026-09-07)
+- [ ] **`fiscal-service`: NF-e transmitida direto à SEFAZ (wmixvideo/nfe), nunca
+      exercitada contra a SEFAZ real** (2026-10-31) — o XML assinado já passa no
+      XSD oficial em teste unitário; faltam o certificado A1 de homologação, a
+      cadeia TLS gerada por `GeradorCadeiaCertificados` e uma rodada ao vivo
+      (autorização, rejeições, duplicidade 204 + consulta). Flyway V10 já
+      aplicado no MySQL local (2026-10-31). Ver `docs/claude/fiscal-tributario.md`,
+      EMISSÃO DIRETA À SEFAZ.
+- [ ] **Operacional: `DB_PASSWORD` global colide entre cactus-pdv e ERP**
+      (2026-10-31) — a máquina tem `DB_PASSWORD` definida (senha do MySQL usada
+      pelo cactus-pdv), e todo serviço do ERP lê a mesma variável como senha do
+      próprio usuário (`cactus_<serviço>_app`), então sobe com "Access denied".
+      Contorno: `DB_PASSWORD=cactus_<serviço>_local` no processo. Correção
+      sugerida: variável por serviço (ex.: `CACTUS_FISCAL_DB_PASSWORD`) nos
+      `application.yml` do ERP.
+- [ ] **NF-e: forma de pagamento da venda → `tPag` da SEFAZ** (2026-10-31) — hoje
+      vai um `detPag` único com `tPag=99` no valor da nota.
+- [ ] **NF-e: próximas fatias da emissão direta** (2026-10-31) — cancelamento
+      (110111), carta de correção, inutilização (fecharia `NumeroFiscalPulado`),
+      DANF-E em PDF, operação interestadual (CFOP 6xxx/DIFAL), CST com ST/redução
+      de base e CSOSN com crédito; depois NFC-e, CT-e e MDF-e pela mesma biblioteca.
 - [ ] **`fiscal-service`: emissão real via ACBr Monitor nunca foi testada
       (NF-e, NFS-e, CT-e e agora NFC-e)** — `POST /notas-fiscais/{id}/emitir`,
       `POST /notas-servico/{id}/emitir`, `POST /ctes/{id}/emitir` e
@@ -729,8 +749,11 @@ outros itens deste backlog.
       `CteIniBuilder`. Simples Nacional (`ICMSSN`) não implementado, só regime
       normal. Resolver junto do item de emissão real acima quando o
       certificado existir. (2026-09-04, root `CLAUDE.md`, Fase 11)
-- [ ] **`fiscal-service`: avaliar trocar NFe/CT-e de ACBr pra biblioteca Java
-      nativa `swconsultoria` (`java-nfe`/`java-cte`)** — levantamento completo
+- [x] **`fiscal-service`: avaliar trocar NFe/CT-e de ACBr pra biblioteca Java
+      nativa `swconsultoria` (`java-nfe`/`java-cte`)** — **decidido (2026-10-31)**:
+      a migração começou pela NF-e com `wmixvideo/nfe` (cobre também CT-e/MDF-e
+      numa biblioteca só), não swconsultoria; motivos em
+      `docs/claude/fiscal-tributario.md`. Texto original: — levantamento completo
       já feito e registrado em `ANALISE_SWCONSULTORIA_VS_ACBR.md` (raiz do
       repo), com fontes reais (GitHub/Maven Central), não decidido/implementado
       ainda — usuário pediu pra deixar em backlog pra avaliar depois. Resumo:

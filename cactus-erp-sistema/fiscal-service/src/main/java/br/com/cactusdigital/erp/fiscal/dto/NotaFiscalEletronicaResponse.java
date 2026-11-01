@@ -27,5 +27,6 @@ public record NotaFiscalEletronicaResponse(
         BigDecimal valorCbs,
         SituacaoNotaFiscal situacao,
         String mensagemSefaz,
+        String codigoStatusSefaz,
         List<NotaFiscalEletronicaItemResponse> itens) {
 }

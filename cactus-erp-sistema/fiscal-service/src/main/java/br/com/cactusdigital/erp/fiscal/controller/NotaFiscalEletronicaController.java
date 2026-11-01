@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Nota Fiscal Eletrônica", description = "RASCUNHO (composta a partir da Venda) → (emitir) → ENVIADA → AUTORIZADA/REJEITADA/ERRO, via ACBr Monitor")
+@Tag(name = "Nota Fiscal Eletrônica", description = "RASCUNHO (composta a partir da Venda) → (emitir) → AUTORIZADA/DENEGADA/REJEITADA/ERRO, transmitida direto à SEFAZ")
 @RestController
 @RequestMapping("/api/v1/notas-fiscais")
 @RequiredArgsConstructor
@@ -63,16 +65,32 @@ public class NotaFiscalEletronicaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.gerarDeVenda(vendaId));
     }
 
-    @Operation(summary = "Emitir a nota fiscal via ACBr Monitor",
-            description = "Monta o INI (modelo 55) e envia NFE.CriarEnviarNFe ao ACBr Monitor — sucesso vira AUTORIZADA, rejeição fiscal vira REJEITADA, falha de comunicação vira ERRO (nunca lança exceção que impeça rastrear o resultado)")
+    @Operation(summary = "Emitir a nota fiscal na SEFAZ",
+            description = "Monta o XML (NF-e 4.00, modelo 55), assina com o certificado A1 da empresa, valida no XSD e transmite em modo síncrono. "
+                    + "Retorno fiscal vira AUTORIZADA/DENEGADA/REJEITADA (cStat e motivo gravados); falha de comunicação vira ERRO, com a chave gravada, e pode ser reenviada. "
+                    + "Aceita RASCUNHO, REJEITADA (reenvio com o mesmo número após corrigir o cadastro) e ERRO.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Retorno do ACBr Monitor processado (AUTORIZADA/REJEITADA/ERRO)"),
+            @ApiResponse(responseCode = "200", description = "Retorno da SEFAZ processado (AUTORIZADA/DENEGADA/REJEITADA/ERRO)"),
             @ApiResponse(responseCode = "404", description = "Nota fiscal não encontrada", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "409", description = "Nota fiscal não está RASCUNHO/ERRO", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+            @ApiResponse(responseCode = "409", description = "Nota fiscal não está RASCUNHO/REJEITADA/ERRO", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "422", description = "Documento inválido no leiaute, tributação não suportada, certificado/cadeia não configurados ou produção desabilitada — nada foi enviado", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PostMapping("/{id}/emitir")
     @PreAuthorize("hasAuthority('FISCAL_EMITIR')")
     public NotaFiscalEletronicaResponse emitir(@PathVariable Long id) {
         return service.emitir(id);
+    }
+
+    @Operation(summary = "Baixar o XML processado (nfeProc)", description = "NF-e assinada + protocolo da SEFAZ. Só para notas AUTORIZADA/DENEGADA")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "XML da nota", content = @Content(mediaType = MediaType.APPLICATION_XML_VALUE)),
+            @ApiResponse(responseCode = "404", description = "Nota não encontrada ou sem XML processado", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @GetMapping(value = "/{id}/xml", produces = MediaType.APPLICATION_XML_VALUE)
+    @PreAuthorize("hasAuthority('FISCAL_CONSULTAR')")
+    public ResponseEntity<String> baixarXml(@PathVariable Long id) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"nfe-" + id + ".xml\"")
+                .body(service.buscarXmlProcessado(id));
     }
 }

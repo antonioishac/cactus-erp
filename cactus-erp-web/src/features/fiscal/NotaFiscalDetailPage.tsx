@@ -1,11 +1,12 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Alert, Breadcrumb, Button, Card, Descriptions, Flex, Skeleton, Space, Table, Tag, Tooltip, Typography } from 'antd'
-import { SendOutlined } from '@ant-design/icons'
+import { DownloadOutlined, SendOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
 import { hasAuthority } from '@features/auth/authority'
 import ProdutoResumoCell from '@shared/ui/ProdutoResumoCell'
 import { ClienteResumoCell, TransportadoraResumoCell } from './ResumoCells'
+import { baixarXmlNotaFiscal } from './api'
 import { useEmitirNotaFiscal, useNotaFiscal } from './queries'
 import { AMBIENTE_FISCAL_LABEL, SITUACAO_NOTA_FISCAL_LABEL } from './types'
 import type { NotaFiscalEletronicaItemResponse } from './types'
@@ -17,15 +18,16 @@ const COR_SITUACAO: Record<string, string> = {
   ENVIADA: 'processing',
   AUTORIZADA: 'success',
   REJEITADA: 'error',
+  DENEGADA: 'error',
   ERRO: 'error',
   CANCELADA: 'default',
 }
 
 /**
- * Emissão real via ACBr Monitor nunca foi validada contra a SEFAZ nesta sessão
- * (bloqueio de certificado, ver `BACKLOG.md`) — o botão "Emitir" existe e
- * chama o endpoint real, mas o comportamento em produção não foi exercitado
- * ao vivo. Mesmo nível de honestidade já documentado no backend.
+ * NF-e transmitida direto à SEFAZ pelo `fiscal-service` (sem ACBr Monitor). A
+ * transmissão real ainda não foi exercitada contra a SEFAZ (falta certificado A1
+ * de homologação, ver `BACKLOG.md`) — o XML gerado e assinado já é validado
+ * contra o XSD oficial nos testes do backend.
  */
 export default function NotaFiscalDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -41,7 +43,7 @@ export default function NotaFiscalDetailPage() {
   async function handleEmitir() {
     try {
       await emitir.mutateAsync()
-      message.success('Comando de emissão enviado.')
+      message.success('Retorno da SEFAZ processado.')
     } catch (erro) {
       message.error(erro instanceof Error ? erro.message : 'Falha ao emitir NF-e.')
     }
@@ -55,7 +57,17 @@ export default function NotaFiscalDetailPage() {
     )
   }
 
-  const podeEmitirAgora = (nota.situacao === 'RASCUNHO' || nota.situacao === 'ERRO') && podeEmitir
+  // REJEITADA pode ser reenviada com o mesmo número depois de corrigir o cadastro (rejeição não consome numeração).
+  const podeEmitirAgora = ['RASCUNHO', 'ERRO', 'REJEITADA'].includes(nota.situacao) && podeEmitir
+  const temXml = nota.situacao === 'AUTORIZADA' || nota.situacao === 'DENEGADA'
+
+  async function handleBaixarXml() {
+    try {
+      await baixarXmlNotaFiscal(notaId)
+    } catch {
+      message.error('Não foi possível baixar o XML da NF-e.')
+    }
+  }
 
   return (
     <Flex vertical gap={16}>
@@ -69,18 +81,25 @@ export default function NotaFiscalDetailPage() {
             </Title>
             <Tag color={COR_SITUACAO[nota.situacao]}>{SITUACAO_NOTA_FISCAL_LABEL[nota.situacao]}</Tag>
           </Space>
-          <Tooltip title={podeEmitirAgora ? undefined : 'Sem permissão, ou a nota já foi enviada/autorizada'}>
-            <Button type="primary" icon={<SendOutlined />} disabled={!podeEmitirAgora} loading={emitir.isPending} onClick={handleEmitir}>
-              Emitir
-            </Button>
-          </Tooltip>
+          <Space>
+            {temXml && (
+              <Button icon={<DownloadOutlined />} onClick={handleBaixarXml}>
+                Baixar XML
+              </Button>
+            )}
+            <Tooltip title={podeEmitirAgora ? undefined : 'Sem permissão, ou a nota já foi autorizada/denegada'}>
+              <Button type="primary" icon={<SendOutlined />} disabled={!podeEmitirAgora} loading={emitir.isPending} onClick={handleEmitir}>
+                {nota.situacao === 'RASCUNHO' ? 'Emitir' : 'Reenviar'}
+              </Button>
+            </Tooltip>
+          </Space>
         </Flex>
 
         {nota.mensagemSefaz && (
           <Alert
             style={{ marginTop: 16 }}
-            type={nota.situacao === 'AUTORIZADA' ? 'success' : nota.situacao === 'ERRO' ? 'error' : 'warning'}
-            title="Retorno da SEFAZ/ACBr"
+            type={nota.situacao === 'AUTORIZADA' ? 'success' : nota.situacao === 'ERRO' || nota.situacao === 'DENEGADA' ? 'error' : 'warning'}
+            title={nota.codigoStatusSefaz ? `Retorno da SEFAZ (cStat ${nota.codigoStatusSefaz})` : 'Retorno da SEFAZ'}
             description={nota.mensagemSefaz}
             showIcon
           />

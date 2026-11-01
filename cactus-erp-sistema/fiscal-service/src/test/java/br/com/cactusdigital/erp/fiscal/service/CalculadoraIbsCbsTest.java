@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.cactusdigital.erp.fiscal.client.dto.AliquotaIbsCbsDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.ClassificacaoIbsCbsDTO;
-import br.com.cactusdigital.erp.fiscal.client.dto.ClienteFiscalDTO;
-import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.entity.AmbienteFiscal;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronica;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronicaItem;
@@ -102,31 +100,6 @@ class CalculadoraIbsCbsTest {
         assertThat(semIbsCbs.getValorBaseIbsCbs()).isNull();
     }
 
-    @Test
-    void iniLevaOsGruposNoFormatoDoModeloOficialDoAcbr() {
-        NotaFiscalEletronica nota = nota();
-        NotaFiscalEletronicaItem a = item(1, "100.00", "0", "18.00", "1.65", "7.60");
-        NotaFiscalEletronicaItem b = item(2, "1000.00", "0", null, null, null);
-        NotaFiscalEletronicaItem c = item(3, "50.00", "0", null, null, null);
-        calculadora.calcularItem(a, INTEGRAL, ALIQUOTAS_2026);
-        calculadora.calcularItem(b, REDUCAO_60, ALIQUOTAS_2026);
-        calculadora.calcularItem(c, IMUNIDADE, ALIQUOTAS_2026);
-        nota.getItens().addAll(List.of(a, b, c));
-        calculadora.totalizar(nota);
-
-        String ini = new NfeIniBuilder().construirIniNFe(nota, emitente(), destinatario(), null);
-
-        assertThat(ini).contains("[IBSCBS001]\r\nCST=000\r\ncClassTrib=000001\r\n"
-                + "[gIBSCBS001]\r\nvBC=72.75\r\nvIBS=0.07\r\n"
-                + "[gIBSUF001]\r\npIBSUF=0.1000\r\nvIBSUF=0.07\r\n"
-                + "[gIBSMun001]\r\npIBSMun=0.0000\r\nvIBSMun=0.00\r\n"
-                + "[gCBS001]\r\npCBS=0.9000\r\nvCBS=0.65\r\n");
-        assertThat(ini).contains("[gCBS002]\r\npCBS=0.9000\r\nvCBS=3.60\r\npRedAliq=60.0000\r\npAliqEfet=0.3600\r\n");
-        assertThat(ini).contains("[IBSCBS003]\r\nCST=410\r\ncClassTrib=410001\r\n").doesNotContain("[gIBSCBS003]");
-        assertThat(ini).contains("[IBSCBSTot]\r\nvBCIBSCBS=1072.75\r\n[gIBS]\r\nvIBS=0.47\r\n")
-                .contains("[gCBSTot]\r\nvDif=0.00\r\nvDevTrib=0.00\r\nvCBS=4.25\r\n");
-    }
-
     private static NotaFiscalEletronicaItem item(int numero, String valorTotal, String desconto, String icms, String pis, String cofins) {
         return NotaFiscalEletronicaItem.builder()
                 .numeroItem(numero).produtoId((long) numero).descricao("Produto " + numero).ncm("22021000")
@@ -144,14 +117,5 @@ class CalculadoraIbsCbsTest {
         nota.setId(42L);
         nota.setDataEmissao(Instant.parse("2026-10-25T15:00:00Z"));
         return nota;
-    }
-
-    private static EmpresaFiscalDTO emitente() {
-        return new EmpresaFiscalDTO(1L, "Cactus", "Cactus", "12345678000195", "123", "3",
-                null, "Rua", "1", null, "Centro", "01000000", "Sao Paulo", "SP", 3550308, 35);
-    }
-
-    private static ClienteFiscalDTO destinatario() {
-        return new ClienteFiscalDTO(2L, "Cliente", "JURIDICA", "98765432000110", null, null, List.of(), null);
     }
 }

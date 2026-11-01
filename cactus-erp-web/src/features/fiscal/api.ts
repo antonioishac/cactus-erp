@@ -38,6 +38,11 @@ export async function gerarNotaFiscalDeVenda(vendaId: number): Promise<NotaFisca
   return data
 }
 
+/** nfeProc (NF-e assinada + protocolo) — só existe para nota AUTORIZADA/DENEGADA. */
+export async function baixarXmlNotaFiscal(id: number): Promise<void> {
+  await baixarArquivo(fiscalApi, `/api/v1/notas-fiscais/${id}/xml`, `nfe-${id}.xml`)
+}
+
 export async function emitirNotaFiscal(id: number): Promise<NotaFiscalEletronicaResponse> {
   const { data } = await fiscalApi.post<NotaFiscalEletronicaResponse>(`/api/v1/notas-fiscais/${id}/emitir`)
   return data

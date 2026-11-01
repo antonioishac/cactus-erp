@@ -63,7 +63,25 @@ cactus:
       base-url: ${CACTUS_OS_BASE_URL:http://localhost:8090}
     loja-virtual-service:
       base-url: ${CACTUS_LOJA_VIRTUAL_BASE_URL:http://localhost:8092}
-  # Endereço do ACBr Monitor (processo local, protocolo TCP) — ver common.fiscal.AcbrMonitorClient.
+  # Emissão direta à SEFAZ (NF-e) — ver sefaz.FiscalProperties. Segredos (arquivos e senhas) só por variável de
+  # ambiente/secret manager, nunca neste arquivo. Certificado por alias (o certificadoAlias da configuração fiscal da
+  # empresa): CACTUS_FISCAL_CERTIFICADOS_<ALIAS>_ARQUIVO=file:/run/secrets/empresa.pfx e ..._SENHA.
+  fiscal:
+    permitir-producao: ${CACTUS_FISCAL_PERMITIR_PRODUCAO:false}
+    cadeia-certificados:
+      homologacao:
+        arquivo: ${CACTUS_FISCAL_CADEIA_HOMOLOGACAO_ARQUIVO:}
+        senha: ${CACTUS_FISCAL_CADEIA_HOMOLOGACAO_SENHA:}
+      producao:
+        arquivo: ${CACTUS_FISCAL_CADEIA_PRODUCAO_ARQUIVO:}
+        senha: ${CACTUS_FISCAL_CADEIA_PRODUCAO_SENHA:}
+    responsavel-tecnico:
+      cnpj: ${CACTUS_FISCAL_RESP_TEC_CNPJ:}
+      contato: ${CACTUS_FISCAL_RESP_TEC_CONTATO:}
+      email: ${CACTUS_FISCAL_RESP_TEC_EMAIL:}
+      telefone: ${CACTUS_FISCAL_RESP_TEC_TELEFONE:}
+  # Endereço do ACBr Monitor (processo local, protocolo TCP) — ainda usado por NFC-e, NFS-e, CT-e e MDF-e
+  # (a NF-e já é transmitida direto, ver acima). Ver common.fiscal.AcbrMonitorClient.
   acbr:
     host: ${CACTUS_ACBR_HOST:127.0.0.1}
     porta: ${CACTUS_ACBR_PORTA:3434}

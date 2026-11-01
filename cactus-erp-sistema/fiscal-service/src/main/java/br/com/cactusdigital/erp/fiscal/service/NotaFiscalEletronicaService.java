@@ -3,7 +3,6 @@ package br.com.cactusdigital.erp.fiscal.service;
 import br.com.cactusdigital.erp.common.exception.BusinessException;
 import br.com.cactusdigital.erp.common.exception.ConflictException;
 import br.com.cactusdigital.erp.common.exception.NotFoundException;
-import br.com.cactusdigital.erp.common.fiscal.AcbrMonitorClient;
 import br.com.cactusdigital.erp.common.jpa.PaginatedFetchSupport;
 import br.com.cactusdigital.erp.common.saga.SagaOrchestrator;
 import br.com.cactusdigital.erp.common.saga.SagaStep;
@@ -21,11 +20,15 @@ import br.com.cactusdigital.erp.fiscal.dto.NotaFiscalEletronicaResponse;
 import br.com.cactusdigital.erp.fiscal.entity.AmbienteFiscal;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronica;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronicaItem;
+import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronicaXml;
 import br.com.cactusdigital.erp.fiscal.entity.SituacaoNotaFiscal;
 import br.com.cactusdigital.erp.fiscal.exception.FiscalErrorCode;
 import br.com.cactusdigital.erp.fiscal.mapper.FiscalMapper;
 import br.com.cactusdigital.erp.fiscal.repository.NotaFiscalEletronicaRepository;
-import java.io.IOException;
+import br.com.cactusdigital.erp.fiscal.repository.NotaFiscalEletronicaXmlRepository;
+import br.com.cactusdigital.erp.fiscal.sefaz.EmissorNfe;
+import br.com.cactusdigital.erp.fiscal.sefaz.FalhaComunicacaoSefazException;
+import br.com.cactusdigital.erp.fiscal.sefaz.RetornoSefazNfe;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -37,7 +40,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -46,9 +48,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Compõe e emite uma NF-e a partir de uma {@code VendaCabecalho} (vendas-service, Fase 7)
  * já {@code CONFIRMADA}. Máquina de estados: {@code RASCUNHO} (composta, ainda não
- * enviada) → (emitir) → {@code ENVIADA} → {@code AUTORIZADA}/{@code REJEITADA} (retorno
- * real da SEFAZ, via ACBr) ou {@code ERRO} (falha de transporte/comunicação — não é o
- * mesmo que uma rejeição fiscal).
+ * enviada) → (emitir) → {@code AUTORIZADA}/{@code DENEGADA}/{@code REJEITADA} (retorno
+ * real da SEFAZ, transmitida direto pelo {@link EmissorNfe}, sem ACBr Monitor) ou {@code ERRO}
+ * (falha de transporte/comunicação — não é o mesmo que uma rejeição fiscal).
  * <p>
  * <b>Composição orquestrada via {@link SagaOrchestrator} (terceira aplicação do padrão,
  * ver Javadoc lá)</b>: {@link #gerarDeVenda} reserva o número da NF-e ANTES de montar os
@@ -66,8 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
  * (`SagaExecucao`) quanto no {@code cadastro-base-service} (`NumeroFiscalPulado`).
  * <p>
  * <b>Cancelamento fica fora de escopo desta fase</b> — cancelamento de NF-e tem regra
- * fiscal própria (janela de tempo pós-autorização, evento específico
- * {@code NFE.Cancelar} no ACBr, geração de XML de cancelamento) que não foi construída
+ * fiscal própria (janela de tempo pós-autorização, evento 110111, guarda do XML do
+ * evento) que não foi construída
  * ainda; registrado no CLAUDE.md como próximo passo, não improvisado aqui.
  */
 @Service
@@ -77,8 +79,8 @@ public class NotaFiscalEletronicaService {
     private final NotaFiscalEletronicaRepository repository;
     private final VendaClient vendaClient;
     private final CadastroClient cadastroClient;
-    private final AcbrMonitorClient acbrMonitorClient;
-    private final NfeIniBuilder iniBuilder;
+    private final NotaFiscalEletronicaXmlRepository xmlRepository;
+    private final EmissorNfe emissorNfe;
     private final SagaOrchestrator sagaOrchestrator;
     private final SagaAuditoriaService sagaAuditoriaService;
     private final FiscalMapper mapper;
@@ -89,12 +91,6 @@ public class NotaFiscalEletronicaService {
     private static final String CRT_REGIME_NORMAL = "3";
     /** "Ano de emissão" das alíquotas de IBS/CBS é o do horário oficial de Brasília. */
     private static final ZoneId FUSO_BRASILIA = ZoneId.of("America/Sao_Paulo");
-
-    @Value("${cactus.acbr.host}")
-    private String acbrHost;
-
-    @Value("${cactus.acbr.porta}")
-    private int acbrPorta;
 
     @Transactional(readOnly = true)
     public Page<NotaFiscalEletronicaResponse> listar(Pageable pageable) {
@@ -115,7 +111,7 @@ public class NotaFiscalEletronicaService {
      * {@code Produto} (Fase 1b). Orquestra, via {@link SagaOrchestrator}, a reserva do
      * número da NF-e seguida da montagem de cada item — ver Javadoc da classe pro porquê
      * e pro que a compensação faz de diferente aqui (registra o gap, não tenta reverter o
-     * número). Não chama o ACBr Monitor ainda — isso só acontece em {@link #emitir}.
+     * número). Não transmite nada ainda — isso só acontece em {@link #emitir}.
      */
     @Transactional
     public NotaFiscalEletronicaResponse gerarDeVenda(Long vendaId) {
@@ -211,16 +207,19 @@ public class NotaFiscalEletronicaService {
     }
 
     /**
-     * Monta o comando {@code NFE.CriarEnviarNFe} (via {@link NfeIniBuilder}) e chama o
-     * ACBr Monitor. Nunca deixa a nota em {@code RASCUNHO} indefinidamente: sucesso vira
-     * {@code AUTORIZADA}, rejeição fiscal vira {@code REJEITADA}, falha de comunicação
-     * vira {@code ERRO} — todas persistidas, nenhuma lança exceção que impeça rastrear o
-     * que aconteceu.
+     * Transmite a NF-e à SEFAZ via {@link EmissorNfe}. Aceita {@code RASCUNHO}, {@code REJEITADA} (corrigido o cadastro,
+     * o mesmo número é reenviado — rejeição não consome numeração) e {@code ERRO}.
+     * <p>
+     * Resultado fiscal (autorizada/denegada/rejeitada) é sempre persistido, nunca vira exceção. Falha de comunicação vira
+     * {@code ERRO} com a chave de acesso gravada; na retransmissão a data de emissão original é mantida, para o documento
+     * sair idêntico e uma eventual autorização perdida ser reconciliada pela duplicidade (ver {@code SefazEmissorNfe}).
+     * Erro de montagem, certificado ou ambiente lança 422 e desfaz tudo: nada foi enviado, a nota continua como estava.
      */
     @Transactional
     public NotaFiscalEletronicaResponse emitir(Long id) {
         NotaFiscalEletronica nota = buscarEntidade(id);
-        if (nota.getSituacao() != SituacaoNotaFiscal.RASCUNHO && nota.getSituacao() != SituacaoNotaFiscal.ERRO) {
+        SituacaoNotaFiscal situacao = nota.getSituacao();
+        if (situacao != SituacaoNotaFiscal.RASCUNHO && situacao != SituacaoNotaFiscal.ERRO && situacao != SituacaoNotaFiscal.REJEITADA) {
             throw new ConflictException(FiscalErrorCode.NOTA_FISCAL_SITUACAO_INVALIDA);
         }
 
@@ -229,30 +228,47 @@ public class NotaFiscalEletronicaService {
         ClienteFiscalDTO transportadora = nota.getTransportadoraId() != null
                 ? cadastroClient.buscarTransportadora(nota.getTransportadoraId())
                 : null;
+        EmpresaConfiguracaoFiscalDTO configuracao = cadastroClient.buscarConfiguracaoFiscal(nota.getEmpresaId());
 
-        nota.setDataEmissao(Instant.now());
+        if (situacao != SituacaoNotaFiscal.ERRO || nota.getDataEmissao() == null) {
+            nota.setDataEmissao(Instant.now());
+        }
         if (CRT_REGIME_NORMAL.equals(emitente.crt())) {
             recalcularIbsCbs(nota);
         }
-        String comando = iniBuilder.construirComando(nota, emitente, destinatario, transportadora, 1);
 
-        nota.setSituacao(SituacaoNotaFiscal.ENVIADA);
         try {
-            String resposta = acbrMonitorClient.enviarComando(acbrHost, acbrPorta, comando);
-            if (acbrMonitorClient.respostaComErro(resposta)) {
-                nota.setSituacao(SituacaoNotaFiscal.REJEITADA);
-                nota.setMensagemSefaz(truncar(resposta, 500));
-                return mapper.toResponse(nota);
-            }
-            nota.setSituacao(SituacaoNotaFiscal.AUTORIZADA);
-            nota.setChaveAcesso(extrair(resposta, "ChDFe", 44));
-            nota.setProtocoloAutorizacao(extrair(resposta, "NProt", 30));
-            nota.setMensagemSefaz(truncar("Autorizada.", 500));
-            return mapper.toResponse(nota);
-        } catch (IOException ex) {
+            aplicarRetorno(nota, emissorNfe.autorizar(nota, emitente, destinatario, transportadora, configuracao));
+        } catch (FalhaComunicacaoSefazException ex) {
             nota.setSituacao(SituacaoNotaFiscal.ERRO);
-            nota.setMensagemSefaz(truncar("Falha de comunicação com o ACBr Monitor: " + ex.getMessage(), 500));
-            return mapper.toResponse(nota);
+            nota.setChaveAcesso(ex.getChaveAcesso());
+            nota.setCodigoStatusSefaz(null);
+            nota.setMensagemSefaz(truncar(ex.getMessage(), 500));
+        }
+        return mapper.toResponse(nota);
+    }
+
+    /** {@code nfeProc} da nota autorizada/denegada — o documento fiscal de fato, guarda obrigatória por 5 anos. */
+    @Transactional(readOnly = true)
+    public String buscarXmlProcessado(Long id) {
+        buscarEntidade(id);
+        return xmlRepository.findById(id)
+                .map(NotaFiscalEletronicaXml::getXmlProcessado)
+                .orElseThrow(() -> new BusinessException(FiscalErrorCode.XML_NAO_DISPONIVEL));
+    }
+
+    private void aplicarRetorno(NotaFiscalEletronica nota, RetornoSefazNfe retorno) {
+        nota.setChaveAcesso(retorno.chaveAcesso());
+        nota.setCodigoStatusSefaz(retorno.codigoStatus());
+        nota.setMensagemSefaz(truncar(retorno.codigoStatus() + " - " + retorno.motivo(), 500));
+        nota.setProtocoloAutorizacao(retorno.protocolo());
+        nota.setSituacao(switch (retorno.resultado()) {
+            case AUTORIZADA -> SituacaoNotaFiscal.AUTORIZADA;
+            case DENEGADA -> SituacaoNotaFiscal.DENEGADA;
+            case REJEITADA -> SituacaoNotaFiscal.REJEITADA;
+        });
+        if (retorno.xmlProcessado() != null) {
+            xmlRepository.save(new NotaFiscalEletronicaXml(nota.getId(), retorno.xmlProcessado()));
         }
     }
 
@@ -355,14 +371,6 @@ public class NotaFiscalEletronicaService {
             return null;
         }
         return texto.length() <= max ? texto : texto.substring(0, max);
-    }
-
-    private String extrair(String texto, String chave, int maxLength) {
-        if (texto == null) {
-            return null;
-        }
-        var matcher = java.util.regex.Pattern.compile("(?im)^\\s*" + chave + "\\s*=\\s*(.+?)\\s*$").matcher(texto);
-        return matcher.find() ? truncar(matcher.group(1), maxLength) : null;
     }
 
     NotaFiscalEletronica buscarEntidade(Long id) {
