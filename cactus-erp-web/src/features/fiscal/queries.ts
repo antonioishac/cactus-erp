@@ -5,6 +5,9 @@ import {
   buscarClienteResumo,
   buscarCte,
   buscarNotaFiscal,
+  cancelarNotaFiscal,
+  inutilizarNumeracaoNfe,
+  listarInutilizacoesNfe,
   buscarNotaServico,
   buscarTransportadoraResumo,
   criarListaServico,
@@ -31,6 +34,7 @@ import {
 } from './api'
 import type { CancelarMdfeRequest, EncerrarMdfeRequest, GerarMdfeRequest, MdfeCabecalhoResponse } from './types'
 import type { GerarCteDeVendaRequest, GerarNotaServicoRequest, ListaServicoMunicipalRequest } from './types'
+import type { CancelarNotaFiscalRequest, InutilizarNumeracaoNfeRequest } from './types'
 
 const QUERY_KEY_NOTAS_FISCAIS = ['fiscal-notas-fiscais'] as const
 const queryKeyNotaFiscal = (id: number) => ['fiscal-notas-fiscais', id] as const
@@ -77,6 +81,36 @@ export function useEmitirNotaFiscal(id: number) {
       queryClient.setQueryData(queryKeyNotaFiscal(id), atualizada)
       queryClient.invalidateQueries({ queryKey: QUERY_KEY_NOTAS_FISCAIS })
     },
+  })
+}
+
+export function useCancelarNotaFiscal(id: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: CancelarNotaFiscalRequest) => cancelarNotaFiscal(id, request),
+    onSuccess: (atualizada) => {
+      queryClient.setQueryData(queryKeyNotaFiscal(id), atualizada)
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY_NOTAS_FISCAIS })
+    },
+  })
+}
+
+const QUERY_KEY_INUTILIZACOES_NFE = ['fiscal-inutilizacoes-nfe'] as const
+
+export function useInutilizacoesNfe(empresaId: number | undefined, pagina: number, tamanho = 10) {
+  return useQuery({
+    queryKey: [...QUERY_KEY_INUTILIZACOES_NFE, empresaId, pagina, tamanho],
+    queryFn: () => listarInutilizacoesNfe(empresaId as number, pagina, tamanho),
+    enabled: empresaId != null,
+    placeholderData: (dadosAnteriores) => dadosAnteriores,
+  })
+}
+
+export function useInutilizarNumeracaoNfe() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (request: InutilizarNumeracaoNfeRequest) => inutilizarNumeracaoNfe(request),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY_INUTILIZACOES_NFE }),
   })
 }
 

@@ -15,6 +15,9 @@ public interface NotaFiscalEletronicaRepository extends JpaRepository<NotaFiscal
 
     Optional<NotaFiscalEletronica> findByVendaId(Long vendaId);
 
+    /** Alguma NF-e do ERP (em qualquer situação) usa um número da faixa? Usa o índice empresa/série/número. */
+    boolean existsByEmpresaIdAndSerieAndNumeroBetween(Long empresaId, String serie, Long numeroInicial, Long numeroFinal);
+
     /** {@code LEFT JOIN FETCH} pra evitar N+1 na coleção {@code itens} — ver
      * {@link br.com.cactusdigital.erp.common.jpa.PaginatedFetchSupport}. */
     @Query("SELECT DISTINCT n FROM NotaFiscalEletronica n LEFT JOIN FETCH n.itens WHERE n.id IN :ids")

@@ -30,9 +30,18 @@ public class NotaFiscalEletronicaXml {
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private Instant dataCriacao;
 
+    /** procEventoNFe do cancelamento (110111); nulo enquanto a nota não for cancelada. */
+    @Column(name = "xml_cancelamento", columnDefinition = "MEDIUMTEXT")
+    private String xmlCancelamento;
+
     public NotaFiscalEletronicaXml(Long notaFiscalId, String xmlProcessado) {
         this.notaFiscalId = notaFiscalId;
         this.xmlProcessado = xmlProcessado;
         this.dataCriacao = Instant.now();
+    }
+
+    /** Único acréscimo permitido depois da autorização: o evento de cancelamento. O nfeProc continua intocado. */
+    public void registrarCancelamento(String xmlEventoCancelamento) {
+        this.xmlCancelamento = xmlEventoCancelamento;
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -146,12 +147,16 @@ public class PdvVendaCabecalho {
     private String hashRegistro;
 
     @Column(name = "TIPO_OPERACAO", length = 3, columnDefinition = "CHAR(3)")
-    private String tipoOperacao; // NFC, SAT, MFE, REC
+    private String tipoOperacao; // NFC (NFC-e) | REC (recibo). SAT/MFE extintos em 01/01/2026.
 
-    // === Fiscal — resultado da emissão via ACBr (ver EmissaoFiscalService) ===
+    // === Fiscal — NFC-e direto na SEFAZ (ver EmissaoFiscalService) ===
     // NULL = venda anterior a essa feature, ainda não processada.
 
-    /** P=Pendente reprocessamento | E=Emitido | N=Não configurado (sem ACBr). */
+    /**
+     * N=Não habilitada (recibo) | E=Autorizada | O=Contingência offline aguardando transmissão | R=Rejeitada (requer
+     * correção) | D=Denegada | P=Pendente (falha antes de assinar) | C=Venda cancelada antes da emissão.
+     * Constantes em {@link StatusFiscal}.
+     */
     @Column(name = "STATUS_FISCAL", length = 1, columnDefinition = "CHAR(1)")
     private String statusFiscal;
 
@@ -163,6 +168,23 @@ public class PdvVendaCabecalho {
 
     @Column(name = "MENSAGEM_FISCAL", length = 500)
     private String mensagemFiscal;
+
+    @Column(name = "NFCE_SERIE")
+    private Integer nfceSerie;
+
+    @Column(name = "NFCE_NUMERO")
+    private Long nfceNumero;
+
+    /** 1 = normal, 9 = contingência offline. */
+    @Column(name = "NFCE_TIPO_EMISSAO", length = 1, columnDefinition = "CHAR(1)")
+    private String nfceTipoEmissao;
+
+    /** dhEmi da NFC-e (horário de Brasília). Mantido entre tentativas para o documento sair idêntico. */
+    @Column(name = "NFCE_DATA_HORA_EMISSAO")
+    private LocalDateTime nfceDataHoraEmissao;
+
+    @Column(name = "CODIGO_STATUS_SEFAZ", length = 3)
+    private String codigoStatusSefaz;
 
     @Column(name = "ID_GERADO_DISPOSITIVO")
     private Integer idGeradoDispositivo;
@@ -368,6 +390,21 @@ public class PdvVendaCabecalho {
 
     public String getMensagemFiscal() { return mensagemFiscal; }
     public void setMensagemFiscal(String mensagemFiscal) { this.mensagemFiscal = mensagemFiscal; }
+
+    public Integer getNfceSerie() { return nfceSerie; }
+    public void setNfceSerie(Integer nfceSerie) { this.nfceSerie = nfceSerie; }
+
+    public Long getNfceNumero() { return nfceNumero; }
+    public void setNfceNumero(Long nfceNumero) { this.nfceNumero = nfceNumero; }
+
+    public String getNfceTipoEmissao() { return nfceTipoEmissao; }
+    public void setNfceTipoEmissao(String nfceTipoEmissao) { this.nfceTipoEmissao = nfceTipoEmissao; }
+
+    public LocalDateTime getNfceDataHoraEmissao() { return nfceDataHoraEmissao; }
+    public void setNfceDataHoraEmissao(LocalDateTime nfceDataHoraEmissao) { this.nfceDataHoraEmissao = nfceDataHoraEmissao; }
+
+    public String getCodigoStatusSefaz() { return codigoStatusSefaz; }
+    public void setCodigoStatusSefaz(String codigoStatusSefaz) { this.codigoStatusSefaz = codigoStatusSefaz; }
 
     public Integer getIdGeradoDispositivo() { return idGeradoDispositivo; }
     public void setIdGeradoDispositivo(Integer idGeradoDispositivo) { this.idGeradoDispositivo = idGeradoDispositivo; }

@@ -1,6 +1,7 @@
 package br.com.cactusdigital.erp.fiscal.controller;
 
 import br.com.cactusdigital.erp.common.rest.PageResponse;
+import br.com.cactusdigital.erp.fiscal.dto.CancelarNotaFiscalRequest;
 import br.com.cactusdigital.erp.fiscal.dto.NotaFiscalEletronicaResponse;
 import br.com.cactusdigital.erp.fiscal.service.NotaFiscalEletronicaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -79,6 +82,21 @@ public class NotaFiscalEletronicaController {
     @PreAuthorize("hasAuthority('FISCAL_EMITIR')")
     public NotaFiscalEletronicaResponse emitir(@PathVariable Long id) {
         return service.emitir(id);
+    }
+
+    @Operation(summary = "Cancelar a NF-e na SEFAZ (evento 110111)",
+            description = "Só NF-e AUTORIZADA. O prazo é da SEFAZ (24h na regra geral). Rejeição ou falha de comunicação não alteram a nota")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cancelamento homologado — nota CANCELADA"),
+            @ApiResponse(responseCode = "404", description = "Nota fiscal não encontrada", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "409", description = "Nota não está AUTORIZADA", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "422", description = "SEFAZ rejeitou o cancelamento (ex.: 501 prazo), ou certificado/ambiente não configurado", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "502", description = "Falha de comunicação com a SEFAZ", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @PostMapping("/{id}/cancelar")
+    @PreAuthorize("hasAuthority('FISCAL_GERENCIAR')")
+    public NotaFiscalEletronicaResponse cancelar(@PathVariable Long id, @Valid @RequestBody CancelarNotaFiscalRequest request) {
+        return service.cancelar(id, request);
     }
 
     @Operation(summary = "Baixar o XML processado (nfeProc)", description = "NF-e assinada + protocolo da SEFAZ. Só para notas AUTORIZADA/DENEGADA")

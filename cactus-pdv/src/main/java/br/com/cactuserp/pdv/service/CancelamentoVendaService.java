@@ -2,13 +2,18 @@ package br.com.cactuserp.pdv.service;
 
 import br.com.cactuserp.pdv.config.util.HashCalculator;
 import br.com.cactuserp.pdv.entity.PdvCaixa;
+import br.com.cactuserp.pdv.entity.PdvConfiguracao;
+import br.com.cactuserp.pdv.entity.PdvNfceNumeroPendente;
 import br.com.cactuserp.pdv.entity.PdvOperador;
 import br.com.cactuserp.pdv.entity.PdvVendaCabecalho;
 import br.com.cactuserp.pdv.entity.PdvVendaDetalhe;
 import br.com.cactuserp.pdv.entity.SimNao;
+import br.com.cactuserp.pdv.entity.StatusFiscal;
 import br.com.cactuserp.pdv.entity.StatusMovimento;
 import br.com.cactuserp.pdv.entity.StatusVenda;
 import br.com.cactuserp.pdv.entity.TipoMovimentoEstoque;
+import br.com.cactuserp.pdv.repository.PdvConfiguracaoRepository;
+import br.com.cactuserp.pdv.repository.PdvNfceNumeroPendenteRepository;
 import br.com.cactuserp.pdv.repository.PdvVendaCabecalhoRepository;
 import br.com.cactuserp.pdv.repository.PdvVendaDetalheRepository;
 import org.slf4j.Logger;
@@ -38,7 +43,7 @@ import java.util.List;
  *       do fechamento a conferência já foi apurada contando esta venda, e
  *       cancelar mudaria o "esperado" de um caixa já conferido. Fora do turno,
  *       o caminho é a devolução.</li>
- *   <li><b>NFC-e autorizada</b>: cancela primeiro na SEFAZ (via ACBr), dentro
+ *   <li><b>NFC-e autorizada</b>: cancela primeiro na SEFAZ (evento 110111, direto), dentro
  *       do prazo ({@code cactus.pdv.fiscal.prazo-cancelamento-nfce-minutos},
  *       padrão 30, o prazo da maioria das UFs). Se a SEFAZ não homologar, nada
  *       muda no PDV. SAT/MF-e autorizado: não suportado (comando próprio, não
@@ -64,10 +69,8 @@ public class CancelamentoVendaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CancelamentoVendaService.class);
     private static final DateTimeFormatter FMT_HORA = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static final String STATUS_FISCAL_EMITIDO = "E";
-    private static final String STATUS_FISCAL_PENDENTE = "P";
-    /** Venda cancelada antes de o documento fiscal pendente ser emitido. */
-    static final String STATUS_FISCAL_CANCELADO_SEM_EMISSAO = "C";
+    /** Venda cancelada antes de ter documento fiscal autorizado (ver {@link StatusFiscal#CANCELADA_SEM_EMISSAO}). */
+    static final String STATUS_FISCAL_CANCELADO_SEM_EMISSAO = StatusFiscal.CANCELADA_SEM_EMISSAO;
     static final int JUSTIFICATIVA_MINIMA = 15;
     static final int JUSTIFICATIVA_MAXIMA = 255;
 
@@ -76,6 +79,8 @@ public class CancelamentoVendaService {
     private final DevolucaoService devolucaoService;
     private final EstoqueMovimentoService estoqueMovimentoService;
     private final EmissaoFiscalService emissaoFiscalService;
+    private final PdvNfceNumeroPendenteRepository numeroPendenteRepository;
+    private final PdvConfiguracaoRepository configuracaoRepository;
 
     @Value("${cactus.pdv.fiscal.prazo-cancelamento-nfce-minutos:30}")
     private long prazoCancelamentoNfceMinutos;
@@ -84,12 +89,16 @@ public class CancelamentoVendaService {
                                     PdvVendaDetalheRepository detalheRepository,
                                     DevolucaoService devolucaoService,
                                     EstoqueMovimentoService estoqueMovimentoService,
-                                    EmissaoFiscalService emissaoFiscalService) {
+                                    EmissaoFiscalService emissaoFiscalService,
+                                    PdvNfceNumeroPendenteRepository numeroPendenteRepository,
+                                    PdvConfiguracaoRepository configuracaoRepository) {
         this.cabecalhoRepository = cabecalhoRepository;
         this.detalheRepository = detalheRepository;
         this.devolucaoService = devolucaoService;
         this.estoqueMovimentoService = estoqueMovimentoService;
         this.emissaoFiscalService = emissaoFiscalService;
+        this.numeroPendenteRepository = numeroPendenteRepository;
+        this.configuracaoRepository = configuracaoRepository;
     }
 
     /** Pré-checagem para a tela: devolve o motivo de bloqueio, ou {@code null} se pode cancelar. */
@@ -100,7 +109,7 @@ public class CancelamentoVendaService {
         if (cupom.getPdvMovimento() == null || cupom.getPdvMovimento().getStatusMovimento() != StatusMovimento.A) {
             return "O turno desta venda já foi fechado. Use a devolução.";
         }
-        if (STATUS_FISCAL_EMITIDO.equals(cupom.getStatusFiscal())) {
+        if (temNfceEmitida(cupom)) {
             if (!"NFC".equals(cupom.getTipoOperacao())) {
                 return "Cancelamento de " + cupom.getTipoOperacao() + " não é suportado. Use a devolução.";
             }
@@ -141,11 +150,13 @@ public class CancelamentoVendaService {
         }
 
         String protocolo = null;
-        if (STATUS_FISCAL_EMITIDO.equals(gerenciado.getStatusFiscal())) {
-            PdvCaixa caixa = gerenciado.getPdvMovimento().getCaixa();
+        PdvCaixa caixa = gerenciado.getPdvMovimento().getCaixa();
+        if (temNfceEmitida(gerenciado)) {
+            // Contingência offline: cancelarNfce transmite antes (só se cancela documento autorizado).
             protocolo = emissaoFiscalService.cancelarNfce(caixa, gerenciado, motivo);
             LOGGER.info("NFC-e do cupom #{} cancelada na SEFAZ, protocolo={}", gerenciado.getId(), protocolo);
-        } else if (STATUS_FISCAL_PENDENTE.equals(gerenciado.getStatusFiscal())) {
+        } else if (StatusFiscal.PENDENTE.equals(gerenciado.getStatusFiscal()) || StatusFiscal.REJEITADA.equals(gerenciado.getStatusFiscal())) {
+            liberarNumeroNaoAutorizado(caixa, gerenciado);
             gerenciado.setStatusFiscal(STATUS_FISCAL_CANCELADO_SEM_EMISSAO);
         }
 
@@ -186,6 +197,25 @@ public class CancelamentoVendaService {
         LOGGER.info("Venda finalizada cancelada: cupom={}, valor={}, autorizador={}, protocolo={}",
                 salvo.getId(), salvo.getValorFinal(), gerente.getId(), protocolo);
         return salvo;
+    }
+
+    /** Autorizada ou em contingência offline: há documento fiscal que a SEFAZ conhece (ou vai conhecer). */
+    private static boolean temNfceEmitida(PdvVendaCabecalho cupom) {
+        return StatusFiscal.AUTORIZADA.equals(cupom.getStatusFiscal()) || StatusFiscal.CONTINGENCIA_OFFLINE.equals(cupom.getStatusFiscal());
+    }
+
+    /**
+     * Venda cancelada antes de a NFC-e ser autorizada: o número reservado não vai virar documento — fica para a
+     * regularização (consulta da chave, se houve tentativa; inutilização ou dispensa pela UF).
+     */
+    private void liberarNumeroNaoAutorizado(PdvCaixa caixa, PdvVendaCabecalho cupom) {
+        if (cupom.getNfceNumero() == null || caixa == null
+                || numeroPendenteRepository.existsByIdPdvCaixaAndSerieAndNumero(caixa.getId(), cupom.getNfceSerie(), cupom.getNfceNumero())) {
+            return;
+        }
+        boolean producao = configuracaoRepository.findFirstByCaixaId(caixa.getId()).map(PdvConfiguracao::nfceEmProducao).orElse(false);
+        numeroPendenteRepository.save(new PdvNfceNumeroPendente(caixa.getId(), null, producao ? "1" : "2", cupom.getNfceSerie(),
+                cupom.getNfceNumero(), cupom.getChaveAcessoFiscal(), "Venda cancelada antes da autorização da NFC-e"));
     }
 
     private static LocalDateTime dataHoraVenda(PdvVendaCabecalho cupom) {

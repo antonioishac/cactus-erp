@@ -1,12 +1,14 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Alert, Breadcrumb, Button, Card, Descriptions, Flex, Skeleton, Space, Table, Tag, Tooltip, Typography } from 'antd'
-import { DownloadOutlined, SendOutlined } from '@ant-design/icons'
+import { CloseCircleOutlined, DownloadOutlined, SendOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useAuth } from '@features/auth/useAuth'
 import { hasAuthority } from '@features/auth/authority'
 import ProdutoResumoCell from '@shared/ui/ProdutoResumoCell'
 import { ClienteResumoCell, TransportadoraResumoCell } from './ResumoCells'
 import { baixarXmlNotaFiscal } from './api'
+import CancelarNotaFiscalModal from './modals/CancelarNotaFiscalModal'
 import { useEmitirNotaFiscal, useNotaFiscal } from './queries'
 import { AMBIENTE_FISCAL_LABEL, SITUACAO_NOTA_FISCAL_LABEL } from './types'
 import type { NotaFiscalEletronicaItemResponse } from './types'
@@ -36,6 +38,8 @@ export default function NotaFiscalDetailPage() {
   const { message } = App.useApp()
   const { authorities } = useAuth()
   const podeEmitir = hasAuthority(authorities, 'FISCAL_EMITIR')
+  const podeGerenciar = hasAuthority(authorities, 'FISCAL_GERENCIAR')
+  const [cancelarAberto, setCancelarAberto] = useState(false)
 
   const { data: nota, isLoading } = useNotaFiscal(notaId)
   const emitir = useEmitirNotaFiscal(notaId)
@@ -59,7 +63,8 @@ export default function NotaFiscalDetailPage() {
 
   // REJEITADA pode ser reenviada com o mesmo número depois de corrigir o cadastro (rejeição não consome numeração).
   const podeEmitirAgora = ['RASCUNHO', 'ERRO', 'REJEITADA'].includes(nota.situacao) && podeEmitir
-  const temXml = nota.situacao === 'AUTORIZADA' || nota.situacao === 'DENEGADA'
+  const temXml = nota.situacao === 'AUTORIZADA' || nota.situacao === 'DENEGADA' || nota.situacao === 'CANCELADA'
+  const podeCancelarAgora = nota.situacao === 'AUTORIZADA' && podeGerenciar
 
   async function handleBaixarXml() {
     try {
@@ -86,6 +91,13 @@ export default function NotaFiscalDetailPage() {
               <Button icon={<DownloadOutlined />} onClick={handleBaixarXml}>
                 Baixar XML
               </Button>
+            )}
+            {nota.situacao === 'AUTORIZADA' && (
+              <Tooltip title={podeCancelarAgora ? undefined : 'Sem permissão (FISCAL_GERENCIAR)'}>
+                <Button danger icon={<CloseCircleOutlined />} disabled={!podeCancelarAgora} onClick={() => setCancelarAberto(true)}>
+                  Cancelar NF-e
+                </Button>
+              </Tooltip>
             )}
             <Tooltip title={podeEmitirAgora ? undefined : 'Sem permissão, ou a nota já foi autorizada/denegada'}>
               <Button type="primary" icon={<SendOutlined />} disabled={!podeEmitirAgora} loading={emitir.isPending} onClick={handleEmitir}>
@@ -126,8 +138,19 @@ export default function NotaFiscalDetailPage() {
             {nota.chaveAcesso || '—'}
           </Descriptions.Item>
           <Descriptions.Item label="Protocolo de autorização">{nota.protocoloAutorizacao || '—'}</Descriptions.Item>
+          {nota.situacao === 'CANCELADA' && (
+            <>
+              <Descriptions.Item label="Protocolo de cancelamento">{nota.protocoloCancelamento || '—'}</Descriptions.Item>
+              <Descriptions.Item label="Cancelada em">
+                {nota.dataCancelamento ? dayjs(nota.dataCancelamento).format('DD/MM/YYYY HH:mm') : '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Justificativa do cancelamento">{nota.justificativaCancelamento || '—'}</Descriptions.Item>
+            </>
+          )}
         </Descriptions>
       </Card>
+
+      <CancelarNotaFiscalModal open={cancelarAberto} notaId={nota.id} onClose={() => setCancelarAberto(false)} />
 
       <Card title="Itens">
         <Table<NotaFiscalEletronicaItemResponse>

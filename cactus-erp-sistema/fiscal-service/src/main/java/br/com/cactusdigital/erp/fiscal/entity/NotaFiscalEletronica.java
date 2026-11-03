@@ -69,6 +69,15 @@ public class NotaFiscalEletronica extends BaseEntity {
     @Column(name = "protocolo_autorizacao", length = 30)
     private String protocoloAutorizacao;
 
+    @Column(name = "protocolo_cancelamento", length = 20)
+    private String protocoloCancelamento;
+
+    @Column(name = "data_cancelamento")
+    private Instant dataCancelamento;
+
+    @Column(name = "justificativa_cancelamento", length = 255)
+    private String justificativaCancelamento;
+
     @Column(name = "data_emissao")
     private Instant dataEmissao;
 

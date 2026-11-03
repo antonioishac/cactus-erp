@@ -78,6 +78,7 @@ import ComissoesListPage from '@features/vendas/ComissoesListPage'
 import VendasPdvListPage from '@features/vendas/VendasPdvListPage'
 import NotasFiscaisListPage from '@features/fiscal/NotasFiscaisListPage'
 import NotaFiscalDetailPage from '@features/fiscal/NotaFiscalDetailPage'
+import InutilizacoesNfeListPage from '@features/fiscal/InutilizacoesNfeListPage'
 import CtesListPage from '@features/fiscal/CtesListPage'
 import CteDetailPage from '@features/fiscal/CteDetailPage'
 import MdfesListPage from '@features/fiscal/MdfesListPage'
@@ -416,6 +417,7 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="notas-fiscais" replace /> },
           { path: 'notas-fiscais', element: <NotasFiscaisListPage /> },
           { path: 'notas-fiscais/:id', element: <NotaFiscalDetailPage /> },
+          { path: 'inutilizacoes-nfe', element: <InutilizacoesNfeListPage /> },
           { path: 'ctes', element: <CtesListPage /> },
           { path: 'ctes/:id', element: <CteDetailPage /> },
           { path: 'mdfes', element: <MdfesListPage /> },

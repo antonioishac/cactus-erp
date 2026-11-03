@@ -42,7 +42,7 @@ import java.time.Duration;
  * {@code ContinuaFuncaoSiTefInterativo}/{@code FinalizaFuncaoSiTefInterativo};
  * Pay&amp;Go Web tem DLL equivalente própria), não uma API HTTP/REST local
  * como este cliente assume. O próprio {@code ACBrTEFD} (componente do
- * projeto ACBr, irmão do {@link AcbrMonitorClient} usado no fiscal) integra
+ * projeto ACBr; o fiscal do PDV não usa mais o ACBr) integra
  * com SiTef chamando essa DLL diretamente — não existe um "ACBrMonitor pra
  * TEF" equivalente ao que já usamos pro fiscal. Isso significa que, pra
  * qualquer um dos dois líderes de mercado, a integração real provavelmente

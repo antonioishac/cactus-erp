@@ -2,6 +2,7 @@ package br.com.cactusdigital.erp.fiscal.mapper;
 
 import br.com.cactusdigital.erp.fiscal.dto.CteCabecalhoResponse;
 import br.com.cactusdigital.erp.fiscal.dto.CteComponenteResponse;
+import br.com.cactusdigital.erp.fiscal.dto.InutilizacaoNumeracaoNfeResponse;
 import br.com.cactusdigital.erp.fiscal.dto.ListaServicoMunicipalRequest;
 import br.com.cactusdigital.erp.fiscal.dto.ListaServicoMunicipalResponse;
 import br.com.cactusdigital.erp.fiscal.dto.NotaFiscalConsumidorItemResponse;
@@ -14,6 +15,7 @@ import br.com.cactusdigital.erp.fiscal.dto.SagaExecucaoPassoResponse;
 import br.com.cactusdigital.erp.fiscal.dto.SagaExecucaoResponse;
 import br.com.cactusdigital.erp.fiscal.entity.CteCabecalho;
 import br.com.cactusdigital.erp.fiscal.entity.CteComponente;
+import br.com.cactusdigital.erp.fiscal.entity.InutilizacaoNumeracaoNfe;
 import br.com.cactusdigital.erp.fiscal.entity.ListaServicoMunicipal;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalConsumidor;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalConsumidorItem;
@@ -31,6 +33,8 @@ import org.mapstruct.MappingTarget;
 public interface FiscalMapper {
 
     NotaFiscalEletronicaResponse toResponse(NotaFiscalEletronica notaFiscal);
+
+    InutilizacaoNumeracaoNfeResponse toResponse(InutilizacaoNumeracaoNfe inutilizacao);
 
     NotaFiscalEletronicaItemResponse toResponse(NotaFiscalEletronicaItem item);
 

@@ -16,6 +16,7 @@ import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.ProdutoFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.VendaClienteDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.VendaItemClienteDTO;
+import br.com.cactusdigital.erp.fiscal.dto.CancelarNotaFiscalRequest;
 import br.com.cactusdigital.erp.fiscal.dto.NotaFiscalEletronicaResponse;
 import br.com.cactusdigital.erp.fiscal.entity.AmbienteFiscal;
 import br.com.cactusdigital.erp.fiscal.entity.NotaFiscalEletronica;
@@ -27,6 +28,8 @@ import br.com.cactusdigital.erp.fiscal.mapper.FiscalMapper;
 import br.com.cactusdigital.erp.fiscal.repository.NotaFiscalEletronicaRepository;
 import br.com.cactusdigital.erp.fiscal.repository.NotaFiscalEletronicaXmlRepository;
 import br.com.cactusdigital.erp.fiscal.sefaz.EmissorNfe;
+import br.com.cactusdigital.erp.fiscal.sefaz.EventosNfe;
+import br.com.cactusdigital.erp.fiscal.sefaz.RetornoEventoSefaz;
 import br.com.cactusdigital.erp.fiscal.sefaz.FalhaComunicacaoSefazException;
 import br.com.cactusdigital.erp.fiscal.sefaz.RetornoSefazNfe;
 import java.math.BigDecimal;
@@ -40,6 +43,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -67,9 +72,9 @@ import org.springframework.transaction.annotation.Transactional;
  * uma perda silenciosa em um registro auditável tanto no {@code fiscal-service}
  * (`SagaExecucao`) quanto no {@code cadastro-base-service} (`NumeroFiscalPulado`).
  * <p>
- * <b>Cancelamento fica fora de escopo desta fase</b> — cancelamento de NF-e tem regra
- * fiscal própria (janela de tempo pós-autorização, evento 110111, guarda do XML do
- * evento) que não foi construída
+ * <b>Cancelamento</b> ({@link #cancelar}, evento 110111) só de nota {@code AUTORIZADA}; o prazo é
+ * decidido pela SEFAZ (24h na regra geral, extemporâneo em algumas UFs). Carta de correção
+ * ainda não foi construída
  * ainda; registrado no CLAUDE.md como próximo passo, não improvisado aqui.
  */
 @Service
@@ -81,6 +86,9 @@ public class NotaFiscalEletronicaService {
     private final CadastroClient cadastroClient;
     private final NotaFiscalEletronicaXmlRepository xmlRepository;
     private final EmissorNfe emissorNfe;
+    private final EventosNfe eventosNfe;
+
+    private static final Logger log = LoggerFactory.getLogger(NotaFiscalEletronicaService.class);
     private final SagaOrchestrator sagaOrchestrator;
     private final SagaAuditoriaService sagaAuditoriaService;
     private final FiscalMapper mapper;
@@ -245,6 +253,44 @@ public class NotaFiscalEletronicaService {
             nota.setCodigoStatusSefaz(null);
             nota.setMensagemSefaz(truncar(ex.getMessage(), 500));
         }
+        return mapper.toResponse(nota);
+    }
+
+    /**
+     * Cancela uma NF-e {@code AUTORIZADA} na SEFAZ (evento 110111). Rejeição (ex.: 501, prazo expirado) volta como 422
+     * com o cStat e o motivo, e falha de comunicação como 502 — nos dois casos a nota continua {@code AUTORIZADA} e
+     * válida, nada é alterado. Homologado (135/155), a nota vira {@code CANCELADA} e o {@code procEventoNFe} é guardado
+     * junto do {@code nfeProc}.
+     */
+    @Transactional
+    public NotaFiscalEletronicaResponse cancelar(Long id, CancelarNotaFiscalRequest request) {
+        NotaFiscalEletronica nota = buscarEntidade(id);
+        if (nota.getSituacao() != SituacaoNotaFiscal.AUTORIZADA) {
+            throw new ConflictException(FiscalErrorCode.NOTA_FISCAL_SITUACAO_INVALIDA, "Só NF-e AUTORIZADA pode ser cancelada (situação atual: " + nota.getSituacao() + ")");
+        }
+        EmpresaFiscalDTO emitente = cadastroClient.buscarEmpresa(nota.getEmpresaId());
+        EmpresaConfiguracaoFiscalDTO configuracao = cadastroClient.buscarConfiguracaoFiscal(nota.getEmpresaId());
+
+        RetornoEventoSefaz retorno;
+        try {
+            retorno = eventosNfe.cancelar(nota, emitente, configuracao, request.justificativa());
+        } catch (FalhaComunicacaoSefazException ex) {
+            throw new BusinessException(FiscalErrorCode.FALHA_COMUNICACAO_SEFAZ, ex.getMessage());
+        }
+        if (!retorno.homologado()) {
+            throw new BusinessException(FiscalErrorCode.SEFAZ_REJEITOU_DOCUMENTO,
+                    "Cancelamento rejeitado pela SEFAZ: " + retorno.codigoStatus() + " - " + retorno.motivo());
+        }
+
+        nota.setSituacao(SituacaoNotaFiscal.CANCELADA);
+        nota.setProtocoloCancelamento(retorno.protocolo());
+        nota.setDataCancelamento(retorno.dataRegistro());
+        nota.setJustificativaCancelamento(request.justificativa());
+        nota.setCodigoStatusSefaz(retorno.codigoStatus());
+        nota.setMensagemSefaz(truncar(retorno.codigoStatus() + " - " + retorno.motivo(), 500));
+        xmlRepository.findById(id).ifPresentOrElse(
+                xml -> xml.registrarCancelamento(retorno.xml()),
+                () -> log.warn("NF-e #{} cancelada (protocolo {}) sem nfeProc guardado para anexar o evento", id, retorno.protocolo()));
         return mapper.toResponse(nota);
     }
 

@@ -64,6 +64,9 @@ export interface NotaFiscalEletronicaResponse {
   numero?: number
   chaveAcesso?: string
   protocoloAutorizacao?: string
+  protocoloCancelamento?: string | null
+  dataCancelamento?: string | null
+  justificativaCancelamento?: string | null
   dataEmissao?: string
   ambiente?: AmbienteFiscal
   valorTotal: number
@@ -296,4 +299,47 @@ export const COR_SITUACAO_MDFE: Record<SituacaoNotaFiscal, string> = {
   ERRO: 'error',
   CANCELADA: 'default',
   ENCERRADA: 'blue',
+}
+
+// --- Cancelamento e inutilização de NF-e (emissão direta à SEFAZ) ---
+
+/** Justificativa do evento de cancelamento (110111): 15 a 255 caracteres. */
+export interface CancelarNotaFiscalRequest {
+  justificativa: string
+}
+
+/** DISPENSADA: AC/BA/SP desde 01/11/2026 (Ajuste SINIEF 40/2026) — nada vai à SEFAZ, o salto só é registrado. */
+export type SituacaoInutilizacao = 'HOMOLOGADA' | 'REJEITADA' | 'DISPENSADA'
+
+export const SITUACAO_INUTILIZACAO_LABEL: Record<SituacaoInutilizacao, string> = {
+  HOMOLOGADA: 'Homologada',
+  REJEITADA: 'Rejeitada',
+  DISPENSADA: 'Dispensada (UF)',
+}
+
+/** `serie` omitida = série de NF-e configurada na empresa. */
+export interface InutilizarNumeracaoNfeRequest {
+  empresaId: number
+  serie?: string
+  numeroInicial: number
+  numeroFinal: number
+  justificativa: string
+}
+
+export interface InutilizacaoNumeracaoNfeResponse {
+  id: number
+  empresaId: number
+  modelo: string
+  serie: string
+  numeroInicial: number
+  numeroFinal: number
+  ano: number
+  ambiente: AmbienteFiscal
+  justificativa: string
+  situacao: SituacaoInutilizacao
+  protocolo: string | null
+  codigoStatusSefaz: string | null
+  mensagemSefaz: string | null
+  dataHomologacao: string | null
+  dataCriacao: string
 }

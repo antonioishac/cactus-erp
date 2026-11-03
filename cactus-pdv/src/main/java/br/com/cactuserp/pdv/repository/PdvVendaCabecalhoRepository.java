@@ -84,6 +84,9 @@ public interface PdvVendaCabecalhoRepository extends JpaRepository<PdvVendaCabec
      */
     List<PdvVendaCabecalho> findByStatusFiscal(String statusFiscal);
 
+    /** Cupons em contingência offline, do mais antigo para o mais novo (prazo legal de transmissão corre por emissão). */
+    List<PdvVendaCabecalho> findByStatusFiscalOrderByNfceDataHoraEmissaoAsc(String statusFiscal);
+
     /**
      * Busca o cupom com {@code cliente} já carregado (JOIN FETCH) — evita
      * {@code LazyInitializationException} quando o caller precisa acessar
@@ -92,6 +95,10 @@ public interface PdvVendaCabecalhoRepository extends JpaRepository<PdvVendaCabec
      */
     @Query("SELECT v FROM PdvVendaCabecalho v LEFT JOIN FETCH v.cliente WHERE v.id = :id")
     Optional<PdvVendaCabecalho> buscarComCliente(@Param("id") Long id);
+
+    /** Cupom com movimento e caixa carregados — usado fora de transação pelo reprocessamento fiscal. */
+    @Query("SELECT v FROM PdvVendaCabecalho v LEFT JOIN FETCH v.pdvMovimento m LEFT JOIN FETCH m.caixa WHERE v.id = :id")
+    Optional<PdvVendaCabecalho> buscarComMovimentoECaixa(@Param("id") Long id);
 
     /**
      * Conta quantas vendas FECHADAS um cliente já fez — usado por

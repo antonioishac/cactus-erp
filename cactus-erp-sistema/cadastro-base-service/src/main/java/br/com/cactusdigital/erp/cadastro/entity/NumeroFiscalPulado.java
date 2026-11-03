@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,4 +54,11 @@ public class NumeroFiscalPulado extends BaseEntity {
 
     @Column(name = "motivo", length = 500)
     private String motivo;
+
+    /** nProt da inutilização homologada pela SEFAZ que regularizou este número; nulo = ainda pendente. */
+    @Column(name = "protocolo_inutilizacao", length = 20)
+    private String protocoloInutilizacao;
+
+    @Column(name = "data_regularizacao")
+    private Instant dataRegularizacao;
 }

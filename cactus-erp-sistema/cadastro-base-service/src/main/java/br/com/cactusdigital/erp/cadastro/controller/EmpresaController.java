@@ -10,6 +10,8 @@ import br.com.cactusdigital.erp.cadastro.dto.EmpresaRequest;
 import br.com.cactusdigital.erp.cadastro.dto.EmpresaResponse;
 import br.com.cactusdigital.erp.cadastro.dto.NumeroFiscalPuladoRequest;
 import br.com.cactusdigital.erp.cadastro.dto.NumeroFiscalPuladoResponse;
+import br.com.cactusdigital.erp.cadastro.dto.RegularizacaoNumerosFiscaisResponse;
+import br.com.cactusdigital.erp.cadastro.dto.RegularizarNumerosFiscaisPuladosRequest;
 import br.com.cactusdigital.erp.cadastro.service.ConfiguracaoOperacionalLojaService;
 import br.com.cactusdigital.erp.cadastro.service.EmpresaConfiguracaoFiscalService;
 import br.com.cactusdigital.erp.cadastro.service.EmpresaRegimeTributarioService;
@@ -267,7 +269,22 @@ public class EmpresaController {
     @ApiResponse(responseCode = "200", description = "Página de números pulados")
     @GetMapping("/{id}/configuracao-fiscal/numeros-fiscais-pulados")
     @PreAuthorize("hasAuthority('CADASTRO_EMPRESA_CONSULTAR')")
-    public PageResponse<NumeroFiscalPuladoResponse> listarNumerosFiscaisPulados(@PathVariable Long id, Pageable pageable) {
-        return PageResponse.of(configuracaoFiscalService.listarNumerosPulados(id, pageable));
+    public PageResponse<NumeroFiscalPuladoResponse> listarNumerosFiscaisPulados(
+            @PathVariable Long id, @RequestParam(defaultValue = "false") boolean somentePendentes, Pageable pageable) {
+        return PageResponse.of(configuracaoFiscalService.listarNumerosPulados(id, somentePendentes, pageable));
+    }
+
+    @Operation(summary = "Regularizar números fiscais pulados (inutilização homologada)",
+            description = "Chamado pelo fiscal-service quando a SEFAZ homologa a inutilização de uma faixa: os números pulados pendentes dentro dela recebem o protocolo. Idempotente")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Quantidade de números regularizados (0 é válido)"),
+            @ApiResponse(responseCode = "404", description = "Empresa não encontrada", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "422", description = "Número final menor que o inicial", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    @PostMapping("/{id}/configuracao-fiscal/numeros-fiscais-pulados/regularizar")
+    @PreAuthorize("hasAuthority('CADASTRO_EMPRESA_EDITAR')")
+    public RegularizacaoNumerosFiscaisResponse regularizarNumerosFiscaisPulados(
+            @PathVariable Long id, @Valid @RequestBody RegularizarNumerosFiscaisPuladosRequest request) {
+        return configuracaoFiscalService.regularizarNumerosPulados(id, request);
     }
 }

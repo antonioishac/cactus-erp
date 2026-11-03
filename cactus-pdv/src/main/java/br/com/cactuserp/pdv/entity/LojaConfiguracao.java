@@ -21,7 +21,7 @@ import jakarta.persistence.*;
  * <h3>Dados do emitente (fase 6 — fiscal)</h3>
  * <p>CNPJ/IE/razão social/endereço são os dados obrigatórios da seção
  * {@code [Emitente]} do layout NFCe.INI do ACBr — sem eles não é possível
- * montar um documento fiscal válido. Ver {@code AcbrComandoFiscalBuilder}.
+ * montar um documento fiscal válido. Ver {@code NfceDocumentoBuilder}.
  */
 @Entity
 @Table(name = "LOJA_CONFIGURACAO")

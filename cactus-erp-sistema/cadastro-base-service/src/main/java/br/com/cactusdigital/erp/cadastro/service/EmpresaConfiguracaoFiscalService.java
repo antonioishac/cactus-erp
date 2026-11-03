@@ -4,6 +4,8 @@ import br.com.cactusdigital.erp.cadastro.dto.EmpresaConfiguracaoFiscalRequest;
 import br.com.cactusdigital.erp.cadastro.dto.EmpresaConfiguracaoFiscalResponse;
 import br.com.cactusdigital.erp.cadastro.dto.NumeroFiscalPuladoRequest;
 import br.com.cactusdigital.erp.cadastro.dto.NumeroFiscalPuladoResponse;
+import br.com.cactusdigital.erp.cadastro.dto.RegularizacaoNumerosFiscaisResponse;
+import br.com.cactusdigital.erp.cadastro.dto.RegularizarNumerosFiscaisPuladosRequest;
 import br.com.cactusdigital.erp.cadastro.entity.Empresa;
 import br.com.cactusdigital.erp.cadastro.entity.EmpresaConfiguracaoFiscal;
 import br.com.cactusdigital.erp.cadastro.entity.NumeroFiscalPulado;
@@ -14,6 +16,7 @@ import br.com.cactusdigital.erp.cadastro.repository.EmpresaRepository;
 import br.com.cactusdigital.erp.cadastro.repository.NumeroFiscalPuladoRepository;
 import br.com.cactusdigital.erp.common.exception.BusinessException;
 import br.com.cactusdigital.erp.common.exception.NotFoundException;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -165,8 +168,30 @@ public class EmpresaConfiguracaoFiscalService {
         return mapper.toResponse(numeroFiscalPuladoRepository.save(entidade));
     }
 
+    /** @param somentePendentes só os que ainda não foram regularizados por uma inutilização homologada. */
     @Transactional(readOnly = true)
-    public Page<NumeroFiscalPuladoResponse> listarNumerosPulados(Long empresaId, Pageable pageable) {
-        return numeroFiscalPuladoRepository.findByEmpresaId(empresaId, pageable).map(mapper::toResponse);
+    public Page<NumeroFiscalPuladoResponse> listarNumerosPulados(Long empresaId, boolean somentePendentes, Pageable pageable) {
+        Page<NumeroFiscalPulado> pagina = somentePendentes
+                ? numeroFiscalPuladoRepository.findByEmpresaIdAndDataRegularizacaoIsNull(empresaId, pageable)
+                : numeroFiscalPuladoRepository.findByEmpresaId(empresaId, pageable);
+        return pagina.map(mapper::toResponse);
+    }
+
+    /**
+     * Chamado pelo fiscal-service depois que a SEFAZ homologa a inutilização de uma faixa: os números pulados
+     * pendentes dentro dela ganham o protocolo e a data. Idempotente (só toca os pendentes) e não exige que a faixa
+     * inteira esteja no ledger: inutilizar números que nunca foram registrados aqui é legítimo.
+     */
+    @Transactional
+    public RegularizacaoNumerosFiscaisResponse regularizarNumerosPulados(Long empresaId, RegularizarNumerosFiscaisPuladosRequest request) {
+        if (!empresaRepository.existsById(empresaId)) {
+            throw NotFoundException.of("Empresa", empresaId);
+        }
+        if (request.numeroFinal() < request.numeroInicial()) {
+            throw new BusinessException(CadastroErrorCode.FAIXA_NUMERACAO_INVALIDA);
+        }
+        int quantidade = numeroFiscalPuladoRepository.regularizarFaixa(empresaId, request.tipoDocumento(), request.serie(),
+                request.numeroInicial(), request.numeroFinal(), request.protocoloInutilizacao(), Instant.now());
+        return new RegularizacaoNumerosFiscaisResponse(quantidade);
     }
 }

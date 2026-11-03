@@ -2,6 +2,9 @@ import { cadastroBaseApi, fiscalApi } from '@shared/api/httpClients'
 import { baixarArquivo, type FormatoRelatorio } from '@shared/api/download'
 import type { PageResponse } from '@shared/api/pageResponse'
 import type {
+  CancelarNotaFiscalRequest,
+  InutilizacaoNumeracaoNfeResponse,
+  InutilizarNumeracaoNfeRequest,
   ClienteResumo,
   CancelarMdfeRequest,
   CteCabecalhoResponse,
@@ -41,6 +44,32 @@ export async function gerarNotaFiscalDeVenda(vendaId: number): Promise<NotaFisca
 /** nfeProc (NF-e assinada + protocolo) — só existe para nota AUTORIZADA/DENEGADA. */
 export async function baixarXmlNotaFiscal(id: number): Promise<void> {
   await baixarArquivo(fiscalApi, `/api/v1/notas-fiscais/${id}/xml`, `nfe-${id}.xml`)
+}
+
+export async function cancelarNotaFiscal(id: number, request: CancelarNotaFiscalRequest): Promise<NotaFiscalEletronicaResponse> {
+  const { data } = await fiscalApi.post<NotaFiscalEletronicaResponse>(`/api/v1/notas-fiscais/${id}/cancelar`, request)
+  return data
+}
+
+export async function listarInutilizacoesNfe(
+  empresaId: number,
+  pagina: number,
+  tamanho = 10,
+): Promise<PageResponse<InutilizacaoNumeracaoNfeResponse>> {
+  const { data } = await fiscalApi.get<PageResponse<InutilizacaoNumeracaoNfeResponse>>('/api/v1/inutilizacoes-nfe', {
+    params: { empresaId, page: pagina, size: tamanho, sort: 'id,desc' },
+  })
+  return data
+}
+
+export async function inutilizarNumeracaoNfe(request: InutilizarNumeracaoNfeRequest): Promise<InutilizacaoNumeracaoNfeResponse> {
+  const { data } = await fiscalApi.post<InutilizacaoNumeracaoNfeResponse>('/api/v1/inutilizacoes-nfe', request)
+  return data
+}
+
+/** retInutNFe — existe para homologadas e rejeitadas com retorno da SEFAZ. */
+export async function baixarXmlInutilizacaoNfe(id: number): Promise<void> {
+  await baixarArquivo(fiscalApi, `/api/v1/inutilizacoes-nfe/${id}/xml`, `inutilizacao-nfe-${id}.xml`)
 }
 
 export async function emitirNotaFiscal(id: number): Promise<NotaFiscalEletronicaResponse> {

@@ -6,12 +6,15 @@ import br.com.cactuserp.pdv.entity.PdvVendaCabecalho;
 import br.com.cactuserp.pdv.entity.StatusVenda;
 import br.com.cactuserp.pdv.repository.PdvOperadorRepository;
 import br.com.cactuserp.pdv.repository.PdvVendaCabecalhoRepository;
+import br.com.cactuserp.pdv.service.fiscal.NfceConfigFactory;
+import br.com.cactuserp.pdv.service.fiscal.TransmissorNfce;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -21,15 +24,18 @@ import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * Integração contra o MySQL LOCAL do PDV ({@code cactus_pdv}), sempre em
  * transação revertida ao fim de cada teste — nada fica no banco. Não roda no
  * {@code mvn test} padrão (sufixo IT, fora do padrão do Surefire); rodar com
  * {@code -Dtest=CancelamentoVendaServiceIT}, banco no ar e {@code DB_PASSWORD}
- * definido. O cenário de NFC-e precisa de um ACBr Monitor FALSO em
- * 127.0.0.1:3535 (responde CStat=135, ou 218 quando a justificativa contém
- * "REJEITAR") — nunca o ACBr real.
+ * definido. A SEFAZ é simulada pela porta {@link TransmissorNfce} (CStat 135, ou
+ * 218 quando a justificativa contém "REJEITAR") — nunca a SEFAZ real; a
+ * configuração (certificado/cadeia) também é simulada.
  *
  * <p>Usa vendas já existentes no banco de desenvolvimento: #43 (recibo, 10
  * itens) e #41 (3 itens), ambas F com o turno aberto.
@@ -47,6 +53,8 @@ class CancelamentoVendaServiceIT {
     @Autowired private PdvOperadorRepository operadorRepository;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private EntityManager em;
+    @MockitoBean private TransmissorNfce transmissor;
+    @MockitoBean private NfceConfigFactory configFactory;
 
     private PdvOperador operador;
     private PdvOperador gerente;
@@ -55,6 +63,12 @@ class CancelamentoVendaServiceIT {
     void preparar() {
         operador = operadorRepository.findById(2L).orElseThrow();
         gerente = operadorRepository.findById(1L).orElseThrow();
+        when(transmissor.cancelar(anyString(), any(), anyString(), any())).thenAnswer(i -> {
+            String justificativa = i.getArgument(2);
+            return justificativa.contains("REJEITAR")
+                    ? new TransmissorNfce.RetornoEvento(false, "218", "NF-e ja esta cancelada na base de dados da SEFAZ", null, null)
+                    : new TransmissorNfce.RetornoEvento(true, "135", "Evento registrado e vinculado a NF-e", "135260000999888", "<procEventoNFe/>");
+        });
     }
 
     @Test
@@ -152,8 +166,8 @@ class CancelamentoVendaServiceIT {
         jdbc.update("UPDATE PDV_VENDA_CABECALHO SET STATUS_FISCAL='E', TIPO_OPERACAO='NFC', "
                         + "CHAVE_ACESSO_FISCAL='35260812345678000199650010000001231234567890', DATA_VENDA=?, HORA_VENDA=? WHERE ID=?",
                 LocalDate.now(), horaVenda.format(DateTimeFormatter.ofPattern("HH:mm:ss")), VENDA_NFCE);
-        jdbc.update("INSERT INTO PDV_CONFIGURACAO (ID_PDV_CAIXA, ACBR_MONITOR_ENDERECO, ACBR_MONITOR_PORTA, MODULO_FISCAL_PRINCIPAL) "
-                + "VALUES (1, '127.0.0.1', 3535, 'NFC-E')");
+        jdbc.update("INSERT INTO PDV_CONFIGURACAO (ID_PDV_CAIXA, NFCE_HABILITADA, NFCE_AMBIENTE, NFCE_SERIE, NFCE_PROXIMO_NUMERO) "
+                + "VALUES (1, 'S', '2', 5, 200)");
         jdbc.update("UPDATE LOJA_CONFIGURACAO SET CNPJ='12345678000199'");
         em.clear();
     }

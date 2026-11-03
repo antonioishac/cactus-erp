@@ -68,21 +68,25 @@ public class PdvConfiguracao {
     @Column(name = "PLANO_SITUACAO", length = 1, columnDefinition = "CHAR(1)")
     private PlanoSituacao planoSituacao;
 
-    // === Fiscal — integração ACBr Monitor (ver fase 6 do ROADMAP.md) ===
+    // === Fiscal — NFC-e direto na SEFAZ (sql/2026-11-01_nfce_emissao_direta.sql) ===
+    // Certificado A1 e cadeia TLS não ficam no banco: vêm de cactus.pdv.fiscal.* (variáveis de ambiente).
 
-    @Column(name = "ACBR_MONITOR_ENDERECO", length = 250)
-    private String acbrMonitorEndereco;
+    /** S = o terminal emite NFC-e; N = só recibo (sem documento fiscal). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "NFCE_HABILITADA", length = 1, columnDefinition = "CHAR(1)", nullable = false)
+    private SimNao nfceHabilitada = SimNao.N;
 
-    @Column(name = "ACBR_MONITOR_PORTA")
-    private Integer acbrMonitorPorta;
+    /** 1 = Produção, 2 = Homologação. */
+    @Column(name = "NFCE_AMBIENTE", length = 1, columnDefinition = "CHAR(1)", nullable = false)
+    private String nfceAmbiente = "2";
 
-    /** NFC-E | SAT | MFE — ver constantes em EmissaoFiscalService. */
-    @Column(name = "MODULO_FISCAL_PRINCIPAL", length = 5, columnDefinition = "CHAR(5)")
-    private String moduloFiscalPrincipal;
+    /** Série própria do terminal (0-999) — nunca a mesma de outro terminal ou do ERP. */
+    @Column(name = "NFCE_SERIE")
+    private Integer nfceSerie;
 
-    /** NFC-E | SAT | MFE — usado quando o principal falha. */
-    @Column(name = "MODULO_FISCAL_CONTINGENCIA", length = 5, columnDefinition = "CHAR(5)")
-    private String moduloFiscalContingencia;
+    /** Próximo número livre da série; só {@code NumeracaoNfceService} altera. */
+    @Column(name = "NFCE_PROXIMO_NUMERO")
+    private Long nfceProximoNumero;
 
     /** Nome da impressora (cadastrada no SO) usada pela impressão térmica ESC/POS. */
     @Column(name = "NOME_IMPRESSORA_CUPOM", length = 150)
@@ -162,17 +166,21 @@ public class PdvConfiguracao {
     public PlanoSituacao getPlanoSituacao() { return planoSituacao; }
     public void setPlanoSituacao(PlanoSituacao planoSituacao) { this.planoSituacao = planoSituacao; }
 
-    public String getAcbrMonitorEndereco() { return acbrMonitorEndereco; }
-    public void setAcbrMonitorEndereco(String v) { this.acbrMonitorEndereco = v; }
+    public SimNao getNfceHabilitada() { return nfceHabilitada; }
+    public void setNfceHabilitada(SimNao v) { this.nfceHabilitada = v; }
 
-    public Integer getAcbrMonitorPorta() { return acbrMonitorPorta; }
-    public void setAcbrMonitorPorta(Integer v) { this.acbrMonitorPorta = v; }
+    public boolean emiteNfce() { return nfceHabilitada == SimNao.S; }
 
-    public String getModuloFiscalPrincipal() { return moduloFiscalPrincipal; }
-    public void setModuloFiscalPrincipal(String v) { this.moduloFiscalPrincipal = v; }
+    public String getNfceAmbiente() { return nfceAmbiente; }
+    public void setNfceAmbiente(String v) { this.nfceAmbiente = v; }
 
-    public String getModuloFiscalContingencia() { return moduloFiscalContingencia; }
-    public void setModuloFiscalContingencia(String v) { this.moduloFiscalContingencia = v; }
+    public boolean nfceEmProducao() { return "1".equals(nfceAmbiente); }
+
+    public Integer getNfceSerie() { return nfceSerie; }
+    public void setNfceSerie(Integer v) { this.nfceSerie = v; }
+
+    public Long getNfceProximoNumero() { return nfceProximoNumero; }
+    public void setNfceProximoNumero(Long v) { this.nfceProximoNumero = v; }
 
     public String getNomeImpressoraCupom() { return nomeImpressoraCupom; }
     public void setNomeImpressoraCupom(String v) { this.nomeImpressoraCupom = v; }

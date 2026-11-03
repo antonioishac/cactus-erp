@@ -21,6 +21,7 @@
     <properties>
         <java.version>21</java.version>
         <javafx.version>21.0.2</javafx.version>
+        <wmixvideo-nfe.version>5.1.11</wmixvideo-nfe.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -69,6 +70,25 @@
         </dependency>
 
         <!-- Balança (fase 7) — leitura serial Toledo/Filizola -->
+        <!-- NFC-e direto na SEFAZ (montagem, assinatura A1, validação XSD, QR Code v3, contingência offline,
+             cancelamento e inutilização), sem ACBr Monitor. Mesma biblioteca do fiscal-service do ERP.
+             stax-api/xpp3 (transitivos antigos do simple-xml) são excluídos: o JDK já traz StAX. -->
+        <dependency>
+            <groupId>com.github.wmixvideo</groupId>
+            <artifactId>nfe</artifactId>
+            <version>${wmixvideo-nfe.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>stax</groupId>
+                    <artifactId>stax-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xpp3</groupId>
+                    <artifactId>xpp3</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>com.fazecast</groupId>
             <artifactId>jSerialComm</artifactId>

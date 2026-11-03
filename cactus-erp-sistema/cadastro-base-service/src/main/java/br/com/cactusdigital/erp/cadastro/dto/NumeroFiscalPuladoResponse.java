@@ -10,5 +10,7 @@ public record NumeroFiscalPuladoResponse(
         String serie,
         Long numero,
         String motivo,
+        String protocoloInutilizacao,
+        Instant dataRegularizacao,
         Instant dataCriacao) {
 }

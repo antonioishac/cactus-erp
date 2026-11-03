@@ -642,10 +642,20 @@ outros itens deste backlog.
       `application.yml` do ERP.
 - [ ] **NF-e: forma de pagamento da venda → `tPag` da SEFAZ** (2026-10-31) — hoje
       vai um `detPag` único com `tPag=99` no valor da nota.
-- [ ] **NF-e: próximas fatias da emissão direta** (2026-10-31) — cancelamento
-      (110111), carta de correção, inutilização (fecharia `NumeroFiscalPulado`),
-      DANF-E em PDF, operação interestadual (CFOP 6xxx/DIFAL), CST com ST/redução
-      de base e CSOSN com crédito; depois NFC-e, CT-e e MDF-e pela mesma biblioteca.
+- [ ] **NF-e: próximas fatias da emissão direta** (2026-10-31; cancelamento e
+      inutilização feitos em 2026-11-01) — carta de correção, DANF-E em PDF,
+      operação interestadual (CFOP 6xxx/DIFAL), CST com ST/redução de base e CSOSN
+      com crédito; depois NFC-e, CT-e e MDF-e pela mesma biblioteca.
+- [ ] **NF-e cancelada trava a venda** (2026-11-01) — `uk_nota_fiscal_venda`
+      (unique em `venda_id`) e `existsByVendaId` impedem gerar uma NF-e nova para a
+      mesma venda depois do cancelamento. Decidir a regra (permitir nova NF-e só
+      quando todas as anteriores estão CANCELADA/REJEITADA?) antes de mexer na
+      constraint. Também: o vendas-service não é avisado do cancelamento.
+- [ ] **Cancelamento/inutilização: casos de retorno ainda não tratados**
+      (2026-11-01) — duplicidade de evento (573) após resposta perdida é tratada como
+      rejeição (a nota continua AUTORIZADA localmente embora cancelada na SEFAZ:
+      reconciliar por consulta da chave); cancelamento extemporâneo (155) é aceito
+      sem nenhum aviso adicional ao usuário.
 - [ ] **`fiscal-service`: emissão real via ACBr Monitor nunca foi testada
       (NF-e, NFS-e, CT-e e agora NFC-e)** — `POST /notas-fiscais/{id}/emitir`,
       `POST /notas-servico/{id}/emitir`, `POST /ctes/{id}/emitir` e

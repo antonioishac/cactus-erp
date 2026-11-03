@@ -374,6 +374,12 @@ export const MODULE_NAV: ModuleNavEntry[] = [
         requiredAuthorities: ['FISCAL_CONSULTAR'],
       },
       {
+        key: 'fiscal-inutilizacoes-nfe',
+        label: 'Inutilização de NF-e',
+        path: '/fiscal/inutilizacoes-nfe',
+        requiredAuthorities: ['FISCAL_CONSULTAR'],
+      },
+      {
         key: 'fiscal-ctes',
         label: 'CT-e',
         path: '/fiscal/ctes',

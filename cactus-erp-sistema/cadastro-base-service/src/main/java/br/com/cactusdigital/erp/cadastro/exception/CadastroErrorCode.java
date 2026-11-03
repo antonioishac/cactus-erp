@@ -40,7 +40,8 @@ public enum CadastroErrorCode implements ErrorCode {
     CLASSIFICACAO_IBS_CBS_NAO_SUPORTADA("Classificação tributária do IBS/CBS ainda não suportada pelo ERP", HttpStatus.UNPROCESSABLE_ENTITY),
     CLASSIFICACAO_IBS_CBS_FORA_DE_VIGENCIA("Classificação tributária do IBS/CBS fora de vigência", HttpStatus.UNPROCESSABLE_ENTITY),
     ALIQUOTA_IBS_CBS_NAO_DEFINIDA("Não há alíquota de IBS/CBS definida em lei para o ano de emissão", HttpStatus.UNPROCESSABLE_ENTITY),
-    CONFIGURACAO_FISCAL_INCOMPLETA("A empresa não tem série de NF-e configurada — complete a configuração fiscal antes de emitir", HttpStatus.UNPROCESSABLE_ENTITY);
+    CONFIGURACAO_FISCAL_INCOMPLETA("A empresa não tem série de NF-e configurada — complete a configuração fiscal antes de emitir", HttpStatus.UNPROCESSABLE_ENTITY),
+    FAIXA_NUMERACAO_INVALIDA("O número final da faixa não pode ser menor que o inicial", HttpStatus.UNPROCESSABLE_ENTITY);
 
     private final String mensagemPadrao;
     private final HttpStatus httpStatusPadrao;

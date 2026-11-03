@@ -8,6 +8,7 @@ import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaConfiguracaoFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.EmpresaFiscalDTO;
 import br.com.cactusdigital.erp.fiscal.client.dto.NumeroFiscalPuladoClientRequest;
 import br.com.cactusdigital.erp.fiscal.client.dto.ProdutoFiscalDTO;
+import br.com.cactusdigital.erp.fiscal.client.dto.RegularizarNumerosPuladosClientRequest;
 import br.com.cactusdigital.erp.fiscal.exception.FiscalErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -137,6 +138,23 @@ public class CadastroClient {
         } catch (RestClientException ex) {
             throw new BusinessException(FiscalErrorCode.FALHA_INTEGRACAO_CADASTRO,
                     "Falha ao registrar número de NF-e pulado da empresa #" + empresaId + " no cadastro-base-service: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Depois de uma inutilização homologada: marca como regularizados os números pulados pendentes da faixa. Lança
+     * {@code FALHA_INTEGRACAO_CADASTRO}; quem chama decide se é fatal (não é — a inutilização já vale na SEFAZ).
+     */
+    public void regularizarNumerosNfePulados(Long empresaId, String serie, Long numeroInicial, Long numeroFinal, String protocolo) {
+        try {
+            cadastroBaseRestClient.post()
+                    .uri("/api/v1/empresas/{id}/configuracao-fiscal/numeros-fiscais-pulados/regularizar", empresaId)
+                    .body(new RegularizarNumerosPuladosClientRequest("NFE", serie, numeroInicial, numeroFinal, protocolo))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientException ex) {
+            throw new BusinessException(FiscalErrorCode.FALHA_INTEGRACAO_CADASTRO,
+                    "Falha ao regularizar números de NF-e pulados da empresa #" + empresaId + " no cadastro-base-service: " + ex.getMessage());
         }
     }
 

@@ -51,6 +51,8 @@ public interface EmpresaMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "empresaId", ignore = true)
+    @Mapping(target = "protocoloInutilizacao", ignore = true)
+    @Mapping(target = "dataRegularizacao", ignore = true)
     NumeroFiscalPulado toEntity(NumeroFiscalPuladoRequest request);
 
     @Mapping(target = "empresaId", source = "empresa.id")

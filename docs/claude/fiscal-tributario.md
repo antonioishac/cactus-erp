@@ -239,3 +239,36 @@ Feito em 2026-10-31: o fiscal-service subiu com a V10 aplicada (`cactus_fiscal` 
 ## Próximas fatias
 NFC-e no fiscal-service (QR Code e CSC já suportados pela biblioteca), cancelamento (evento 110111) e carta de correção, inutilização de numeração (fecharia o `NumeroFiscalPulado`), DANF-E em PDF, CT-e e MDF-e pela mesma biblioteca. O `cactus-pdv` continua no ACBr (NFC-e lá é produção validada), conforme a recomendação de `ANALISE_SWCONSULTORIA_VS_ACBR.md`.
 
+# NF-e: CANCELAMENTO E INUTILIZAÇÃO DIRETOS À SEFAZ (2026-11-01)
+
+Segunda fatia da emissão direta. Mesma biblioteca, porta separada da autorização: `EventosNfe` (cancelar/inutilizar), implementada por `SefazEventosNfe`. `EmissorNfe` continua só com a autorização (responsabilidades e retornos diferentes).
+
+## Cancelamento — `POST /notas-fiscais/{id}/cancelar` (`FISCAL_GERENCIAR`)
+- Só `AUTORIZADA` (409 nos demais). Justificativa 15-255 (`CancelarNotaFiscalRequest`, e o validador da biblioteca também exige).
+- **Prazo não é checado localmente**: 24h é a regra geral, mas há UFs com cancelamento extemporâneo (cStat 155); a SEFAZ decide e a rejeição 501 volta com o motivo. (O MDF-e checa 24h localmente porque lá o prazo é fixo.)
+- Lote do evento precisa voltar 128; evento 135/155 = homologado. Homologado: `CANCELADA`, `protocolo_cancelamento`/`data_cancelamento`/`justificativa_cancelamento`, cStat gravado, e o `procEventoNFe` vai para `nota_fiscal_eletronica_xml.xml_cancelamento` (o `nfeProc` original fica intocado — os dois são documentos fiscais).
+- Rejeição = 422 com cStat e motivo; falha de rede = 502. **Nos dois casos a nota continua `AUTORIZADA` e válida** (mesmo critério dos eventos do MDF-e).
+
+## Inutilização — `POST /inutilizacoes-nfe` (`FISCAL_GERENCIAR`), `GET /inutilizacoes-nfe?empresaId=`, `GET /inutilizacoes-nfe/{id}/xml`
+Recusado localmente, antes de qualquer rede (`InutilizacaoNumeracaoNfeService`):
+- faixa invertida, série fora de 0-999 (422);
+- **número ainda não reservado** (`numeroFinal >= proximoNumeroNfe` da série configurada, 422): inutilizar à frente do contador faria a NF-e ser rejeitada quando ele chegasse lá;
+- número que pertence a qualquer NF-e do ERP, em qualquer situação (409) — RASCUNHO/REJEITADA/ERRO ainda podem ser emitidas, AUTORIZADA/CANCELADA já são documento;
+- sobreposição com faixa já homologada (409).
+
+Ano com 2 dígitos do horário de Brasília. Toda resposta da SEFAZ vira registro em `inutilizacao_numeracao_nfe` (HOMOLOGADA = cStat 102, ou REJEITADA), com o `retInutNFe` assinado pela SEFAZ (a biblioteca não tem classe de `procInutNFe`; o retorno assinado com o protocolo é a prova). Falha de rede = 502 e nada registrado.
+
+**Fecha o ciclo do `NumeroFiscalPulado`**: homologada, o fiscal-service chama `POST /empresas/{id}/configuracao-fiscal/numeros-fiscais-pulados/regularizar` no cadastro-base-service (V14: `protocolo_inutilizacao`, `data_regularizacao`; bulk update só dos pendentes, idempotente). Best-effort: a inutilização já vale na SEFAZ e não se desfaz, então uma falha ali só é logada. `GET .../numeros-fiscais-pulados?somentePendentes=true` lista o que ainda falta inutilizar.
+
+## Migrations
+fiscal-service `V11__nfe_cancelamento_inutilizacao.sql` (+ índice `empresa_id, serie, numero` para a checagem de faixa); cadastro-base-service `V14__numero_fiscal_pulado_regularizacao.sql`. **Aplicadas no MySQL local em 2026-11-01**, os dois serviços subiram com `ddl-auto=validate`.
+
+## Frontend
+`NotaFiscalDetailPage`: botão "Cancelar NF-e" (só AUTORIZADA, `FISCAL_GERENCIAR`), dados do cancelamento, XML também para CANCELADA. Tela nova `InutilizacoesNfeListPage` (`/fiscal/inutilizacoes-nfe`, menu Fiscal) com `InutilizarNumeracaoModal`.
+
+## Validação
+- `InutilizacaoNumeracaoNfeServiceTest` (8): faixa invertida, número não reservado, faixa com NF-e, faixa já inutilizada (nenhum toca a SEFAZ); homologada registra e regulariza; falha no cadastro não desfaz; rejeitada registra sem regularizar; falha de rede não registra nada.
+- `CancelamentoNotaFiscalEletronicaTest` (4): situação inválida não chama a SEFAZ; rejeição 501 e falha de rede mantêm AUTORIZADA; homologado cancela, preserva o protocolo de autorização e anexa o evento sem tocar o nfeProc.
+- fiscal-service 25/25; frontend `tsc`/`oxlint`/13 testes.
+- **Não validado**: nenhum evento foi enviado à SEFAZ (mesmo bloqueio de certificado A1 de homologação). Casos 573 e 155, e a trava de nova NF-e para venda com nota cancelada: ver BACKLOG.
+
